@@ -32,27 +32,27 @@ mutual
                      {X : VType} →
                      x ⦂ X ∈ Γ →
                      -------------
-                     Γ ⊢ var x ⦂ X
+                     Γ ⊢ ` x ⦂ X
 
     ty-val-const   : {Γ : Context}
                      {c : Σ} → 
-                     ---------------------------
-                     Γ ⊢ const c ⦂ ground (ar c)
+                     --------------------
+                     Γ ⊢ ∣ c ∣ ⦂ G (ar c)
 
     ty-val-fun     : {Γ : Context}
                      {X : VType}
                      {m : CTerm}
                      {C : CType} →
                      Γ ∷ X ⊢ m ⦂⦂ C → 
-                     ---------------------
-                     Γ ⊢ lam m ⦂ arrow X C
+                     ---------------
+                     Γ ⊢ ƛ m ⦂ X ⇒ C
 
     ty-val-promise : {Γ : Context}
                      {v : VTerm}
                      {X : VType} →
                      Γ ⊢ v ⦂ X → 
                      -------------------------
-                     Γ ⊢ promise v ⦂ promise X
+                     Γ ⊢ ⟨ v ⟩ ⦂ ⟨ X ⟩
 
   data _⊢_⦂⦂_ : Context → CTerm → CType → Set where
     ty-comp-return    : {Γ : Context}
@@ -72,16 +72,16 @@ mutual
                         Γ ⊢ m ⦂⦂ X ! (o , i) →
                         Γ ∷ X ⊢ n ⦂⦂ Y ! (o , i) →
                         -----------------------------
-                        Γ ⊢ let-in m n ⦂⦂ Y ! (o , i)
+                        Γ ⊢ `let m `in n ⦂⦂ Y ! (o , i)
 
     ty-comp-apply     : {Γ : Context}
                         {v w : VTerm}
                         {X : VType}
                         {C : CType} → 
-                        Γ ⊢ v ⦂ arrow X C →
+                        Γ ⊢ v ⦂ X ⇒ C →
                         Γ ⊢ w ⦂ X →
                         ------------------
-                        Γ ⊢ apply v w ⦂⦂ C
+                        Γ ⊢ v · w ⦂⦂ C
 
     ty-comp-signal    : {Γ : Context}
                         {op : Σₒ}
@@ -91,10 +91,10 @@ mutual
                         {o : O}
                         {i : I} →
                         op ∈ₒ o → 
-                        Γ ⊢ v ⦂ ground (arₒ op) →
+                        Γ ⊢ v ⦂ G (arₒ op) →
                         Γ ⊢ m ⦂⦂ X ! (o , i) → 
                         --------------------------------
-                        Γ ⊢ signal op v m ⦂⦂ X ! (o , i)
+                        Γ ⊢ ↑ op v m ⦂⦂ X ! (o , i)
                      
     ty-comp-interrupt : {Γ : Context}
                         {op : Σᵢ}
@@ -103,10 +103,10 @@ mutual
                         {X : VType}
                         {o : O}
                         {i : I} →
-                        Γ ⊢ v ⦂ ground (arᵢ op) →
+                        Γ ⊢ v ⦂ G (arᵢ op) →
                         Γ ⊢ m ⦂⦂ X ! (o , i) → 
-                        ------------------------------------------
-                        Γ ⊢ interrupt op v m ⦂⦂ X ! (op ↓ (o , i))
+                        -----------------------------------
+                        Γ ⊢ ↓ op v m ⦂⦂ X ! (op ↓ₑ (o , i))
 
     ty-comp-promise  : {Γ : Context}
                        {op : Σᵢ}
@@ -115,18 +115,18 @@ mutual
                        {o o' : O}
                        {i i' : I} →
                        lkpᵢ op i ≡ just (o' , i') →
-                       Γ ∷ ground (arᵢ op) ⊢ m ⦂⦂ X ! (o' , i') →
+                       Γ ∷ G (arᵢ op) ⊢ m ⦂⦂ X ! (o' , i') →
                        Γ ∷ X ⊢ n ⦂⦂ Y ! (o , i) → 
-                       -----------------------------------
-                       Γ ⊢ promise op m X n ⦂⦂ Y ! (o , i)
+                       ---------------------------------------------
+                       Γ ⊢ promise op ↦ m `as X `in n ⦂⦂ Y ! (o , i)
 
     ty-comp-await   : {Γ : Context}
                       {v : VTerm}
                       {m : CTerm}
                       {X : VType}
                       {C : CType} → 
-                      Γ ⊢ v ⦂ promise X →
+                      Γ ⊢ v ⦂ ⟨ X ⟩ →
                       Γ ∷ X ⊢ m ⦂⦂ C →
-                      ------------------
-                      Γ ⊢ await v m ⦂⦂ C
+                      ------------------------
+                      Γ ⊢ await v until m ⦂⦂ C
 

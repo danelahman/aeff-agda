@@ -45,6 +45,6 @@ _↓ᵢ_ : Σᵢ → O × I → I
 op ↓ᵢ (omap o , imap i) =
   imap (λ op' → if op ≡ op' then maybe (λ { (omap o' , imap i') → i' op' }) nothing (i op) else i op')
 
-_↓_ : Σᵢ → O × I → O × I
-op ↓ (omap o , imap i) =
+_↓ₑ_ : Σᵢ → O × I → O × I
+op ↓ₑ (omap o , imap i) =
   (op ↓ₒ ( omap o , imap i ) , op ↓ᵢ (omap o , imap i))

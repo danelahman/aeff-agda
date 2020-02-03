@@ -13,17 +13,17 @@ postulate ar : Σ → GType -- arity assignment to ground constants
 
 mutual
   data VTerm : Set where
-    var     : ℕ → VTerm
-    const   : Σ → VTerm
-    lam     : CTerm → VTerm
-    promise : VTerm → VTerm
+    `   : ℕ → VTerm
+    ∣_∣ : Σ → VTerm
+    ƛ   : CTerm → VTerm
+    ⟨_⟩ : VTerm → VTerm
 
   data CTerm : Set where
-    return    : VTerm → CTerm
-    let-in    : CTerm → CTerm → CTerm
-    apply     : VTerm → VTerm → CTerm
-    signal    : Σₒ → VTerm → CTerm → CTerm
-    interrupt : Σᵢ → VTerm → CTerm → CTerm
-    promise   : Σᵢ → CTerm → VType → CTerm → CTerm
-    await     : VTerm → CTerm → CTerm
+    return             : VTerm → CTerm
+    `let_`in_          : CTerm → CTerm → CTerm
+    _·_                : VTerm → VTerm → CTerm
+    ↑                  : Σₒ → VTerm → CTerm → CTerm
+    ↓                  : Σᵢ → VTerm → CTerm → CTerm
+    promise_↦_`as_`in_ : Σᵢ → CTerm → VType → CTerm → CTerm
+    await_until_       : VTerm → CTerm → CTerm
     

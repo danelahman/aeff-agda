@@ -10,11 +10,12 @@ GType = BType
 
 mutual
   data VType : Set where
-    ground  : GType → VType
-    arrow   : VType → CType → VType
-    promise : VType → VType
+    G   : GType → VType
+    _⇒_ : VType → CType → VType
+    ⟨_⟩ : VType → VType
 
   data CType : Set where
     _!_ : VType → O × I → CType
 
+infix 30 _⇒_
 infix 30 _!_
