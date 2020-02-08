@@ -126,7 +126,6 @@ opₒ-in-↓ₑ-lem {omap o} {imap i} {op} {op'} p with i (op)
 _⊑ₒ_ : O → O → Set
 o ⊑ₒ o' = (op : Σₒ) → op ∈ₒ o → op ∈ₒ o'
 
-
 ⊑ₒ-refl : {o : O} →
           ---------
           o ⊑ₒ o
@@ -197,7 +196,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ⊑ᵢ-trans-aux op {o} {i'''} r with p op r
     ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t with q op r'
     ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t | o''' , j''' , r'' , s' , t' =
-      o''' , (j''' , ({!!} , (⊑ₒ-trans s s' , ⊑ᵢ-trans t t')))
+      o''' , (j''' , (r'' , (⊑ₒ-trans s s' , ⊑ᵢ-trans t t')))
             
 
 
