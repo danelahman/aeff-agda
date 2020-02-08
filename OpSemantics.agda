@@ -143,7 +143,8 @@ mutual
                    ↓ op V (promise op ∣ p ↦ M `in N )
                    ↝
                    (let= (coerce (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]ₛ ]ₘ)) `in
-                     (coerce (⊑ₒ-↓ₑ-o-lem p) (⊑ᵢ-↓ₑ-i-lem {o} p)
-                        ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]ₛ ]ₘ)))
+                     ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]ₛ ]ₘ))
+
+    
 
   data _↝ₑ_ {Γ : Ctx} {C : CType} : Γ ⊢E⦂ C → Γ ⊢E⦂ C → Set where
