@@ -1,7 +1,7 @@
 open import Calculus
 open import Operations
 open import Renamings
-open import Types
+open import Types hiding (``)
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
@@ -16,29 +16,40 @@ lift s (Tl x) = V-rename Tl (s x)
 
 mutual
 
-  V-subst : {Γ Γ' : Ctx}  → Sub Γ Γ'  → {X : VType}  → Γ ⊢V⦂ X  → Γ' ⊢V⦂ X
-  V-subst s (` x) =
+  infix 40 _[_]ᵥ
+  infix 40 _[_]ₘ
+
+  _[_]ᵥ : {Γ Γ' : Ctx} → {X : VType} → Γ ⊢V⦂ X → Sub Γ Γ' → Γ' ⊢V⦂ X
+  (` x) [ s ]ᵥ =
     s x
-  V-subst s (`` c) =
+  (`` c) [ s ]ᵥ =
     `` c
-  V-subst s (ƛ M) =
-    ƛ (M-subst (lift s) M)
-  V-subst s ⟨ V ⟩ =
-    ⟨ V-subst s V ⟩
+  (ƛ M) [ s ]ᵥ =
+    ƛ (M [ lift s ]ₘ)
+  ⟨ V ⟩ [ s ]ᵥ =
+    ⟨ V [ s ]ᵥ ⟩
 
-  M-subst : {Γ Γ' : Ctx}  → Sub Γ Γ'  → {C : CType}  → Γ ⊢M⦂ C  → Γ' ⊢M⦂ C
-  M-subst s (return V) =
-    return (V-subst s V)
-  M-subst s (let= M `in N) =
-    let= M-subst s M `in M-subst (lift s) N
-  M-subst s (V · W) =
-    V-subst s V · V-subst s W
-  M-subst s (↑ op p V M) =
-    ↑ op p (V-subst s V) (M-subst s M)
-  M-subst s (↓ op V M) =
-    ↓ op (V-subst s V) (M-subst s M)
-  M-subst s (promise op ∣ p ↦ M `in N) =
-    promise op ∣ p ↦ M-subst (lift s) M `in M-subst (lift s) N
-  M-subst s (await V until M) =
-    await V-subst s V until M-subst (lift s) M
+  _[_]ₘ : {Γ Γ' : Ctx} → {C : CType} → Γ ⊢M⦂ C → Sub Γ Γ'  → Γ' ⊢M⦂ C
+  (return V) [ s ]ₘ =
+    return (V [ s ]ᵥ)
+  (let= M `in N) [ s ]ₘ =
+    let= (M [ s ]ₘ) `in (N [ lift s ]ₘ)
+  (V · W) [ s ]ₘ =
+    (V [ s ]ᵥ) · (W [ s ]ᵥ)
+  (↑ op p V M) [ s ]ₘ =
+    ↑ op p (V [ s ]ᵥ) (M [ s ]ₘ)
+  (↓ op V M) [ s ]ₘ =
+    ↓ op (V [ s ]ᵥ) (M [ s ]ₘ)
+  (promise op ∣ p ↦ M `in N) [ s ]ₘ =
+    promise op ∣ p ↦ (M [ lift s ]ₘ) `in (N [ lift s ]ₘ)
+  (await V until M) [ s ]ₘ =
+    await (V [ s ]ᵥ) until (M [ lift s ]ₘ)
+  (coerce p q M) [ s ]ₘ =
+    coerce p q (M [ s ]ₘ)
 
+id-subst : {Γ : Ctx} → Sub Γ Γ
+id-subst x = ` x
+
+_[_]ₛ : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Γ' ⊢V⦂ X → Sub (Γ ∷ X) Γ'
+(s [ V ]ₛ) Hd = V
+(s [ V ]ₛ) (Tl x) = s x

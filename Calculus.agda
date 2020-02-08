@@ -38,7 +38,7 @@ mutual
           
     ``_  : (c : Σₖ) →
           --------------
-          Γ ⊢V⦂ G (arₖ c)
+          Γ ⊢V⦂ ``(arₖ c)
           
     ƛ   : {X : VType}
           {C : CType} →
@@ -54,61 +54,72 @@ mutual
 
   data _⊢M⦂_ (Γ : Ctx) : CType → Set where
 
-    return         : {X : VType}
-                     {o : O}
-                     {i : I} →
-                     Γ ⊢V⦂ X →
-                     -----------------
-                     Γ ⊢M⦂ X ! (o , i)
+    return           : {X : VType}
+                       {o : O}
+                       {i : I} →
+                       Γ ⊢V⦂ X →
+                       -----------------
+                       Γ ⊢M⦂ X ! (o , i)
 
-    let=_`in_      : {X Y : VType}
-                     {o : O}
-                     {i : I} → 
-                     Γ ⊢M⦂ X ! (o , i) →
-                     Γ ∷ X ⊢M⦂ Y ! (o , i) →
-                     -----------------------
-                     Γ ⊢M⦂ Y ! (o , i)
+    let=_`in_        : {X Y : VType}
+                       {o : O}
+                       {i : I} → 
+                       Γ ⊢M⦂ X ! (o , i) →
+                       Γ ∷ X ⊢M⦂ Y ! (o , i) →
+                       -----------------------
+                       Γ ⊢M⦂ Y ! (o , i)
 
-    _·_            : {X : VType}
-                     {C : CType} → 
-                     Γ ⊢V⦂ X ⇒ C →
-                     Γ ⊢V⦂ X →
-                     -------------
-                     Γ ⊢M⦂ C
+    _·_              : {X : VType}
+                       {C : CType} → 
+                       Γ ⊢V⦂ X ⇒ C →
+                       Γ ⊢V⦂ X →
+                       -------------
+                       Γ ⊢M⦂ C
 
-    ↑              : {X : VType}
-                     {o : O}
-                     {i : I} →
-                     (op : Σₒ) →
-                     op ∈ₒ o →
-                     Γ ⊢V⦂ G (arₒ op) →
-                     Γ ⊢M⦂ X ! (o , i) →
-                     -------------------
-                     Γ ⊢M⦂ X ! (o , i)
+    ↑                : {X : VType}
+                       {o : O}
+                       {i : I} →
+                       (op : Σₒ) →
+                       op ∈ₒ o →
+                       Γ ⊢V⦂ ``(arₒ op) →
+                       Γ ⊢M⦂ X ! (o , i) →
+                       -------------------
+                       Γ ⊢M⦂ X ! (o , i)
 
-    ↓              : {X : VType}
-                     {o : O}
-                     {i : I}
-                     (op : Σᵢ) →
-                     Γ ⊢V⦂ G (arᵢ op) →
-                     Γ ⊢M⦂ X ! (o , i) →
-                     ----------------------
-                     Γ ⊢M⦂ X ! op ↓ₑ (o , i)
+    ↓                : {X : VType}
+                       {o : O}
+                       {i : I}
+                       (op : Σᵢ) →
+                       Γ ⊢V⦂ ``(arᵢ op) →
+                       Γ ⊢M⦂ X ! (o , i) →
+                       ----------------------
+                       Γ ⊢M⦂ X ! op ↓ₑ (o , i)
 
     promise_∣_↦_`in_ : {X Y : VType}
-                     {o o' : O}
-                     {i i' : I} → 
-                     (op : Σᵢ) →
-                     lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ G (arᵢ op) ⊢M⦂ X ! (o' , i') →
-                     Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i) →
-                     ----------------------------------
-                     Γ ⊢M⦂ Y ! (o , i)
+                       {o o' : O}
+                       {i i' : I} → 
+                       (op : Σᵢ) →
+                       lkpᵢ op i ≡ just (o' , i') →
+                       Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
+                       Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i) →
+                       ----------------------------------
+                       Γ ⊢M⦂ Y ! (o , i)
 
-    await_until_   : {X : VType}
-                     {C : CType} → 
-                     Γ ⊢V⦂ ⟨ X ⟩ →
-                     Γ ∷ X ⊢M⦂ C →
-                     --------------
-                     Γ ⊢M⦂ C
+    await_until_     : {X : VType}
+                       {C : CType} → 
+                       Γ ⊢V⦂ ⟨ X ⟩ →
+                       Γ ∷ X ⊢M⦂ C →
+                       --------------
+                       Γ ⊢M⦂ C
+
+    coerce           : {X : VType}
+                       {o o' : O}
+                       {i i' : I} →
+                       o ⊑ₒ o' →
+                       i ⊑ᵢ i' → 
+                       Γ ⊢M⦂ X ! (o , i) →
+                       -------------------
+                       Γ ⊢M⦂ X ! (o' , i')
+                       
                         
+infix 40 _·_

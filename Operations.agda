@@ -24,24 +24,32 @@ if op ≡ op' then x else y with decᵢ op op'
 
 mutual
   data O : Set where                                         -- set of effect annotations of outgoing signals
-    omap : (Σₒ → Bool) → O
+    omap : (Σₒ → Maybe ⊤) → O
 
   data I : Set where                                         -- set of effect annotations of incoming interrupts
     imap : (Σᵢ → Maybe (O × I)) → I
 
 _∈ₒ_ : Σₒ → O → Set
-op ∈ₒ (omap o) = T (o op)
+op ∈ₒ (omap o) =
+  o op ≡ just tt
 
 lkpᵢ : Σᵢ → I → Maybe (O × I)
 lkpᵢ op (imap i) = i op
 
-_[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
-(imap i) [ op ↦ v ]ᵢ =
-  imap λ op' → if op ≡ op' then v else i op'
+_⊑ₒ_ : O → O → Set
+o ⊑ₒ o' = (op : Σₒ) → op ∈ₒ o → op ∈ₒ o'
+
+_⊑ᵢ_ : I → I → Set
+i ⊑ᵢ i' = (op : Σᵢ) → {oi : O × I} → lkpᵢ op i ≡ just oi → lkpᵢ op i' ≡ just oi
+
+∪ₒ-aux : (o o' : Σₒ → Maybe ⊤) → Σₒ → Maybe ⊤
+∪ₒ-aux o o' op with o (op) 
+∪ₒ-aux o o' op | nothing = o' (op)
+∪ₒ-aux o o' op | just tt = just tt
 
 _∪ₒ_ : O → O → O
 (omap o) ∪ₒ (omap o') =
-  omap (λ op → o op ∨ o' op)
+  omap (∪ₒ-aux o o')
 
 {-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
 ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)      -- smaller than i' (op) when i' (op) = just (o'' , i'').
@@ -57,7 +65,11 @@ _∪ₒ_ : O → O → O
 
 _∪ᵢ_ : I → I → I
 (imap i) ∪ᵢ (imap i') =
-  imap (λ op → ∪ᵢ-aux i i' op)
+  imap (∪ᵢ-aux i i')
+
+_[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
+(imap i) [ op ↦ v ]ᵢ =
+  imap λ op' → if op ≡ op' then v else i op'
 
 infix 40 _↓ₑ_
 
@@ -67,3 +79,76 @@ op ↓ₑ (omap o , imap i) with i (op)
   (omap o , imap i)
 ... | just (o' , i') =
   ((omap o) ∪ₒ o') , (((imap i) [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+
+opₒ-in-∪ₒ-lem : {o o' : O}
+               {op : Σₒ} →
+               op ∈ₒ o →
+               --------------
+               op ∈ₒ (o ∪ₒ o')
+
+opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} p with o (op)
+opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} refl | just .tt = refl
+
+opₒ-in-↓ₑ-lem : {o : O}
+               {i : I}
+               {op : Σᵢ}
+               {op' : Σₒ} →
+               op' ∈ₒ o →
+               ---------------------------
+               op' ∈ₒ proj₁ (op ↓ₑ (o , i))
+               
+opₒ-in-↓ₑ-lem {omap o} {imap i} {op} {op'} p with i (op)
+... | nothing = p
+... | just (o' , i') = opₒ-in-∪ₒ-lem p
+
+
+⊑ₒ-↓ₑ-o-lem : {o o' : O}
+             {i i' : I}
+             {op : Σᵢ} → 
+             lkpᵢ op i ≡ just (o' , i') → 
+             ---------------------------
+             o ⊑ₒ proj₁ (op ↓ₑ (o , i))
+             
+⊑ₒ-↓ₑ-o-lem {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
+⊑ₒ-↓ₑ-o-lem {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
+  λ op' → ⊑ₒ-↓ₑ-o-lem-aux {o} {o'} {op'}        
+
+  where
+    ⊑ₒ-↓ₑ-o-lem-aux : {o o' : Σₒ → Maybe ⊤}
+                 {op : Σₒ} →
+                 o op ≡ just tt →
+                 ------------------------
+                 ∪ₒ-aux o o' op ≡ just tt
+
+    ⊑ₒ-↓ₑ-o-lem-aux {o} {o'} {op} p with o op
+    ⊑ₒ-↓ₑ-o-lem-aux {o} {o'} {op} p | just tt = refl
+
+
+
+⊑ᵢ-↓ₑ-i-lem : {o o' : O}
+             {i i' : I}
+             {op : Σᵢ} → 
+             lkpᵢ op i ≡ just (o' , i') → 
+             ---------------------------
+             i ⊑ᵢ proj₂ (op ↓ₑ (o , i))
+
+⊑ᵢ-↓ₑ-i-lem p = {!!}
+
+
+postulate ⊑ₒ-↓ₑ-o'-lem : {o o' : O}
+           {i i' : I}
+           {op : Σᵢ} → 
+           lkpᵢ op i ≡ just (o' , i') → 
+           ---------------------------
+           o' ⊑ₒ proj₁ (op ↓ₑ (o , i))
+
+postulate ⊑ᵢ-↓ₑ-i'-lem : {o o' : O}
+           {i i' : I}
+           {op : Σᵢ} → 
+           lkpᵢ op i ≡ just (o' , i') → 
+           ---------------------------
+           i' ⊑ᵢ proj₂ (op ↓ₑ (o , i))
+
+
+--⊑ₒ-↓ₑ-lem {_} {_} {imap i} {_} {op} p with i (op)
+--⊑ₒ-↓ₑ-lem {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(_ , _) = {!!}

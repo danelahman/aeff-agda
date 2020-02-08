@@ -1,6 +1,6 @@
 open import Calculus
 open import Operations
-open import Types
+open import Types hiding (``)
 
 open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
 --open ≡-Reasoning
@@ -71,6 +71,8 @@ mutual
     promise op ∣ p ↦ M-rename (wk₂ f) M `in M-rename (wk₂ f) N
   M-rename f (await V until M) =
     await (V-rename f V) until (M-rename (wk₂ f) M)
+  M-rename f (coerce p q M) =
+    coerce p q (M-rename f M)
 
 {-
 mutual
