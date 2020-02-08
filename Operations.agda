@@ -300,7 +300,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {imap i''} refl | no ¬q | just (o''' , (imap i''')) | just .(o'' , (imap i'')) =
       (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
 
-
+{-
 lkpᵢ-neq-lem : {o o' : O}
               {i i' : I}
               {op op' : Σᵢ} →
@@ -319,31 +319,49 @@ lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p refl | just (o
 lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p refl | just (omap o'' , imap i'')
                                                                     | just .(omap o' , imap i') | just x = {!!}
 
-
---_∪ᵢ_ : I → I → I
---(imap i) ∪ᵢ (imap i') =
---  imap (∪ᵢ-aux i i')
-
-
-{-
-mutual
-
-  ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)
-  ∪ᵢ-aux i i' op =
-    ∪ᵢ-aux' (i op) (i' op)
-
-  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
-  ∪ᵢ-aux' nothing nothing =
-    nothing
-  ∪ᵢ-aux' nothing (just oi''') =
-    just oi'''
-  ∪ᵢ-aux' (just oi'') nothing =
-    just oi''
-  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
-    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
-
-_∪ᵢ_ : I → I → I
-(imap i) ∪ᵢ (imap i') =
-  imap (∪ᵢ-aux i i')
 -}
+
+
+lkpᵢ-nextₒ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
+            i ⊑ᵢ i' → lkpᵢ op i ≡ just (o'' , i'') → O
+            
+lkpᵢ-nextₒ {o''} {i} {i'} {i''} {op} (rel p) q =
+  proj₁ (p op q)
+
+
+lkpᵢ-nextᵢ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
+            i ⊑ᵢ i' → lkpᵢ op i ≡ just (o'' , i'') → I
+
+lkpᵢ-nextᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
+  proj₁ (proj₂ (p op q))
+
+
+lkpᵢ-next-eq : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
+              (p : i ⊑ᵢ i') →
+              (q : lkpᵢ op i ≡ just (o'' , i'')) →
+              ------------------------------------------------
+              lkpᵢ op i' ≡ just (lkpᵢ-nextₒ p q , lkpᵢ-nextᵢ p q)
+
+lkpᵢ-next-eq {o''} {i} {i'} {i''} {op} (rel p) q =
+  proj₁ (proj₂ (proj₂ (p op q)))
+
+
+lkpᵢ-next-⊑ₒ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
+              (p : i ⊑ᵢ i') →
+              (q : lkpᵢ op i ≡ just (o'' , i'')) →
+              -----------------------------------
+              o'' ⊑ₒ lkpᵢ-nextₒ p q
+
+lkpᵢ-next-⊑ₒ {o''} {i} {i'} {i''} {op} (rel p) q =
+  proj₁ (proj₂ (proj₂ (proj₂ (p op q))))
+
+
+lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
+              (p : i ⊑ᵢ i') →
+              (q : lkpᵢ op i ≡ just (o'' , i'')) →
+              -----------------------------------
+              i'' ⊑ᵢ lkpᵢ-nextᵢ p q
+
+lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
+  proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
 
