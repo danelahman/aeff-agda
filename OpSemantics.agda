@@ -8,6 +8,7 @@ open import Substitutions
 open import Types
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Nullary
 
 module OpSemantics where
 
@@ -139,12 +140,30 @@ mutual
                    (V : Γ ⊢V⦂ ``(arᵢ op)) → 
                    (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')) →
                    (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                   ---------------------------------------
+                   ------------------------------------------------------------------------------------------
                    ↓ op V (promise op ∣ p ↦ M `in N )
                    ↝
                    (let= (coerce (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]ₛ ]ₘ)) `in
                      ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]ₛ ]ₘ))
 
+    ↓-promise-op' : {X Y : VType}
+                    {o o' : O}
+                    {i i' : I}
+                    {op op' : Σᵢ} →
+                    (p : ¬ op ≡ op') →
+                    (q : lkpᵢ op' i ≡ just (o' , i')) →
+                    (V : Γ ⊢V⦂ ``(arᵢ op)) → 
+                    (M : Γ ∷ ``(arᵢ op') ⊢M⦂ X ! (o' , i')) →
+                    (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                    -----------------------------------------------------
+                    ↓ op V (promise op' ∣ q ↦ M `in N )
+                    ↝
+                    promise_∣_↦_`in_ {_} {_} {_} {_} {?} {_} {?} op' {!!} {!!} (↓ op (V-rename wk₁ V) N)
+
+
+                    -- (promise op' ∣ {!!} ↦ {!!} `in ↓ op (V-rename wk₁ V) N)
     
 
   data _↝ₑ_ {Γ : Ctx} {C : CType} : Γ ⊢E⦂ C → Γ ⊢E⦂ C → Set where
+
+

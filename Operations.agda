@@ -79,12 +79,15 @@ _[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
 
 infix 40 _↓ₑ_
 
+↓ₑ-aux : Σᵢ → Maybe (O × I) → O × I → O × I
+↓ₑ-aux op nothing (o , i) =
+  (o , i)
+↓ₑ-aux op (just (o' , i')) (o , i) =
+  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+
 _↓ₑ_ : Σᵢ → O × I → O × I
-op ↓ₑ (omap o , imap i) with i (op)
-... | nothing =
-  (omap o , imap i)
-... | just (o' , i') =
-  ((omap o) ∪ₒ o') , (((imap i) [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+op ↓ₑ (omap o , imap i) =
+  ↓ₑ-aux op (i (op)) (omap o , imap i)
 
 
 -- ELEMENTS OF EFFECT ANNOTATIONS
@@ -296,3 +299,51 @@ data _⊑ᵢ_ (i i' : I) : Set where
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
     ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {imap i''} refl | no ¬q | just (o''' , (imap i''')) | just .(o'' , (imap i'')) =
       (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
+
+
+lkpᵢ-neq-lem : {o o' : O}
+              {i i' : I}
+              {op op' : Σᵢ} →
+              ¬ op ≡ op' →
+              lkpᵢ op' i ≡ just (o' , i') →
+              ------------------------------------------------------------
+              lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just {!!} --just ((o ∪ₒ o') , (i ∪ᵢ i'))
+
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p q with i (op)
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p q | nothing = {!!}
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p q | just x with i (op')
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p refl | just (omap o'' , imap i'')
+                                                                    | just .(omap o' , imap i') with i'' op
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p refl | just (omap o'' , imap i'')
+                                                                    | just .(omap o' , imap i') | nothing = {!!}
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p refl | just (omap o'' , imap i'')
+                                                                    | just .(omap o' , imap i') | just x = {!!}
+
+
+--_∪ᵢ_ : I → I → I
+--(imap i) ∪ᵢ (imap i') =
+--  imap (∪ᵢ-aux i i')
+
+
+{-
+mutual
+
+  ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)
+  ∪ᵢ-aux i i' op =
+    ∪ᵢ-aux' (i op) (i' op)
+
+  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
+  ∪ᵢ-aux' nothing nothing =
+    nothing
+  ∪ᵢ-aux' nothing (just oi''') =
+    just oi'''
+  ∪ᵢ-aux' (just oi'') nothing =
+    just oi''
+  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
+    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+
+_∪ᵢ_ : I → I → I
+(imap i) ∪ᵢ (imap i') =
+  imap (∪ᵢ-aux i i')
+-}
+
