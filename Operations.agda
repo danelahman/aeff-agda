@@ -17,10 +17,13 @@ postulate Σᵢ : Set                                           -- set of outgoi
 
 postulate decᵢ : (op op' : Σᵢ) → Dec (op ≡ op')               -- decidable equality for interrupt names
 
+if'_then_else_ : {A : Set} {op op' : Σᵢ} → Dec (op ≡ op') → A → A → A
+if' yes p then x else y = x
+if' no ¬p then x else y = y
+
 if_≡_then_else_ : {A : Set} → Σᵢ → Σᵢ → A → A → A
-if op ≡ op' then x else y with decᵢ op op'
-... | yes p = x
-... | no ¬p = y
+if op ≡ op' then x else y =
+  if' (decᵢ op op') then x else y
 
 
 -- EFFECT ANNOTATIONS
@@ -35,17 +38,41 @@ mutual
 
 -- UNION OF EFFECT ANNOTATIONS
 
+∪ₒ-aux' : (o o' : Maybe ⊤) → Maybe ⊤
+∪ₒ-aux' nothing o' = o'
+∪ₒ-aux' (just tt) o' = just tt
+  
 ∪ₒ-aux : (o o' : Σₒ → Maybe ⊤) → Σₒ → Maybe ⊤
-∪ₒ-aux o o' op with o (op) 
-∪ₒ-aux o o' op | nothing = o' (op)
-∪ₒ-aux o o' op | just tt = just tt
-
+∪ₒ-aux o o' op =
+  ∪ₒ-aux' (o op) (o' op)
 
 _∪ₒ_ : O → O → O
 (omap o) ∪ₒ (omap o') =
   omap (∪ₒ-aux o o')
 
 
+mutual
+
+  ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)
+  ∪ᵢ-aux i i' op =
+    ∪ᵢ-aux' (i op) (i' op)
+
+  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
+  ∪ᵢ-aux' nothing nothing =
+    nothing
+  ∪ᵢ-aux' nothing (just oi''') =
+    just oi'''
+  ∪ᵢ-aux' (just oi'') nothing =
+    just oi''
+  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
+    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+
+_∪ᵢ_ : I → I → I
+(imap i) ∪ᵢ (imap i') =
+  imap (∪ᵢ-aux i i')
+
+
+{-
 {-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
 ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)      -- smaller than i' (op) when i' (op) = just (o'' , i'').
 ∪ᵢ-aux i i' op with i (op) | i' (op)
@@ -57,17 +84,11 @@ _∪ₒ_ : O → O → O
   just (o'' , i'')
 ... | just (o'' , (imap i'')) | just (o''' , (imap i''')) =
   just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
-
-
-_∪ᵢ_ : I → I → I
-(imap i) ∪ᵢ (imap i') =
-  imap (∪ᵢ-aux i i')
-
+-}
 
 _[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
 (imap i) [ op ↦ v ]ᵢ =
   imap λ op' → if op ≡ op' then v else i op'
-
 
 infix 40 _↓ₑ_
 
@@ -149,7 +170,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
 ⊑ᵢ-refl =
   rel (λ op {o'} {i'} p → o' , (i' , p , (⊑ₒ-refl , ⊑ᵢ-refl {i'})))
 
-
+{-
 {-⊑ᵢ-trans : {i i' i'' : I} →
            i ⊑ᵢ i' →
            i' ⊑ᵢ i'' →
@@ -213,5 +234,14 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} p | yes refl with i' (op)
     ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} refl | yes refl | just .(o'' , i'') =
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
-    ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} p | no ¬q =
-      {!!}
+    ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} p | no ¬q with i (op') | i' (op') 
+    ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} refl | no ¬q | nothing | just .(o'' , i'') =
+      o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
+    ⊑ᵢ-↓ₑ-i'-lem-aux op' {o''} {i''} refl | no ¬q | just (o''' , i''') | just .(o'' , i'') =
+      {!!} , ({!!} , ({!!} , ({!!} , {!!})))
+
+
+--... | just (o'' , (imap i'')) | just (o''' , (imap i''')) =
+--  just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+
+-}
