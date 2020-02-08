@@ -65,7 +65,7 @@ mutual
                         ---------------------
                         Γ ∣ Δ ⊢M⦂ X ! (o , i)
 
-    `let=_`in_        : {X Y : VType}
+    let=_`in_         : {X Y : VType}
                         {o : O}
                         {i : I} → 
                         Γ ∣ Δ ⊢M⦂ X ! (o , i) →
@@ -99,7 +99,7 @@ mutual
                         --------------------------
                         Γ ∣ Δ ⊢M⦂ X ! op ↓ₑ (o , i)
 
-    promise_↦_`as`in_ : {X Y : VType}
+    promise_↦_`in_ : {X Y : VType}
                         {o o' : O}
                         {i i' : I} → 
                         (op : Σᵢ) →
