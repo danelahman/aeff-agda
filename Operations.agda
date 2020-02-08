@@ -4,10 +4,13 @@ open import Data.Product
 open import Data.Sum
 open import Data.Unit
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Axiom.Extensionality.Propositional
+open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
 open import Relation.Nullary
 
 module Operations where
+
+postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
 
 postulate Σₒ : Set                                           -- set of incoming signal names
 postulate Σᵢ : Set                                           -- set of outgoing interrupt names

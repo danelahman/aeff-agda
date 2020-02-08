@@ -1,5 +1,7 @@
 open import Data.Maybe
 open import Data.Product hiding (Σ)
+
+open import Axiom.Extensionality.Propositional
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
 open import Operations
@@ -74,17 +76,17 @@ mutual
                      -------------
                      Γ ⊢M⦂ C
 
-    _↑             : {X : VType}
+    ↑              : {X : VType}
                      {o : O}
                      {i : I} →
                      (op : Σₒ) →
-                     {_ : op ∈ₒ o} →
+                     op ∈ₒ o →
                      Γ ⊢V⦂ G (arₒ op) →
                      Γ ⊢M⦂ X ! (o , i) →
                      -------------------
                      Γ ⊢M⦂ X ! (o , i)
 
-    _↓             : {X : VType}
+    ↓              : {X : VType}
                      {o : O}
                      {i : I}
                      (op : Σᵢ) →
@@ -93,11 +95,11 @@ mutual
                      ----------------------
                      Γ ⊢M⦂ X ! op ↓ₑ (o , i)
 
-    promise_↦_`in_ : {X Y : VType}
+    promise_∣_↦_`in_ : {X Y : VType}
                      {o o' : O}
                      {i i' : I} → 
                      (op : Σᵢ) →
-                     {_ : lkpᵢ op i ≡ just (o' , i')} →
+                     lkpᵢ op i ≡ just (o' , i') →
                      Γ ∷ G (arᵢ op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i) →
                      ----------------------------------
