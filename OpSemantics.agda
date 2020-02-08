@@ -180,7 +180,11 @@ mutual
                      -----------------------------------------------------
                      ↓ op V (promise op' ∣ q ↦ M `in N )
                      ↝
-                     promise_∣_↦_`in_ {_} {_} {_} {_} {{!!}} {_} {{!!}} op' {!!} {!!} (↓ op (V-rename wk₁ V) N)
+                     promise_∣_↦_`in_ {_} {_} {_} {_} {{!!}} {_} {{!!}} op' {!!} {!M!} (↓ op (V-rename wk₁ V) N)
+
+
+    -- lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) = just (??? , ???)
+
 
     await-promise  : {X Y : VType}
                      {o : O}
