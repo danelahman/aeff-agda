@@ -16,8 +16,8 @@ postulate decᵢ : (op op' : Σᵢ) → Dec (op ≡ op')               -- decida
 
 if_≡_then_else_ : {A : Set} → Σᵢ → Σᵢ → A → A → A
 if op ≡ op' then x else y with decᵢ op op'
-(if op ≡ op' then x else y) | yes p = x
-(if op ≡ op' then x else y) | no ¬p = y
+... | yes p = x
+... | no ¬p = y
 
 mutual
 
@@ -33,18 +33,35 @@ op ∈ₒ (omap o) = T (o op)
 lkpᵢ : Σᵢ → I → Maybe (O × I)
 lkpᵢ op (imap i) = i op
 
+_[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
+(imap i) [ op ↦ v ]ᵢ =
+  imap λ op' → if op ≡ op' then v else i op'
+
 _∪ₒ_ : O → O → O
 (omap o) ∪ₒ (omap o') =
   omap (λ op → o op ∨ o' op)
 
-_↓ₒ_ : Σᵢ → O × I → O
-op ↓ₒ (omap o , imap i) =
-  omap (λ op' → o op' ∨ maybe (λ { (omap o' , imap i) → o' op' }) false (i op))
+{-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
+∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)      -- smaller than i' (op) when i' (op) = just (o'' , i'').
+∪ᵢ-aux i i' op with i (op) | i' (op)
+... | nothing          | nothing =
+  nothing
+... | nothing          | just (o''' , i''') =
+  just (o''' , i''')
+... | just (o'' , i'') | nothing =
+  just (o'' , i'')
+... | just (o'' , (imap i'')) | just (o''' , (imap i''')) =
+  just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
 
-_↓ᵢ_ : Σᵢ → O × I → I
-op ↓ᵢ (omap o , imap i) =
-  imap (λ op' → if op ≡ op' then maybe (λ { (omap o' , imap i') → i' op' }) nothing (i op) else i op')
+_∪ᵢ_ : I → I → I
+(imap i) ∪ᵢ (imap i') =
+  imap (λ op → ∪ᵢ-aux i i' op)
+
+infix 40 _↓ₑ_
 
 _↓ₑ_ : Σᵢ → O × I → O × I
-op ↓ₑ (omap o , imap i) =
-  (op ↓ₒ ( omap o , imap i ) , op ↓ᵢ (omap o , imap i))
+op ↓ₑ (omap o , imap i) with i (op)
+... | nothing =
+  (omap o , imap i)
+... | just (o' , i') =
+  ((omap o) ∪ₒ o') , (((imap i) [ op ↦ nothing ]ᵢ) ∪ᵢ i')
