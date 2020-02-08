@@ -20,7 +20,6 @@ if op ≡ op' then x else y with decᵢ op op'
 ... | no ¬p = y
 
 mutual
-
   data O : Set where                                         -- set of effect annotations of outgoing signals
     omap : (Σₒ → Bool) → O
 
