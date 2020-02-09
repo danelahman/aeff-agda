@@ -190,26 +190,29 @@ data _⊑ᵢ_ (i i' : I) : Set where
       o' , (imap i' , (refl , (⊑ₒ-refl , ⊑ᵢ-refl {imap i'})))
 
 
-{-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
-⊑ᵢ-trans : {i i' i'' : I} →                                   -- smaller than i' (op) when i' (op) = just (o'' , i'').
-           i ⊑ᵢ i' →
-           i' ⊑ᵢ i'' →
-           ----------------
-           i ⊑ᵢ i''
+⊑ᵢ-trans : {i i' i'' : I} →
+          i ⊑ᵢ i' →
+          i' ⊑ᵢ i'' →
+          ----------------
+          i ⊑ᵢ i''
 
 ⊑ᵢ-trans {i} {i'} {i''} (rel p) (rel q) =
-  rel ⊑ᵢ-trans-aux
+  rel λ op {o} {j} r → ⊑ᵢ-trans-aux o j op (p op r)
 
   where
-    ⊑ᵢ-trans-aux : (op : Σᵢ) {o : O} {j : I} →
-                  lkpᵢ op i ≡ just (o , j) →
-                  Σ[ o' ∈ O ] Σ[ j' ∈ I ] (lkpᵢ op i'' ≡ just (o' , j') × (o ⊑ₒ o') × (j ⊑ᵢ j'))
-    ⊑ᵢ-trans-aux op {o} {i'''} r with p op r
-    ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t with q op r'
-    ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t | o''' , j''' , r'' , s' , t' =
-      o''' , (j''' , (r'' , (⊑ₒ-trans s s' , ⊑ᵢ-trans t t')))
+    ⊑ᵢ-trans-aux' : (o : O) → (j : I) → (op : Σᵢ) →
+                    (o' : O) → (j' : I) → lkpᵢ op i' ≡ just (o' , j') → (o ⊑ₒ o') → (j ⊑ᵢ j') →
+                    Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o' ⊑ₒ o'') × (j' ⊑ᵢ j'')) →
+                    Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
+    ⊑ᵢ-trans-aux' o j op o' j' r' s t (o'' , j'' , r'' , s' , t') =
+      o'' , j'' , r'' , ⊑ₒ-trans s s' , ⊑ᵢ-trans t t'
 
-
+    ⊑ᵢ-trans-aux : (o : O) → (j : I) → (op : Σᵢ) →
+                    Σ[ o' ∈ O ] Σ[ j' ∈ I ] (lkpᵢ op i' ≡ just (o' , j') × (o ⊑ₒ o') × (j ⊑ᵢ j')) →
+                    Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
+    ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
+      ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
+                    
 
 ⊑ᵢ-inl : {i i' : I} →
         -------------
