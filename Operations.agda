@@ -301,6 +301,76 @@ data _⊑ᵢ_ (i i' : I) : Set where
       (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
 
 {-
+lkpᵢ-neqₒ : {o' : O} {i i' : I} {op' : Σᵢ} → Maybe (O × I) → O
+
+lkpᵢ-neqₒ {o'} {i} {imap i'} {op'} nothing =
+  o'
+lkpᵢ-neqₒ {o'} {i} {imap i'} {op'} (just (o'' , i'')) =
+  o' ∪ₒ o''
+
+
+lkpᵢ-neqᵢ : {o' : O} {i i' : I} {op' : Σᵢ} → Maybe (O × I) → I
+
+lkpᵢ-neqᵢ {o'} {i} {imap i'} {op'} nothing =
+  imap i'
+lkpᵢ-neqᵢ {o'} {i} {imap i'} {op'} (just (o'' , (imap i''))) =
+  imap (∪ᵢ-aux i' i'')
+
+
+lkpᵢ-neq-lem : {o o' : O}
+              {i i' : I}
+              {op op' : Σᵢ} →
+              ¬ op ≡ op' →
+              lkpᵢ op' i ≡ just (o' , i') → 
+              --------------------------------------------------------------------------------------------
+              lkpᵢ op' (proj₂ (op ↓ₑ (o , i)))
+              ≡
+              just (lkpᵢ-neqₒ {o'} {i} {i'} {op'} (lkpᵢ op' i') , lkpᵢ-neqᵢ {o'} {i} {i'} {op'} (lkpᵢ op' i'))
+
+lkpᵢ-neq-lem {omap o} {omap o'} {imap i} {imap i'} {op} {op'} p q = {!!}
+-}
+
+{-
+mutual
+
+  ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)
+  ∪ᵢ-aux i i' op =
+    ∪ᵢ-aux' (i op) (i' op)
+
+  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
+  ∪ᵢ-aux' nothing nothing =
+    nothing
+  ∪ᵢ-aux' nothing (just oi''') =
+    just oi'''
+  ∪ᵢ-aux' (just oi'') nothing =
+    just oi''
+  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
+    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+
+_∪ᵢ_ : I → I → I
+(imap i) ∪ᵢ (imap i') =
+  imap (∪ᵢ-aux i i')
+
+
+_[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
+(imap i) [ op ↦ v ]ᵢ =
+  imap λ op' → if op ≡ op' then v else i op'
+
+
+infix 40 _↓ₑ_
+
+↓ₑ-aux : Σᵢ → Maybe (O × I) → O × I → O × I
+↓ₑ-aux op nothing (o , i) =
+  (o , i)
+↓ₑ-aux op (just (o' , i')) (o , i) =
+  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+
+_↓ₑ_ : Σᵢ → O × I → O × I
+op ↓ₑ (omap o , imap i) =
+  ↓ₑ-aux op (i (op)) (omap o , imap i)
+-}
+
+{-
 lkpᵢ-neq-lem : {o o' : O}
               {i i' : I}
               {op op' : Σᵢ} →
