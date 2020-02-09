@@ -208,45 +208,43 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t with q op r'
     ⊑ᵢ-trans-aux op {o} {i'''} r | o'' , j'' , r' , s , t | o''' , j''' , r'' , s' , t' =
       o''' , (j''' , (r'' , (⊑ₒ-trans s s' , ⊑ᵢ-trans t t')))
-            
 
 
-{-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
-⊑ᵢ-inl : {i i' : I} →                                         -- smaller than i' (op) when i' (op) = just (o'' , i'').
+
+⊑ᵢ-inl : {i i' : I} →
         -------------
         i ⊑ᵢ (i ∪ᵢ i')
 
 ⊑ᵢ-inl {imap i} {imap i'} =
-  rel ⊑ᵢ-inl-aux
+  rel (λ op → ⊑ᵢ-inl-aux (i op) (i' op))
 
   where
-    ⊑ᵢ-inl-aux : (op : Σᵢ) {o : O} {i'' : I} →
-                 i op ≡ just (o , i'') →
-                 Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux i i' op ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
-    ⊑ᵢ-inl-aux op {o} {i''} p with i (op) | i' (op)
-    ⊑ᵢ-inl-aux op {o} {i''} refl | just .(o , i'') | nothing =
-      o , (i'' , (refl , (⊑ₒ-refl , ⊑ᵢ-refl)))
-    ⊑ᵢ-inl-aux op {o} {imap i''} refl | just .(o , imap i'') | just (o'' , imap i'''') =
-      (o ∪ₒ o'') , (imap (∪ᵢ-aux i'' i'''') , (refl , (⊑ₒ-inl , ⊑ᵢ-inl)))
+    ⊑ᵢ-inl-aux : (oi oi' : Maybe (O × I)) →
+                 {o : O} {i'' : I} →
+                 oi ≡ just (o , i'') →
+                 Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
+    ⊑ᵢ-inl-aux (just .(o , i'')) nothing {o} {i''} refl =
+      o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
+    ⊑ᵢ-inl-aux (just .(o , imap i'')) (just (o' , imap i''')) {o} {imap i''} refl =
+      o ∪ₒ o' , imap (∪ᵢ-aux i'' i''') , refl , ⊑ₒ-inl , ⊑ᵢ-inl
 
 
-{-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
-⊑ᵢ-inr : {i i' : I} →                                         -- smaller than i' (op) when i' (op) = just (o'' , i'').
-        --------------
+⊑ᵢ-inr : {i i' : I} →
+        -------------
         i' ⊑ᵢ (i ∪ᵢ i')
 
 ⊑ᵢ-inr {imap i} {imap i'} =
-  rel ⊑ᵢ-inr-aux
+  rel (λ op → ⊑ᵢ-inr-aux (i op) (i' op))
 
   where
-    ⊑ᵢ-inr-aux : (op : Σᵢ) {o : O} {i'' : I} →
-                 i' op ≡ just (o , i'') →
-                 Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux i i' op ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
-    ⊑ᵢ-inr-aux op {o} {i''} p with i (op) | i' (op)
-    ⊑ᵢ-inr-aux op {o} {i''} refl | nothing | just .(o , i'') =
-      o , (i'' , (refl , (⊑ₒ-refl , ⊑ᵢ-refl)))
-    ⊑ᵢ-inr-aux op {o} {imap i''} refl | just (o' , (imap i''')) | just .(o , (imap i'')) =
-      (o' ∪ₒ o) , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
+    ⊑ᵢ-inr-aux : (oi oi' : Maybe (O × I)) →
+                 {o : O} {i'' : I} →
+                 oi' ≡ just (o , i'') →
+                 Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
+    ⊑ᵢ-inr-aux nothing (just .(o , i'')) {o} {i''} refl =
+      o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
+    ⊑ᵢ-inr-aux (just (o' , imap i''')) (just .(o , imap i'')) {o} {imap i''} refl =
+      o' ∪ₒ o , imap (∪ᵢ-aux i''' i'') , refl , ⊑ₒ-inr , ⊑ᵢ-inr
 
 
 ⊑ₒ-↓ₑ-o-lem : {o o' : O}
@@ -373,4 +371,3 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
 
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
-
