@@ -173,13 +173,21 @@ data _⊑ᵢ_ (i i' : I) : Set where
         i ⊑ᵢ i'
 
 
-{-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
-⊑ᵢ-refl : {i : I} →                                           -- smaller than i' (op) when i' (op) = just (o'' , i'').
+⊑ᵢ-refl : {i : I} →
          ----------
          i ⊑ᵢ i
+         
+⊑ᵢ-refl {imap i} =
+  rel λ op {o'} → λ { {imap i'} → λ p → ⊑ᵢ-refl-aux (i op) p }
 
-⊑ᵢ-refl =
-  rel (λ op {o'} {i'} p → o' , (i' , p , (⊑ₒ-refl , ⊑ᵢ-refl {i'})))
+  where
+    ⊑ᵢ-refl-aux : (oi : Maybe (O × I)) →
+                  -----------------------------------------------------------------------------------
+                  {o' : O} {i' : Σᵢ → Maybe (O × I)} →
+                  oi ≡ just (o' , imap i') →
+                  Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (oi ≡ just (o'' , i'') × (o' ⊑ₒ o'') × (imap i' ⊑ᵢ i''))
+    ⊑ᵢ-refl-aux (just .(o' , imap i')) {o'} {i'} refl =
+      o' , (imap i' , (refl , (⊑ₒ-refl , ⊑ᵢ-refl {imap i'})))
 
 
 {-# TERMINATING #-}                                          -- Just helping Agda out, as it cannot see that i'' is
