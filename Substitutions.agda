@@ -1,5 +1,5 @@
 open import Calculus
-open import Operations
+open import EffectAnnotations
 open import Renamings
 open import Types hiding (``)
 
@@ -7,12 +7,30 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 
 module Substitutions where
 
+-- SET OF SUBSTITUTIONS BETWEEN CONTEXTS
+
 Sub : Ctx → Ctx → Set
 Sub Γ Γ' = {X : VType} → X ∈ Γ → Γ' ⊢V⦂ X
+
+
+-- IDENTITY AND EXTENSION SUBSTITUTIONS
+
+id-subst : {Γ : Ctx} → Sub Γ Γ
+id-subst x = ` x
+
+_[_]ₛ : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Γ' ⊢V⦂ X → Sub (Γ ∷ X) Γ'
+(s [ V ]ₛ) Hd = V
+(s [ V ]ₛ) (Tl x) = s x
+
+
+-- LIFTING SUBSTITUTIONS
 
 lift : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Sub (Γ ∷ X) (Γ' ∷ X)
 lift s Hd = ` Hd
 lift s (Tl x) = V-rename Tl (s x)
+
+
+-- ACTION OF SUBSTITUTIONS ON WELL-TYPED TERMS
 
 mutual
 
@@ -46,10 +64,3 @@ mutual
     await (V [ s ]ᵥ) until (M [ lift s ]ₘ)
   (coerce p q M) [ s ]ₘ =
     coerce p q (M [ s ]ₘ)
-
-id-subst : {Γ : Ctx} → Sub Γ Γ
-id-subst x = ` x
-
-_[_]ₛ : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Γ' ⊢V⦂ X → Sub (Γ ∷ X) Γ'
-(s [ V ]ₛ) Hd = V
-(s [ V ]ₛ) (Tl x) = s x

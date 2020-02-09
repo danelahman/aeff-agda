@@ -1,6 +1,6 @@
 open import Data.Product
 
-open import Operations
+open import EffectAnnotations
 
 module Types where
 

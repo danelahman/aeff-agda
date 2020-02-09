@@ -2,7 +2,7 @@ open import Data.Maybe
 open import Data.Product
 
 open import Calculus
-open import Operations
+open import EffectAnnotations
 open import Renamings
 open import Substitutions
 open import Types
@@ -10,7 +10,9 @@ open import Types
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 
-module OpSemantics where
+module Preservation where
+
+-- (FILLED) EVALUATION CONTEXTS
 
 data _⊢E⦂_ (Γ : Ctx) : CType → Set where
 
@@ -66,6 +68,8 @@ data _⊢E⦂_ (Γ : Ctx) : CType → Set where
                      Γ ⊢E⦂ X ! (o' , i')
 
 
+-- TRANSLATING A FILLED EVALUATION CONTEXT TO A COMPUTATION
+
 ⌈_⌉ : {Γ : Ctx} {C : CType} → Γ ⊢E⦂ C → Γ ⊢M⦂ C
 ⌈ [ M ] ⌉ = M
 ⌈ let= E `in N ⌉ = let= ⌈ E ⌉ `in N
@@ -74,6 +78,9 @@ data _⊢E⦂_ (Γ : Ctx) : CType → Set where
 ⌈ promise op ∣ p ↦ M `in E ⌉ = promise op ∣ p ↦ M `in ⌈ E ⌉
 ⌈ coerce p q E ⌉ = coerce p q ⌈ E ⌉
 
+
+-- REDUCTION RELATION FOR COMPUTATIONS
+-- (SERVES AS THE PRESERVATION THEOREM)
 
 mutual
 
@@ -189,7 +196,6 @@ mutual
                                               M)
                                       (↓ op (V-rename wk₁ V) N)
 
-
     await-promise  : {X Y : VType}
                      {o : O}
                      {i : I} →
@@ -200,7 +206,7 @@ mutual
                      ↝
                      M [ id-subst [ V ]ₛ ]ₘ
 
-    -- COERCION RULES
+    -- COERCION/SUBSUMPTION RULES
 
     coerce-return  : {X : VType}
                      {o o' : O}
@@ -265,7 +271,7 @@ mutual
                      ↝
                      coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
 
-    -- CONTEXT RULE
+    -- EVALUATION CONTEXT RULE
 
     context        : {C : CType}
                      {E E' : Γ ⊢E⦂ C} →
@@ -273,6 +279,9 @@ mutual
                      ------------------
                      ⌈ E ⌉ ↝ ⌈ E' ⌉
 
+
+  -- REDUCTION RELATION FOR EVALUATION CONTEXTS
+  -- (SERVES AS THE PRESERVATION THEOREM FOR THE CONTEXT RULE)
 
   data _↝ₑ_ {Γ : Ctx} : {C : CType} → Γ ⊢E⦂ C → Γ ⊢E⦂ C → Set where
 

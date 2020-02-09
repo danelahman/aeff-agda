@@ -7,7 +7,7 @@ open import Data.Unit
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 
-module Operations where
+module EffectAnnotations where
 
 -- SIGNAL AND INTERRUPT NAMES
 
@@ -71,10 +71,14 @@ _∪ᵢ_ : I → I → I
   imap (∪ᵢ-aux i i')
 
 
+-- SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
+
 _[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
 (imap i) [ op ↦ v ]ᵢ =
   imap λ op' → if op ≡ op' then v else i op'
 
+
+-- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS
 
 infix 40 _↓ₑ_
 
@@ -89,7 +93,7 @@ op ↓ₑ (omap o , imap i) =
   ↓ₑ-aux op (i (op)) (omap o , imap i)
 
 
--- ELEMENTS OF EFFECT ANNOTATIONS
+-- CHECKING THE CONTENTS OF EFFECT ANNOTATIONS
 
 _∈ₒ_ : Σₒ → O → Set
 op ∈ₒ (omap o) =
@@ -100,33 +104,18 @@ lkpᵢ : Σᵢ → I → Maybe (O × I)
 lkpᵢ op (imap i) = i op
 
 
-opₒ-in-∪ₒ-lem : {o o' : O}
-               {op : Σₒ} →
-               op ∈ₒ o →
-               --------------
-               op ∈ₒ (o ∪ₒ o')
-
-opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} p with o (op)
-opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} refl | just .tt = refl
-
-
-opₒ-in-↓ₑ-lem : {o : O}
-               {i : I}
-               {op : Σᵢ}
-               {op' : Σₒ} →
-               op' ∈ₒ o →
-               ---------------------------
-               op' ∈ₒ proj₁ (op ↓ₑ (o , i))
-               
-opₒ-in-↓ₑ-lem {omap o} {imap i} {op} {op'} p with i (op)
-... | nothing = p
-... | just (o' , i') = opₒ-in-∪ₒ-lem p
-
-
--- SUBTYPING EFFECT ANNOTATIONS
+-- SUBTYPING RELATIONS FOR EFFECT ANNOTATIONS
 
 _⊑ₒ_ : O → O → Set
 o ⊑ₒ o' = (op : Σₒ) → op ∈ₒ o → op ∈ₒ o'
+
+data _⊑ᵢ_ (i i' : I) : Set where
+  rel : ((op : Σᵢ) → {o : O} → {i'' : I} → lkpᵢ op i ≡ just (o , i'') →
+         Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (lkpᵢ op i' ≡ just (o' , i''') × o ⊑ₒ o' × i'' ⊑ᵢ i''')) →
+        i ⊑ᵢ i'
+        
+
+-- SUBTYPING RELATIONS ARE PREORDERS
 
 ⊑ₒ-refl : {o : O} →
           ---------
@@ -142,34 +131,6 @@ o ⊑ₒ o' = (op : Σₒ) → op ∈ₒ o → op ∈ₒ o'
            o ⊑ₒ o''
            
 ⊑ₒ-trans p q = λ op r → q op (p op r)
-
-
-⊑ₒ-inl : {o o' : O} →
-         -------------
-         o ⊑ₒ (o ∪ₒ o')
-
-⊑ₒ-inl {omap o} {omap o'} op with o op | o' op
-... | nothing | nothing = λ p → p
-... | nothing | just tt = λ _ → refl
-... | just tt | nothing = λ p → p
-... | just tt | just tt = λ p → p
-
-
-⊑ₒ-inr : {o o' : O} →
-         -------------
-         o' ⊑ₒ (o ∪ₒ o')
-
-⊑ₒ-inr {omap o} {omap o'} op with o op | o' op
-... | nothing | nothing = λ p → p
-... | nothing | just tt = λ p → p
-... | just tt | nothing = λ _ → refl
-... | just tt | just tt = λ p → p
-
-
-data _⊑ᵢ_ (i i' : I) : Set where
-  rel : ((op : Σᵢ) → {o : O} → {i'' : I} → lkpᵢ op i ≡ just (o , i'') →
-         Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (lkpᵢ op i' ≡ just (o' , i''') × o ⊑ₒ o' × i'' ⊑ᵢ i''')) →
-        i ⊑ᵢ i'
 
 
 ⊑ᵢ-refl : {i : I} →
@@ -211,7 +172,32 @@ data _⊑ᵢ_ (i i' : I) : Set where
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
     ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
-                    
+
+
+
+-- LEFT AND RIGHT INCLUSIONS INTO UNIONS OF EFFECT ANNOTATIONS
+
+⊑ₒ-inl : {o o' : O} →
+         -------------
+         o ⊑ₒ (o ∪ₒ o')
+
+⊑ₒ-inl {omap o} {omap o'} op with o op | o' op
+... | nothing | nothing = λ p → p
+... | nothing | just tt = λ _ → refl
+... | just tt | nothing = λ p → p
+... | just tt | just tt = λ p → p
+
+
+⊑ₒ-inr : {o o' : O} →
+         -------------
+         o' ⊑ₒ (o ∪ₒ o')
+
+⊑ₒ-inr {omap o} {omap o'} op with o op | o' op
+... | nothing | nothing = λ p → p
+... | nothing | just tt = λ p → p
+... | just tt | nothing = λ _ → refl
+... | just tt | just tt = λ p → p
+
 
 ⊑ᵢ-inl : {i i' : I} →
         -------------
@@ -247,6 +233,31 @@ data _⊑ᵢ_ (i i' : I) : Set where
       o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
     ⊑ᵢ-inr-aux (just (o' , imap i''')) (just .(o , imap i'')) {o} {imap i''} refl =
       o' ∪ₒ o , imap (∪ᵢ-aux i''' i'') , refl , ⊑ₒ-inr , ⊑ᵢ-inr
+
+
+-- INCLUSION INTO ACTED UPON EFFECT ANNOTATION
+
+opₒ-in-∪ₒ-lem : {o o' : O}
+               {op : Σₒ} →
+               op ∈ₒ o →
+               --------------
+               op ∈ₒ (o ∪ₒ o')
+
+opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} p with o (op)
+opₒ-in-∪ₒ-lem {omap o} {omap o'} {op} refl | just .tt = refl
+
+
+opₒ-in-↓ₑ-lem : {o : O}
+               {i : I}
+               {op : Σᵢ}
+               {op' : Σₒ} →
+               op' ∈ₒ o →
+               ---------------------------
+               op' ∈ₒ proj₁ (op ↓ₑ (o , i))
+               
+opₒ-in-↓ₑ-lem {omap o} {imap i} {op} {op'} p with i (op)
+... | nothing = p
+... | just (o' , i') = ⊑ₒ-inl op' p
 
 
 ⊑ₒ-↓ₑ-o-lem : {o o' : O}
@@ -309,6 +320,8 @@ data _⊑ᵢ_ (i i' : I) : Set where
       (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
 
 
+-- EFFECT ANNOTATION OF AN INTERRUPT THAT WAS NOT ACTED WITH
+
 lkpᵢ-↓ₑ-neq : {o o' : O} {i i' : I} {op op' : Σᵢ} → ¬ op ≡ op' → lkpᵢ op' i ≡ just (o' , i') →
              Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i'') × o' ⊑ₒ o'' × i' ⊑ᵢ i'')
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q with i (op)
@@ -330,6 +343,8 @@ lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q | just (
                                                                  | just (o'''' , imap i'''') | refl =
   (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ⊑ₒ-inl , ⊑ᵢ-inl
 
+
+-- NEXT DEFINED EFFECT ANNOTATION UNDER SUBTYPING EFFECT ANNOTATIONS
 
 lkpᵢ-nextₒ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
             i ⊑ᵢ i' → lkpᵢ op i ≡ just (o'' , i'') → O
@@ -373,3 +388,4 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
 
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
+

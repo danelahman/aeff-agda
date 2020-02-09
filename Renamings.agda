@@ -1,5 +1,5 @@
 open import Calculus
-open import Operations
+open import EffectAnnotations
 open import Types hiding (``)
 
 open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
@@ -7,26 +7,38 @@ open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
 
 module Renamings where
 
+-- SET OF RENAMINGS BETWEEN CONTEXTS
+
 Ren : Ctx → Ctx → Set
 Ren Γ Γ' = {X : VType} → X ∈ Γ → X ∈ Γ'
+
+
+-- IDENTITY, COMPOSITION, AND EXCHANGE RENAMINGS
 
 id-ren : {Γ : Ctx} → Ren Γ Γ 
 id-ren x = x
 
+
 comp-ren : {Γ Γ' Γ'' : Ctx} → Ren Γ' Γ'' → Ren Γ Γ' → Ren Γ Γ'' 
 comp-ren f g x = f (g x)
+
 
 exchange : {Γ : Ctx} {X Y : VType} → Ren (Γ ∷ X ∷ Y) (Γ ∷ Y ∷ X)
 exchange Hd = Tl Hd
 exchange (Tl Hd) = Hd
 exchange (Tl (Tl x)) = Tl (Tl x)
 
+
+-- WEAKENING OF RENAMINGS
+
 wk₁ : {Γ : Ctx} {X : VType} → Ren Γ (Γ ∷ X)
 wk₁ = Tl
+
 
 wk₂ : {Γ Γ' : Ctx} {X : VType} → Ren Γ Γ' → Ren (Γ ∷ X) (Γ' ∷ X)
 wk₂ f Hd = Hd
 wk₂ f (Tl v) = Tl (f v)
+
 
 wk₂-id-lem : {Γ : Ctx}
              {X Y : VType} →
@@ -36,6 +48,7 @@ wk₂-id-lem : {Γ : Ctx}
              
 wk₂-id-lem Hd = refl
 wk₂-id-lem (Tl x) = refl
+
 
 wk₂-comp-lem : {Γ Γ' Γ'' : Ctx}
                {X Y : VType}
@@ -47,6 +60,9 @@ wk₂-comp-lem : {Γ Γ' Γ'' : Ctx}
                
 wk₂-comp-lem Hd = refl
 wk₂-comp-lem (Tl x) = refl
+
+
+-- ACTION OF RENAMING ON WELL-TYPED TERMS
 
 mutual
 
@@ -74,7 +90,10 @@ mutual
   M-rename f (coerce p q M) =
     coerce p q (M-rename f M)
 
+
 {-
+
+-- LEMMAS ABOUT RENAMING TERMS
 
 open import Axiom.Extensionality.Propositional
 postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)

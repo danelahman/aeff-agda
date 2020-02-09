@@ -4,16 +4,21 @@ open import Data.Product hiding (Σ)
 open import Axiom.Extensionality.Propositional
 open import Relation.Binary.PropositionalEquality hiding ([_])
 
-open import Operations
+open import EffectAnnotations
 open import Types
 
 module Calculus where
+
+-- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND GROUND CONSTANTS
 
 postulate arₒ : Σₒ → GType -- arity assignment to outgoing signals
 postulate arᵢ : Σᵢ → GType  -- arity assignment to incoming interrupts
 
 postulate Σₖ : Set        -- set of ground constants
 postulate arₖ : Σₖ → GType -- arity assignment to ground constants
+
+
+-- SNOC LISTS FOR MODELLING CONTEXTS
 
 infixl 30 _∷_
 
@@ -26,6 +31,9 @@ Ctx = SnocList VType
 data _∈_ (X : VType) : Ctx → Set where
   Hd : {Γ : Ctx} → X ∈ (Γ ∷ X)
   Tl : {Γ : Ctx} {Y : VType} → X ∈ Γ → X ∈ (Γ ∷ Y)
+
+
+-- DERIVATIONS OF WELL-TYPED TERMS
 
 mutual
 
@@ -51,6 +59,7 @@ mutual
           -------------
           Γ ⊢V⦂ ⟨ X ⟩
           
+  infix 40 _·_
 
   data _⊢M⦂_ (Γ : Ctx) : CType → Set where
 
@@ -120,6 +129,4 @@ mutual
                        Γ ⊢M⦂ X ! (o , i) →
                        -------------------
                        Γ ⊢M⦂ X ! (o' , i')
-                       
                         
-infix 40 _·_
