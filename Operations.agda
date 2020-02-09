@@ -4,18 +4,17 @@ open import Data.Product
 open import Data.Sum
 open import Data.Unit
 
-open import Axiom.Extensionality.Propositional
-open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
+open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 
 module Operations where
 
-postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+-- SIGNAL AND INTERRUPT NAMES
 
 postulate Σₒ : Set                                           -- set of incoming signal names
 postulate Σᵢ : Set                                           -- set of outgoing interrupt names
 
-postulate decᵢ : (op op' : Σᵢ) → Dec (op ≡ op')               -- decidable equality for interrupt names
+postulate decᵢ : (op op' : Σᵢ) → Dec (op ≡ op')               -- interrupt names have decidable equality
 
 if'_then_else_ : {A : Set} {op op' : Σᵢ} → Dec (op ≡ op') → A → A → A
 if' yes p then x else y = x

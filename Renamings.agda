@@ -75,6 +75,10 @@ mutual
     coerce p q (M-rename f M)
 
 {-
+
+open import Axiom.Extensionality.Propositional
+postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+
 mutual
   V-rename-id-lem : {Γ : Ctx} 
                     {X : VType} → 
