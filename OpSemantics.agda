@@ -180,7 +180,12 @@ mutual
                      -----------------------------------------------------
                      ↓ op V (promise op' ∣ q ↦ M `in N )
                      ↝
-                     promise_∣_↦_`in_ {_} {_} {_} {_} {{!!}} {_} {{!!}} op' {!!} {!!} (↓ op (V-rename wk₁ V) N)
+                     promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)}
+                                      {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
+                                      op'
+                                      (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))
+                                      (coerce {!!} {!!} M)
+                                      (↓ op (V-rename wk₁ V) N)
 
 
     -- op =!= op' ==> lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) = just (??? , ???)
