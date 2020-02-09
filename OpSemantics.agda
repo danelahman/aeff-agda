@@ -183,12 +183,11 @@ mutual
                      promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)}
                                       {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
                                       op'
-                                      (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))
-                                      (coerce {!!} {!!} M)
+                                      (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))))
+                                      (coerce (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                              (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                              M)
                                       (↓ op (V-rename wk₁ V) N)
-
-
-    -- op =!= op' ==> lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) = just (??? , ???)
 
 
     await-promise  : {X Y : VType}

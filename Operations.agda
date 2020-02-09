@@ -310,59 +310,25 @@ data _⊑ᵢ_ (i i' : I) : Set where
 
 
 lkpᵢ-↓ₑ-neq : {o o' : O} {i i' : I} {op op' : Σᵢ} → ¬ op ≡ op' → lkpᵢ op' i ≡ just (o' , i') →
-             Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i''))
+             Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i'') × o' ⊑ₒ o'' × i' ⊑ᵢ i'')
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q with i (op)
 ... | nothing =
-  o' , imap i' , q
+  o' , imap i' , q , ⊑ₒ-refl , ⊑ᵢ-refl
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') with decᵢ op op'
 ... | yes r with p r
 ... | ()
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') | no ¬r with i (op') | i'' (op')
-... | just (o''' , i''') | nothing =
-  o''' , i''' , refl
-... | just (o''' , imap i''') | just (o'''' , imap i'''') =
-  (o''' ∪ₒ o'''') , (imap (∪ᵢ-aux i''' i'''') , refl)
-
-
-{-
-mutual
-
-  ∪ᵢ-aux : (i i' : Σᵢ → Maybe (O × I)) → Σᵢ → Maybe (O × I)
-  ∪ᵢ-aux i i' op =
-    ∪ᵢ-aux' (i op) (i' op)
-
-  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
-  ∪ᵢ-aux' nothing nothing =
-    nothing
-  ∪ᵢ-aux' nothing (just oi''') =
-    just oi'''
-  ∪ᵢ-aux' (just oi'') nothing =
-    just oi''
-  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
-    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
-
-_∪ᵢ_ : I → I → I
-(imap i) ∪ᵢ (imap i') =
-  imap (∪ᵢ-aux i i')
-
-
-_[_↦_]ᵢ : I → Σᵢ → Maybe (O × I) → I
-(imap i) [ op ↦ v ]ᵢ =
-  imap λ op' → if op ≡ op' then v else i op'
-
-
-infix 40 _↓ₑ_
-
-↓ₑ-aux : Σᵢ → Maybe (O × I) → O × I → O × I
-↓ₑ-aux op nothing (o , i) =
-  (o , i)
-↓ₑ-aux op (just (o' , i')) (o , i) =
-  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
-
-_↓ₑ_ : Σᵢ → O × I → O × I
-op ↓ₑ (omap o , imap i) =
-  ↓ₑ-aux op (i (op)) (omap o , imap i)
--}
+lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap i'} {op} {op'} p refl | just (o'' , imap i'')
+                                                                 | no ¬r
+                                                                 | just (o''' , .(imap i'))
+                                                                 | nothing =
+  o''' , imap i' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
+... | just (o''' , imap i''') | just (o'''' , imap i'''') with q
+lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q | just (o'' , imap i'')
+                                                                 | no ¬r
+                                                                 | just (o''' , imap i''')
+                                                                 | just (o'''' , imap i'''') | refl =
+  (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ⊑ₒ-inl , ⊑ᵢ-inl
 
 
 lkpᵢ-nextₒ : {o'' : O} {i i' i'' : I} {op : Σᵢ} →
