@@ -99,9 +99,6 @@ data _◅_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
 
 -- DECIDING IF A COMPUTATION IS STUCK ON WAITING FOR A PARTICULAR PROMISE
 
-if-¬◄-then-¬◅ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → ¬(x ◄ M) → ¬(x ◅ M)
-if-¬◄-then-¬◅ = {!!}
-
 dec◄ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◄ M)
 dec◄ x (return V) =
   no (λ ())
@@ -109,12 +106,7 @@ dec◄ {Γ} {X} x (let= M `in N) with dec◄ x M
 ... | yes p =
   yes (let-in p)
 ... | no ¬p =
-  no (λ q → contradiction (inj-let q) ¬p)
-
-  where
-    inj-let : {Y Z : VType} {o : O} {i : I} {M : Γ ⊢M⦂ Y ! (o , i)} {N : Γ ∷ Y ⊢M⦂ Z ! (o , i)} → x ◄ (let= M `in N) → x ◄ M
-    inj-let (let-in r) = r
-
+  no (λ { (let-in q) → contradiction q ¬p })
 dec◄ x (V · W) =
   no (λ ())
 dec◄ x (↑ op p V M) =
@@ -123,49 +115,24 @@ dec◄ {Γ} {X} x (↓ op V M) with dec◄ x M
 ... | yes p =
   yes (interrupt p)
 ... | no ¬p =
-  no (λ q → contradiction (inj-interrupt q) ¬p)
-
-  where
-    inj-interrupt : {Y : VType} {o : O} {i : I} {op : Σᵢ} {V : Γ ⊢V⦂ ``(arᵢ op)} {M : Γ ⊢M⦂ Y ! (o , i)} → x ◄ ↓ op V M → x ◄ M
-    inj-interrupt (interrupt r) = r
-
+  no (λ { (interrupt q) → contradiction q ¬p })
 dec◄ x (promise op ∣ p ↦ M `in N) =
   no (λ ())
-  
 dec◄ {Γ} {X} x (await_until_ {Y} (` y) M) with dec-vty X Y
 dec◄ {Γ} {.Y} x (await_until_ {Y} (` y) M) | yes refl with dec-var x y
-dec◄ {Γ} {.Y} x (await_until_ {Y} (` .x) M) | yes refl | yes refl =
+... | yes refl =
   yes await
-dec◄ {Γ} {.Y} x (await_until_ {Y} (` y) M) | yes refl | no ¬p =
-  no (λ q → contradiction (inj-await-var q) ¬p)
-
-  where
-    inj-await-var : {x y : ⟨ Y ⟩ ∈ Γ} → x ◄ (await (` y) until M) → x ≡ y
-    inj-await-var await = refl
-
+... | no ¬p =
+  no (λ { await → contradiction refl ¬p })
 dec◄ {Γ} {X} x (await_until_ {Y} (` y) M) | no ¬p =
-  no (λ q → contradiction (inj-await-ty q) ¬p)
-
-  where
-    inj-await-ty : {X Y : VType} {C : CType} {x : ⟨ X ⟩ ∈ Γ} {y : ⟨ Y ⟩ ∈ Γ} {M : Γ ∷ Y ⊢M⦂ C} → x ◄ (await (` y) until M) → X ≡ Y
-    inj-await-ty await = refl
-  
+  no (λ { await → contradiction refl ¬p })  
 dec◄ x (await ⟨ V ⟩ until M) =
-  no impossible-await
-
-  where
-    impossible-await : ¬ (x ◄ (await ⟨ V ⟩ until M))
-    impossible-await ()
-
+  no (λ ())
 dec◄ {Γ} {X} x (subsume p q M) with dec◄ x M
 ... | yes r =
   yes (subsume r)
 ... | no ¬r =
-  no (λ s → contradiction (inj-subsume s) ¬r)
-
-  where
-    inj-subsume : {Y : VType} {o o' : O} {i i' : I} {p : o ⊑ₒ o'} {q : i ⊑ᵢ i'} {M : Γ ⊢M⦂ Y ! (o , i)} → x ◄ subsume p q M → x ◄ M
-    inj-subsume (subsume r) = r
+  no (λ { (subsume s) → contradiction s ¬r })
 
 
 dec◅ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◅ M)
@@ -173,7 +140,7 @@ dec◅ {Γ} x (return {Y} {o} {i} V) with dec◄ x (return {Γ} {Y} {o} {i} V)
 ... | no ¬p =
   no (λ { (◅◄ q) → ¬p q })
 dec◅ x (let= M `in N) with dec◄ x (let= M `in N)
-dec◅ x (let= M `in N) | yes p =
+... | yes p =
   yes (◅◄ p)
 dec◅ x (let= M `in N) | no ¬p =
   no (λ { (◅◄ q) → ¬p q })
@@ -202,67 +169,12 @@ dec◅ {Γ} x (await V until M) with dec◄ x (await V until M)
   yes (◅◄ await)
 ... | no ¬p =
   no (λ { (◅◄ q) → ¬p q })
-dec◅ {Γ} x (subsume p q M) with dec◅ x M
+dec◅ x (subsume p q M) with dec◅ x M
 ... | yes r =
   yes (subsume r)
 ... | no ¬r =
   no (λ { (◅◄ s) → contradiction s (contraposition (λ { (subsume t) → t }) (contraposition ◅◄ ¬r)) ;
           (subsume s) → ¬r s })
-
-{-
-dec◅ x M with dec◄ x M
-dec◅ x .(await ` x until _) | yes await =
-  yes (◅◄ await)
-dec◅ x .(let= _ `in _) | yes (let-in p) =
-  yes (◅◄ (let-in p))
-dec◅ {Γ} {X} x {C} .(↓ {o = o} op V M) | yes (interrupt {Y} {o} {i} {op} {V} {M} p) =
-  yes (◅◄ (interrupt p))
-dec◅ x .(subsume _ _ _) | yes (subsume p) =
-  yes (◅◄ (subsume p))
-dec◅ {Γ} x (return V) | no ¬p =
-  no (λ q → contradiction (inj-return q) ¬p)
-
-  where
-    inj-return : {Y : VType} {o : O} {i : I} {V : Γ ⊢V⦂ Y} → x ◅ return {o = o} {i = i} V → x ◄ return {o = o} {i = i} V
-    inj-return (◅◄ p) = p
-
-dec◅ x (let= M `in N) | no ¬p =
-  {!!}
-dec◅ {Γ} x (V · W) | no ¬p =
-  no (λ q → contradiction (inj-app q) ¬p)
-
-  where
-    inj-app : {Y : VType} {C : CType} {V : Γ ⊢V⦂ Y ⇒ C} {W : Γ ⊢V⦂ Y} → x ◅ (V · W) → x ◄ (V · W)
-    inj-app (◅◄ p) = p
-
-dec◅ x (↑ op p V M) | no ¬q =
-  {!!}
-dec◅ x (↓ op V M) | no ¬p =
-  {!!}
-dec◅ x (promise op ∣ p ↦ M `in N) | no ¬q =
-  {!!}
-dec◅ x (await V until M) | no ¬p =
-  {!!}
-dec◅ {Γ} x (subsume p q M) | no ¬r =
-  {!!}
-
-  where
-    inj-subsume : {Y : VType} {o o' : O} {i i' : I} {p : o ⊑ₒ o'} {q : i ⊑ᵢ i'} {M : Γ ⊢M⦂ Y ! (o , i)} → x ◅ (subsume p q M) → x ◄ (subsume p q M)
-    inj-subsume (◅◄ p) = p
-    inj-subsume (subsume p) = {!!}
--}
-
-{-
-  interrupt : {X : VType}
-              {o : O}
-              {i : I}
-              {op : Σᵢ}
-              {V : Γ ⊢V⦂ ``(arᵢ op)}
-              {M : Γ ⊢M⦂ X ! (o , i)} →
-              x ◄ M →
-              -------------------------
-              x ◄ (↓ op V M)
--}
 
 
 -- WRAPPING PROMISES AROUND A CONTEXT
