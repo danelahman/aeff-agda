@@ -13,7 +13,7 @@ open import Relation.Nullary
 
 module Preservation where
 
--- EVALUATION CONTEXTS
+-- WELL-TYPED EVALUATION CONTEXTS
 
 BCtx = List VType
 
@@ -75,7 +75,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      Γ ⊢E[ Δ ]⦂ X ! (o' , i')
 
 
--- MERGING AN ORDINARY AND A BINDING CONTEXT
+-- MERGING AN ORDINARY CONTEXT AND A BINDING CONTEXT
 
 infix 30 _⋈_
 
@@ -84,28 +84,40 @@ _⋈_ : Ctx → BCtx → Ctx
 Γ ⋈ (X :: Δ) = (Γ ∷ X) ⋈ Δ
 
 
--- FINDING THE TYPE OF THE HOLE OF AN EVALUATION CONTEXT
+-- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED EVALUATION CONTEXT
 
 hole-ty : {Γ : Ctx} {Δ : BCtx} {C : CType} → Γ ⊢E[ Δ ]⦂ C → CType
-hole-ty {_} {_} {C} [-] = C
-hole-ty (let= E `in M) = hole-ty E
-hole-ty (↑ op p V E) = hole-ty E
-hole-ty (↓ op V E) = hole-ty E
-hole-ty (promise op ∣ p ↦ M `in E) = hole-ty E
-hole-ty (coerce p q E) = hole-ty E
+hole-ty {_} {_} {C} [-] =
+  C
+hole-ty (let= E `in M) =
+  hole-ty E
+hole-ty (↑ op p V E) =
+  hole-ty E
+hole-ty (↓ op V E) =
+  hole-ty E
+hole-ty (promise op ∣ p ↦ M `in E) =
+  hole-ty E
+hole-ty (coerce p q E) =
+  hole-ty E
 
 
--- FILLING AN EVALUATION CONTEXT
+-- FILLING A WELL-TYPED EVALUATION CONTEXT
 
 infix 30 _[_]
 
 _[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty E) → Γ ⊢M⦂ C
-[-] [ M ] = M
-(let= E `in N) [ M ] = let= (E [ M ]) `in N
-↑ op p V E [ M ] = ↑ op p V (E [ M ])
-↓ op V E [ M ] = ↓ op V (E [ M ])
-(promise op ∣ p ↦ N `in E) [ M ] = promise op ∣ p ↦ N `in (E [ M ])
-coerce p q E [ M ] = coerce p q (E [ M ])
+[-] [ M ] =
+  M
+(let= E `in N) [ M ] =
+  let= (E [ M ]) `in N
+↑ op p V E [ M ] =
+  ↑ op p V (E [ M ])
+↓ op V E [ M ] =
+  ↓ op V (E [ M ])
+(promise op ∣ p ↦ N `in E) [ M ] =
+  promise op ∣ p ↦ N `in (E [ M ])
+coerce p q E [ M ] =
+  coerce p q (E [ M ])
 
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
