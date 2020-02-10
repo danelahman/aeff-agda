@@ -55,9 +55,9 @@ dec-maybe p nothing (just x) =
 dec-maybe p (just x) nothing =
   no (λ ())
 dec-maybe p (just x) (just y) with p x y
-dec-maybe p (just x) (just .x) | yes refl =
+... | yes refl =
   yes refl
-dec-maybe {X} p (just x) (just y) | no ¬q =
+... | no ¬q =
   no (λ r → contradiction (inj-just r) ¬q)
 
 
@@ -66,9 +66,9 @@ postulate dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x �
 
 dec-effₒ : (o o' : O) → Dec (o ≡ o')
 dec-effₒ (omap o) (omap o') with dec-ext o o' (λ op → dec-maybe dec-⊤ (o op) (o' op))
-dec-effₒ (omap o) (omap .o) | yes refl =
+... | yes refl =
   yes refl
-dec-effₒ (omap o) (omap o') | no ¬p =
+... | no ¬p =
   no (λ q → contradiction (inj-omap q) ¬p)
 
   where
@@ -93,18 +93,18 @@ mutual
   dec-effᵢ-aux (just (o , i)) nothing =
     no (λ ())
   dec-effᵢ-aux (just (o , i)) (just (o' , i')) with dec-effₒ o o' | dec-effᵢ i i'
-  dec-effᵢ-aux (just (o , i)) (just (.o , .i)) | yes refl | yes refl =
+  ... | yes refl | yes refl =
     yes refl
-  dec-effᵢ-aux (just (o , i)) (just (.o , i')) | yes refl | no ¬q =
+  ... | yes refl | no ¬q =
     no (λ r → contradiction (inj-pair₂ (inj-just r)) ¬q)
-  dec-effᵢ-aux (just (o , i)) (just (o' , i')) | no ¬p | _ =
+  ... | no ¬p | _ =
     no (λ q → contradiction (inj-pair₁ (inj-just q)) ¬p)
 
   dec-effᵢ : (i i' : I) → Dec (i ≡ i')
   dec-effᵢ (imap i) (imap i') with dec-ext i i' (λ op → dec-effᵢ-aux (i op) (i' op))
-  dec-effᵢ (imap i) (imap .i) | yes refl =
+  ... | yes refl =
     yes refl
-  dec-effᵢ (imap i) (imap i') | no ¬p =
+  ... | no ¬p =
     no (λ q → contradiction (inj-imap q) ¬p)
 
     where
