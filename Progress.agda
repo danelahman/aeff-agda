@@ -70,3 +70,31 @@ data Result⟨_∣_⟩ (Δ : Ctx) : {C : CType} → ⟨⟨ Δ ⟩⟩ ⊢M⦂ C �
             -------------------------------
             Result⟨ Δ ∣ subsume p q M ⟩
 
+
+-- PROGRESS THEOREM
+
+progress : {Δ : Ctx} {C : CType} →
+           (M : ⟨⟨ Δ ⟩⟩ ⊢M⦂ C) →
+           ({Y : VType} → (y : ⟨ Y ⟩ ∈ ⟨⟨ Δ ⟩⟩) → ¬ (y ◅ M)) →
+           (Σ[ N ∈ ⟨⟨ Δ ⟩⟩ ⊢M⦂ C ] (M ↝ N)
+            ⊎
+            Result⟨ Δ ∣ M ⟩)
+progress (return V) H =
+  inj₂ (return V)
+progress (let= M `in N) H =
+  {!!}
+progress ((` x) · W) H =
+  {!!}
+progress (ƛ x · W) H =
+  inj₁ (x [ `_ [ W ]ₛ ]ₘ , apply x W)
+progress (↑ op p V M) H =
+  {!!}
+progress (↓ op V M) H =
+  {!!}
+progress (promise op ∣ p ↦ M `in N) H =
+  {!!}
+progress (await V until M) H =
+  {!!}
+progress (subsume p q M) H =
+  {!!}
+
