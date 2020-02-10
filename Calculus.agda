@@ -3,6 +3,8 @@ open import Data.Product hiding (Σ)
 
 open import Axiom.Extensionality.Propositional
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Nullary
+open import Relation.Nullary.Negation
 
 open import EffectAnnotations
 open import Types
@@ -31,6 +33,26 @@ Ctx = SnocList VType
 data _∈_ (X : VType) : Ctx → Set where
   Hd : {Γ : Ctx} → X ∈ (Γ ∷ X)
   Tl : {Γ : Ctx} {Y : VType} → X ∈ Γ → X ∈ (Γ ∷ Y)
+
+
+-- DECIDING EQUALITY OF VARIABLES
+
+inj-Tl : {X Y : VType} {Γ : Ctx} → (x y : X ∈ Γ) → Tl {Y = Y} x ≡ Tl y → x ≡ y
+inj-Tl x .x refl =
+  refl
+
+dec-var : {X : VType} {Γ : Ctx} → (x y : X ∈ Γ) → Dec (x ≡ y)
+dec-var Hd Hd =
+  yes refl
+dec-var Hd (Tl y) =
+  no (λ ())
+dec-var (Tl x) Hd =
+  no (λ ())
+dec-var (Tl x) (Tl y) with dec-var x y
+dec-var (Tl x) (Tl .x) | yes refl =
+  yes refl
+dec-var (Tl x) (Tl y) | no ¬p =
+  no (λ q → contradiction (inj-Tl x y q) ¬p)
 
 
 -- DERIVATIONS OF WELL-TYPED TERMS

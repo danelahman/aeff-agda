@@ -1,6 +1,6 @@
+open import Data.List hiding ([_]) renaming (_∷_ to _::_)
 open import Data.Maybe
 open import Data.Product
-open import Data.List hiding ([_]) renaming (_∷_ to _::_)
 
 open import Calculus
 open import EffectAnnotations
@@ -62,7 +62,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
                      ----------------------------------
-                     Γ ⊢E[ ⟨ X ⟩ :: Δ ]⦂ Y ! (o , i)
+                     Γ ⊢E[ X :: Δ ]⦂ Y ! (o , i)
 
   subsume          : {Δ : BCtx}
                      {X : VType}
@@ -81,7 +81,7 @@ infix 30 _⋈_
 
 _⋈_ : Ctx → BCtx → Ctx
 Γ ⋈ [] = Γ
-Γ ⋈ (X :: Δ) = (Γ ∷ X) ⋈ Δ
+Γ ⋈ (X :: Δ) = (Γ ∷ ⟨ X ⟩) ⋈ Δ
 
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED EVALUATION CONTEXT
