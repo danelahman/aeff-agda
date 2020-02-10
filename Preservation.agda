@@ -64,7 +64,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      ----------------------------------
                      Γ ⊢E[ ⟨ X ⟩ :: Δ ]⦂ Y ! (o , i)
 
-  coerce           : {Δ : BCtx}
+  subsume          : {Δ : BCtx}
                      {X : VType}
                      {o o' : O}
                      {i i' : I} →
@@ -97,7 +97,7 @@ hole-ty (↓ op V E) =
   hole-ty E
 hole-ty (promise op ∣ p ↦ M `in E) =
   hole-ty E
-hole-ty (coerce p q E) =
+hole-ty (subsume p q E) =
   hole-ty E
 
 
@@ -116,8 +116,8 @@ _[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ �
   ↓ op V (E [ M ])
 (promise op ∣ p ↦ N `in E) [ M ] =
   promise op ∣ p ↦ N `in (E [ M ])
-coerce p q E [ M ] =
-  coerce p q (E [ M ])
+subsume p q E [ M ] =
+  subsume p q (E [ M ])
 
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
@@ -212,7 +212,7 @@ mutual
                      ------------------------------------------------------------------------------------------
                      ↓ op V (promise op ∣ p ↦ M `in N )
                      ↝
-                     (let= (coerce (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]ₛ ]ₘ)) `in
+                     (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]ₛ ]ₘ)) `in
                        ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]ₛ ]ₘ))
 
     ↓-promise-op'  : {X Y : VType}
@@ -231,9 +231,9 @@ mutual
                                       {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
                                       op'
                                       (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))))
-                                      (coerce (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                              (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                              M)
+                                      (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                               (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                               M)
                                       (↓ op (V-rename wk₁ V) N)
 
     await-promise  : {X Y : VType}
@@ -246,71 +246,6 @@ mutual
                      ↝
                      M [ id-subst [ V ]ₛ ]ₘ
 
-    -- COERCION/SUBSUMPTION RULES
-
-    coerce-return  : {X : VType}
-                     {o o' : O}
-                     {i i' : I} → 
-                     (p : o ⊑ₒ o') →
-                     (q : i ⊑ᵢ i') →
-                     (V : Γ ⊢V⦂ X) →
-                     --------------------------------
-                     coerce p q (return V) ↝ return V
-
-    coerce-let     : {X Y : VType}
-                     {o o' : O}
-                     {i i' : I} → 
-                     (p : o ⊑ₒ o') →
-                     (q : i ⊑ᵢ i') →
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     --------------------------------------
-                     coerce p q (let= M `in N)
-                     ↝
-                     let= (coerce p q M) `in (coerce p q N)
-
-    coerce-↑       : {X : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     (p : o ⊑ₒ o') →
-                     (q : i ⊑ᵢ i') →
-                     {op : Σₒ} →
-                     (r : op ∈ₒ o) →
-                     (V : Γ ⊢V⦂ ``(arₒ op)) → 
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     ------------------------------
-                     coerce p q (↑ op r V M)
-                     ↝
-                     ↑ op (p op r) V (coerce p q M)
-
-    coerce-promise : {X Y : VType}
-                     {o o' o'' : O}
-                     {i i' i'' : I}
-                     (p : o ⊑ₒ o') →
-                     (q : i ⊑ᵢ i') →
-                     {op : Σᵢ} →
-                     (r : lkpᵢ op i ≡ just (o'' , i'')) →
-                     (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o'' , i'')) →
-                     (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                     -------------------------------------------------------------------
-                     coerce p q (promise op ∣ r ↦ M `in N)
-                     ↝
-                     (promise op ∣ lkpᵢ-next-eq q r ↦
-                        coerce (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M `in (coerce p q N))
-
-    coerce-coerce  : {X : VType}
-                     {o o' o'' : O}
-                     {i i' i'' : I} →
-                     (p : o ⊑ₒ o') →
-                     (p' : o' ⊑ₒ o'') →
-                     (q : i ⊑ᵢ i') →
-                     (q' : i' ⊑ᵢ i'') →
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     ---------------------------------------
-                     coerce p' q' (coerce p q M)
-                     ↝
-                     coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
-
     -- EVALUATION CONTEXT RULE
 
     context        : {Δ : BCtx}
@@ -320,3 +255,15 @@ mutual
                      M ↝ N →
                      -------------------------------
                      E [ M ] ↝ E [ N ]
+
+    -- SUBSUMPTION RULE
+
+    subsume        : {X : VType}
+                     {o o' : O}
+                     {i i' : I} → 
+                     (p : o ⊑ₒ o') →
+                     (q : i ⊑ᵢ i') →
+                     {M N : Γ ⊢M⦂ X ! (o , i)} →
+                     M ↝ N →
+                     -----------------------------
+                     subsume p q M ↝ subsume p q N

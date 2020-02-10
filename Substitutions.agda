@@ -62,5 +62,5 @@ mutual
     promise op ∣ p ↦ (M [ lift s ]ₘ) `in (N [ lift s ]ₘ)
   (await V until M) [ s ]ₘ =
     await (V [ s ]ᵥ) until (M [ lift s ]ₘ)
-  (coerce p q M) [ s ]ₘ =
-    coerce p q (M [ s ]ₘ)
+  (subsume p q M) [ s ]ₘ =
+    subsume p q (M [ s ]ₘ)
