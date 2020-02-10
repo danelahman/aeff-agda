@@ -12,6 +12,7 @@ open import Types
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
+open import Relation.Nullary.Negation
 
 module Progress where
 
@@ -100,29 +101,52 @@ data _◅_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
 dec◄ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◄ M)
 dec◄ x (return V) =
   no (λ ())
-dec◄ x (let= M `in N) with dec◄ x M
+dec◄ {Γ} {X} x (let= M `in N) with dec◄ x M
 ... | yes p =
   yes (let-in p)
 ... | no ¬p =
-  no {!!}
+  no (λ q → contradiction (inj-let q) ¬p)
+
+  where
+    inj-let : {Y Z : VType} {o : O} {i : I} {M : Γ ⊢M⦂ Y ! (o , i)} {N : Γ ∷ Y ⊢M⦂ Z ! (o , i)} → x ◄ (let= M `in N) → x ◄ M
+    inj-let (let-in r) = r
+
 dec◄ x (V · W) =
   no (λ ())
 dec◄ x (↑ op p V M) =
   no (λ ())
-dec◄ x (↓ op V M) with dec◄ x M
+dec◄ {Γ} {X} x (↓ op V M) with dec◄ x M
 ... | yes p =
   yes (interrupt p)
 ... | no ¬p =
-  {!!}
+  no (λ q → contradiction (inj-interrupt q) ¬p)
+
+  where
+    inj-interrupt : {Y : VType} {o : O} {i : I} {op : Σᵢ} {V : Γ ⊢V⦂ ``(arᵢ op)} {M : Γ ⊢M⦂ Y ! (o , i)} → x ◄ ↓ op V M → x ◄ M
+    inj-interrupt (interrupt r) = r
+
 dec◄ x (promise op ∣ p ↦ M `in N) =
   no (λ ())
-dec◄ x (await V until M) =
+  
+dec◄ x (await ` y until M) =
   {!!}
-dec◄ x (subsume p q M) with dec◄ x M
+dec◄ x (await ⟨ V ⟩ until M) =
+  no impossible-await
+
+  where
+    impossible-await : ¬ (x ◄ (await ⟨ V ⟩ until M))
+    impossible-await ()
+
+dec◄ {Γ} {X} x (subsume p q M) with dec◄ x M
 ... | yes r =
   yes (subsume r)
 ... | no ¬r =
-  no {!!}
+  no (λ s → contradiction (inj-subsume s) ¬r)
+
+  where
+    inj-subsume : {Y : VType} {o o' : O} {i i' : I} {p : o ⊑ₒ o'} {q : i ⊑ᵢ i'} {M : Γ ⊢M⦂ Y ! (o , i)} → x ◄ subsume p q M → x ◄ M
+    inj-subsume (subsume r) = r
+
 
 dec◅ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◅ M)
 dec◅ x M = {!!}

@@ -4,10 +4,14 @@ open import Data.Product
 open import Data.Sum
 open import Data.Unit
 
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
 open import Relation.Nullary
+open import Relation.Nullary.Negation
 
 module EffectAnnotations where
+
+open import Axiom.Extensionality.Propositional
+postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
 
 -- SIGNAL AND INTERRUPT NAMES
 
@@ -33,6 +37,80 @@ mutual
 
   data I : Set where                                         -- set of effect annotations of incoming interrupts
     imap : (Σᵢ → Maybe (O × I)) → I
+
+
+-- DECIDABLE EQUALITY OF SIGNAL EFFECT ANNOTATIONS
+
+dec-⊤ : (t u : ⊤) → Dec (t ≡ u)
+dec-⊤ tt tt = yes refl
+
+inj-just : {X : Set} {x y : X} → just x ≡ just y → x ≡ y
+inj-just refl = refl
+  
+dec-maybe : {X : Set} → ((x y : X) → Dec (x ≡ y)) → (m m' : Maybe X) → Dec (m ≡ m')
+dec-maybe p nothing nothing =
+  yes refl
+dec-maybe p nothing (just x) =
+  no (λ ())
+dec-maybe p (just x) nothing =
+  no (λ ())
+dec-maybe p (just x) (just y) with p x y
+dec-maybe p (just x) (just .x) | yes refl =
+  yes refl
+dec-maybe {X} p (just x) (just y) | no ¬q =
+  no (λ r → contradiction (inj-just r) ¬q)
+
+
+postulate dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)
+
+
+dec-effₒ : (o o' : O) → Dec (o ≡ o')
+dec-effₒ (omap o) (omap o') with dec-ext o o' (λ op → dec-maybe dec-⊤ (o op) (o' op))
+dec-effₒ (omap o) (omap .o) | yes refl =
+  yes refl
+dec-effₒ (omap o) (omap o') | no ¬p =
+  no (λ q → contradiction (inj-omap q) ¬p)
+
+  where
+    inj-omap : {o o' : Σₒ → Maybe ⊤} → omap o ≡ omap o' → o ≡ o'
+    inj-omap refl = refl
+
+
+-- DECIDABLE EQUALITY OF INTERRUPT EFFECT ANNOTATIONS
+
+mutual 
+  inj-pair₁ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → x ≡ x'
+  inj-pair₁ refl = refl
+
+  inj-pair₂ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → y ≡ y'
+  inj-pair₂ refl = refl
+
+  dec-effᵢ-aux : (m m' : Maybe (O × I)) → Dec (m ≡ m')
+  dec-effᵢ-aux nothing nothing =
+    yes refl
+  dec-effᵢ-aux nothing (just (o' , i')) =
+    no (λ ())
+  dec-effᵢ-aux (just (o , i)) nothing =
+    no (λ ())
+  dec-effᵢ-aux (just (o , i)) (just (o' , i')) with dec-effₒ o o' | dec-effᵢ i i'
+  dec-effᵢ-aux (just (o , i)) (just (.o , .i)) | yes refl | yes refl =
+    yes refl
+  dec-effᵢ-aux (just (o , i)) (just (.o , i')) | yes refl | no ¬q =
+    no (λ r → contradiction (inj-pair₂ (inj-just r)) ¬q)
+  dec-effᵢ-aux (just (o , i)) (just (o' , i')) | no ¬p | _ =
+    no (λ q → contradiction (inj-pair₁ (inj-just q)) ¬p)
+
+  dec-effᵢ : (i i' : I) → Dec (i ≡ i')
+  dec-effᵢ (imap i) (imap i') with dec-ext i i' (λ op → dec-effᵢ-aux (i op) (i' op))
+  dec-effᵢ (imap i) (imap .i) | yes refl =
+    yes refl
+  dec-effᵢ (imap i) (imap i') | no ¬p =
+    no (λ q → contradiction (inj-imap q) ¬p)
+
+    where
+      inj-imap : {i i' : Σᵢ → Maybe (O × I)} → imap i ≡ imap i' → i ≡ i'
+      inj-imap refl = refl
+
 
 
 -- UNION OF EFFECT ANNOTATIONS

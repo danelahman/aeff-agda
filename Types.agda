@@ -10,12 +10,13 @@ GType = BType
 
 mutual
   data VType : Set where
-    ``   : GType → VType
+    ``  : GType → VType
     _⇒_ : VType → CType → VType
     ⟨_⟩ : VType → VType
 
   data CType : Set where
     _!_ : VType → O × I → CType
+
 
 infix 30 _⇒_
 infix 30 _!_
