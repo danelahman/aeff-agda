@@ -236,12 +236,11 @@ mutual
                                                M)
                                       (↓ op (V-rename wk₁ V) N)
 
-    await-promise  : {X Y : VType}
-                     {o : O}
-                     {i : I} →
+    await-promise  : {X : VType}
+                     {C : CType} → 
                      (V : Γ ⊢V⦂ X) → 
-                     (M : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     -----------------------------
+                     (M : Γ ∷ X ⊢M⦂ C) →
+                     --------------------
                      await ⟨ V ⟩ until M
                      ↝
                      M [ id-subst [ V ]ₛ ]ₘ
@@ -249,8 +248,8 @@ mutual
     -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION RULE)
 
     context        : {Δ : BCtx}
-                     {C : CType}
-                     {E : Γ ⊢E[ Δ ]⦂ C} →
+                     {C : CType} → 
+                     (E : Γ ⊢E[ Δ ]⦂ C) →
                      {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty E)} →
                      M ↝ N →
                      -------------------------------
