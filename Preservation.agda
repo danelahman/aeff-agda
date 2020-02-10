@@ -246,7 +246,7 @@ mutual
                      ↝
                      M [ id-subst [ V ]ₛ ]ₘ
 
-    -- EVALUATION CONTEXT RULE
+    -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION RULE)
 
     context        : {Δ : BCtx}
                      {C : CType}
@@ -255,15 +255,3 @@ mutual
                      M ↝ N →
                      -------------------------------
                      E [ M ] ↝ E [ N ]
-
-    -- SUBSUMPTION RULE
-
-    subsume        : {X : VType}
-                     {o o' : O}
-                     {i i' : I} → 
-                     (p : o ⊑ₒ o') →
-                     (q : i ⊑ᵢ i') →
-                     {M N : Γ ⊢M⦂ X ! (o , i)} →
-                     M ↝ N →
-                     -----------------------------
-                     subsume p q M ↝ subsume p q N
