@@ -1,5 +1,6 @@
 open import Data.Maybe
 open import Data.Product
+open import Data.List hiding ([_]) renaming (_∷_ to _::_)
 
 open import Calculus
 open import EffectAnnotations
@@ -12,71 +13,99 @@ open import Relation.Nullary
 
 module Preservation where
 
--- (FILLED) EVALUATION CONTEXTS
+-- EVALUATION CONTEXTS
 
-data _⊢E⦂_ (Γ : Ctx) : CType → Set where
+BCtx = List VType
 
-  [_]              : {C : CType} →
-                     Γ ⊢M⦂ C → 
+data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
+
+  [-]              : {C : CType} →
                      -------------
-                     Γ ⊢E⦂ C
+                     Γ ⊢E[ [] ]⦂ C
 
-  let=_`in_        : {X Y : VType}
+  let=_`in_        : {Δ : BCtx}
+                     {X Y : VType}
                      {o : O}
                      {i : I} →
-                     Γ ⊢E⦂ X ! (o , i) →
+                     Γ ⊢E[ Δ ]⦂ X ! (o , i) →
                      Γ ∷ X ⊢M⦂ Y ! (o , i) →
-                     -----------------------
-                     Γ ⊢E⦂ Y ! (o , i)
+                     ------------------------
+                     Γ ⊢E[ Δ ]⦂ Y ! (o , i)
 
-  ↑                : {X : VType}
+  ↑                : {Δ : BCtx}
+                     {X : VType}
                      {o : O}
                      {i : I} →
                      (op : Σₒ) →
                      op ∈ₒ o →
                      Γ ⊢V⦂ ``(arₒ op) →
-                     Γ ⊢E⦂ X ! (o , i) →
-                     -------------------
-                     Γ ⊢E⦂ X ! (o , i)
+                     Γ ⊢E[ Δ ]⦂ X ! (o , i) →
+                     ------------------------
+                     Γ ⊢E[ Δ ]⦂ X ! (o , i)
 
-  ↓                : {X : VType}
+  ↓                : {Δ : BCtx}
+                     {X : VType}
                      {o : O}
                      {i : I}
                      (op : Σᵢ) →
                      Γ ⊢V⦂ ``(arᵢ op) →
-                     Γ ⊢E⦂ X ! (o , i) →
-                     ----------------------
-                     Γ ⊢E⦂ X ! op ↓ₑ (o , i)
+                     Γ ⊢E[ Δ ]⦂ X ! (o , i) →
+                     ---------------------------
+                     Γ ⊢E[ Δ ]⦂ X ! op ↓ₑ (o , i)
 
-  promise_∣_↦_`in_ : {X Y : VType}
+  promise_∣_↦_`in_ : {Δ : BCtx}
+                     {X Y : VType}
                      {o o' : O}
                      {i i' : I} → 
                      (op : Σᵢ) →
                      lkpᵢ op i ≡ just (o' , i') →
                      Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
-                     Γ ∷ ⟨ X ⟩ ⊢E⦂ Y ! (o , i) →
-                     ---------------------------------
-                     Γ ⊢E⦂ Y ! (o , i)
+                     Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
+                     ----------------------------------
+                     Γ ⊢E[ ⟨ X ⟩ :: Δ ]⦂ Y ! (o , i)
 
-  coerce           : {X : VType}
+  coerce           : {Δ : BCtx}
+                     {X : VType}
                      {o o' : O}
                      {i i' : I} →
                      o ⊑ₒ o' →
                      i ⊑ᵢ i' → 
-                     Γ ⊢E⦂ X ! (o , i) →
-                     -------------------
-                     Γ ⊢E⦂ X ! (o' , i')
+                     Γ ⊢E[ Δ ]⦂ X ! (o , i) →
+                     ------------------------
+                     Γ ⊢E[ Δ ]⦂ X ! (o' , i')
 
 
--- TRANSLATING A FILLED EVALUATION CONTEXT TO A COMPUTATION
+-- MERGING AN ORDINARY AND A BINDING CONTEXT
 
-⌈_⌉ : {Γ : Ctx} {C : CType} → Γ ⊢E⦂ C → Γ ⊢M⦂ C
-⌈ [ M ] ⌉ = M
-⌈ let= E `in N ⌉ = let= ⌈ E ⌉ `in N
-⌈ ↑ op p V E ⌉ = ↑ op p V ⌈ E ⌉
-⌈ ↓ op V E ⌉ = ↓ op V ⌈ E ⌉
-⌈ promise op ∣ p ↦ M `in E ⌉ = promise op ∣ p ↦ M `in ⌈ E ⌉
-⌈ coerce p q E ⌉ = coerce p q ⌈ E ⌉
+infix 30 _⋈_
+
+_⋈_ : Ctx → BCtx → Ctx
+Γ ⋈ [] = Γ
+Γ ⋈ (X :: Δ) = (Γ ∷ X) ⋈ Δ
+
+
+-- FINDING THE TYPE OF THE HOLE OF AN EVALUATION CONTEXT
+
+hole-ty : {Γ : Ctx} {Δ : BCtx} {C : CType} → Γ ⊢E[ Δ ]⦂ C → CType
+hole-ty {_} {_} {C} [-] = C
+hole-ty (let= E `in M) = hole-ty E
+hole-ty (↑ op p V E) = hole-ty E
+hole-ty (↓ op V E) = hole-ty E
+hole-ty (promise op ∣ p ↦ M `in E) = hole-ty E
+hole-ty (coerce p q E) = hole-ty E
+
+
+-- FILLING AN EVALUATION CONTEXT
+
+infix 30 _[_]
+
+_[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty E) → Γ ⊢M⦂ C
+[-] [ M ] = M
+(let= E `in N) [ M ] = let= (E [ M ]) `in N
+↑ op p V E [ M ] = ↑ op p V (E [ M ])
+↓ op V E [ M ] = ↓ op V (E [ M ])
+(promise op ∣ p ↦ N `in E) [ M ] = promise op ∣ p ↦ N `in (E [ M ])
+coerce p q E [ M ] = coerce p q (E [ M ])
 
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR COMPUTATIONS
@@ -85,7 +114,6 @@ data _⊢E⦂_ (Γ : Ctx) : CType → Set where
 mutual
 
   infix 10 _↝_
-  infix 10 _↝ₑ_
 
   data _↝_ {Γ : Ctx} : {C : CType} → Γ ⊢M⦂ C → Γ ⊢M⦂ C → Set where
 
@@ -266,82 +294,18 @@ mutual
                      (q : i ⊑ᵢ i') →
                      (q' : i' ⊑ᵢ i'') →
                      (M : Γ ⊢M⦂ X ! (o , i)) →
-                     ----------------------------------------
+                     ---------------------------------------
                      coerce p' q' (coerce p q M)
                      ↝
                      coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
 
-    -- EVALUATION CONTEXT RULE
 
-    context        : {C : CType}
-                     {E E' : Γ ⊢E⦂ C} →
-                     E ↝ₑ E' →
-                     ------------------
-                     ⌈ E ⌉ ↝ ⌈ E' ⌉
+  -- EVALUATION CONTEXT RULE
 
-
-  -- SMALL-STEP OPERATIONAL SEMANTICS FOR EVALUATION CONTEXTS
-  -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
-
-  data _↝ₑ_ {Γ : Ctx} : {C : CType} → Γ ⊢E⦂ C → Γ ⊢E⦂ C → Set where
-
-    [_]              : {X : VType}
-                       {o : O}
-                       {i : I}
-                       {M N : Γ ⊢M⦂ X ! (o , i)} →
-                       M ↝ N →
-                       ---------------------------
-                       [ M ] ↝ₑ [ N ]
-
-    let=_`in_        : {X Y : VType}
-                       {o : O}
-                       {i : I} 
-                       {E E' : Γ ⊢E⦂ X ! (o , i)} →
-                       E ↝ₑ E' →
-                       (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                       -----------------------------
-                       let= E `in N ↝ₑ let= E' `in N
-
-    ↑                : {X : VType}
-                       {o : O}
-                       {i : I} →
-                       (op : Σₒ) →
-                       (p : op ∈ₒ o) →
-                       (V : Γ ⊢V⦂ ``(arₒ op)) →
-                       {E E' : Γ ⊢E⦂ X ! (o , i)} →
-                       E ↝ₑ E' →
-                       ----------------------------
-                       ↑ op p V E ↝ₑ ↑ op p V E'
-
-    ↓                : {X : VType}
-                       {o : O}
-                       {i : I} →
-                       (op : Σᵢ) →
-                       (V : Γ ⊢V⦂ ``(arᵢ op)) →
-                       {E E' : Γ ⊢E⦂ X ! (o , i)} →
-                       E ↝ₑ E' →
-                       ----------------------------
-                       ↓ op V E ↝ₑ ↓ op V E'
-
-
-    promise_∣_↦_`in_ : {X Y : VType}
-                       {o o' : O}
-                       {i i' : I} → 
-                       (op : Σᵢ) →
-                       (p : lkpᵢ op i ≡ just (o' , i')) →
-                       (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')) →
-                       {E E' : Γ ∷ ⟨ X ⟩ ⊢E⦂ Y ! (o , i)} →
-                       E ↝ₑ E →
-                       ---------------------------------
-                       promise op ∣ p ↦ M `in E ↝ₑ promise op ∣ p ↦ M `in E'
-
-    coerce           : {X : VType}
-                       {o o' : O}
-                       {i i' : I} →
-                       (p : o ⊑ₒ o') →
-                       (q : i ⊑ᵢ i') → 
-                       {E E' : Γ ⊢E⦂ X ! (o , i)} →
-                       E ↝ₑ E' →
-                       -----------------------------
-                       coerce p q E ↝ₑ coerce p q E'
- 
+    context        : {Δ : BCtx}
+                     {C : CType}
+                     {E : Γ ⊢E[ Δ ]⦂ C} →
+                     {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty E)} →
+                     M ↝ N →
+                     -------------------------------
+                     E [ M ] ↝ E [ N ]
