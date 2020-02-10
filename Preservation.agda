@@ -108,7 +108,7 @@ _[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ �
 coerce p q E [ M ] = coerce p q (E [ M ])
 
 
--- SMALL-STEP OPERATIONAL SEMANTICS FOR COMPUTATIONS
+-- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
 
 mutual
@@ -252,7 +252,7 @@ mutual
                      (q : i ⊑ᵢ i') →
                      (M : Γ ⊢M⦂ X ! (o , i)) →
                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     ---------------------------------
+                     --------------------------------------
                      coerce p q (let= M `in N)
                      ↝
                      let= (coerce p q M) `in (coerce p q N)
@@ -266,7 +266,7 @@ mutual
                      (r : op ∈ₒ o) →
                      (V : Γ ⊢V⦂ ``(arₒ op)) → 
                      (M : Γ ⊢M⦂ X ! (o , i)) →
-                     -------------------------
+                     ------------------------------
                      coerce p q (↑ op r V M)
                      ↝
                      ↑ op (p op r) V (coerce p q M)
@@ -299,8 +299,7 @@ mutual
                      ↝
                      coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
 
-
-  -- EVALUATION CONTEXT RULE
+    -- EVALUATION CONTEXT RULE
 
     context        : {Δ : BCtx}
                      {C : CType}
