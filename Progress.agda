@@ -169,36 +169,45 @@ dec◄ {Γ} {X} x (subsume p q M) with dec◄ x M
 
 
 dec◅ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◅ M)
-dec◅ x (return V) =
-  {!!}
-dec◅ x (let= M `in N) =
-  {!!}
-dec◅ x (V · W) =
-  {!!}
-dec◅ x (↑ op p V M) =
-  {!!}
+dec◅ {Γ} x (return {Y} {o} {i} V) with dec◄ x (return {Γ} {Y} {o} {i} V)
+... | no ¬p =
+  no (λ { (◅◄ q) → ¬p q })
+dec◅ x (let= M `in N) with dec◄ x (let= M `in N)
+dec◅ x (let= M `in N) | yes p =
+  yes (◅◄ p)
+dec◅ x (let= M `in N) | no ¬p =
+  no (λ { (◅◄ q) → ¬p q })
+dec◅ x (V · W) with dec◄ x (V · W)
+... | no ¬p =
+  no (λ { (◅◄ q) → ¬p q })
+dec◅ x (↑ op p V M) with dec◅ x M
+... | yes q =
+  yes (signal q)
+... | no ¬q =
+  no (λ { (◅◄ r) → contradiction r (contraposition (λ ()) ¬q) ;
+          (signal r) → ¬q r})
 dec◅ x (↓ op V M) with dec◄ x (↓ op V M)
 ... | yes p =
   yes (◅◄ p)
 ... | no ¬p =
-  no (λ q → contradiction q (contraposition (λ { (◅◄ r) → r }) ¬p))
+  no (λ { (◅◄ q) → ¬p q })
 dec◅ x (promise op ∣ p ↦ M `in N) with dec◅ (Tl x) N 
 ... | yes q =
   yes (promise q)
 ... | no ¬q =
   no (λ { (◅◄ r) → contradiction r (contraposition (λ ()) ¬q) ;
-          (promise r) → ¬q r})
+          (promise r) → ¬q r })
 dec◅ {Γ} x (await V until M) with dec◄ x (await V until M)
 ... | yes await =
   yes (◅◄ await)
 ... | no ¬p =
-  no (λ q → contradiction q (contraposition (λ { (◅◄ r) → r }) ¬p))    
+  no (λ { (◅◄ q) → ¬p q })
 dec◅ {Γ} x (subsume p q M) with dec◅ x M
 ... | yes r =
   yes (subsume r)
 ... | no ¬r =
-  no (λ { (◅◄ t) → contradiction t (contraposition (λ { (subsume s) → s }) (contraposition ◅◄ ¬r)) ;
-          (subsume r) → ¬r r })
+  no (λ { (◅◄ s) → contradiction s (contraposition (λ { (subsume t) → t }) (contraposition ◅◄ ¬r)) ;
+          (subsume s) → ¬r s })
 
 {-
 dec◅ x M with dec◄ x M
