@@ -266,19 +266,7 @@ mutual
                      (V : Γ ⊢V⦂ X) →
                      ---------------------------------
                      subsume p q (return V) ↝ return V
-{-
-    subsume-let    : {X Y : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {p : o ⊑ₒ o'}
-                     {q : i ⊑ᵢ i'} → 
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     ----------------------------------------
-                     subsume p q (let= M `in N)
-                     ↝
-                     let= (subsume p q M) `in (subsume p q N)
--}
+
     subsume-↑      : {X : VType}
                      {o o' : O}
                      {i i' : I}
