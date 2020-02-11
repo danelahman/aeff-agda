@@ -68,7 +68,7 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
             Result⟨ Γ ∣ M ⟩
 
 
--- PROGRESS THEOREM
+-- PROGRESS THEOREM FOR PROMISE-OPEN COMPUTATIONS
 
 ⇒-not-in-ctx : {Γ : Ctx} {X : VType} {C : CType} → X ⇒ C ∈ ⟨⟨ Γ ⟩⟩ → ⊥
 ⇒-not-in-ctx {Γ ∷ y} (Tl x) =
@@ -152,3 +152,14 @@ progress (subsume p q M) with progress M
 ... | inj₂ (stuck r) =
   inj₂ (stuck (subsume r))
 
+
+-- PROGRESS THEOREM FOR CLOSED COMPUTATIONS
+
+closed-progress : {C : CType} →
+                  (M : [] ⊢M⦂ C) →
+                  (Σ[ N ∈ [] ⊢M⦂ C ] (M ↝ N)
+                   ⊎
+                   Result⟨ [] ∣ M ⟩)
+
+closed-progress M =
+  progress M
