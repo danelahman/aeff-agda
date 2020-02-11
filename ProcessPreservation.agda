@@ -218,6 +218,28 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
 
   -- INTERRUPT RULES
 
+  ↓-run : {X : VType}
+          {o : O}
+          {i : I}
+          {op : Σₙ} → 
+          (V : Γ ⊢V⦂ `` (arₙ op)) → 
+          (M : Γ ⊢M⦂ X ! (o , i)) →
+          -------------------------
+          ↓ op V (run M)
+          [ id ]↝
+          run (↓ op V M)
+
+  ↓-par : {PP QQ : SkelPType}
+          {o : O}
+          {op : Σₙ}
+          (V : Γ ⊢V⦂ `` (arₙ op)) →
+          (P : Γ ⊢P⦂ PP ‼ o) →
+          (Q : Γ ⊢P⦂ QQ ‼ o) →
+          ------------------------
+          ↓ op V (P ∥ Q)
+          [ id ]↝
+          (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q))
+
   -- ...
 
   -- HOISTING RULE
