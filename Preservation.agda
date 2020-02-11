@@ -131,155 +131,167 @@ mutual
 
     -- COMPUTATIONAL RULES
 
-    apply          : {X : VType}
-                     {C : CType} →
-                     (M : Γ ∷ X ⊢M⦂ C) →
-                     (V : Γ ⊢V⦂ X) →
-                     ----------------------
-                     (ƛ M) · V
-                     ↝
-                     M [ id-subst [ V ]s ]m
+    apply           : {X : VType}
+                      {C : CType} →
+                      (M : Γ ∷ X ⊢M⦂ C) →
+                      (V : Γ ⊢V⦂ X) →
+                      ----------------------
+                      (ƛ M) · V
+                      ↝
+                      M [ id-subst [ V ]s ]m
 
-    let-return     : {X Y : VType}
-                     {o : O}
-                     {i : I} → 
-                     (V : Γ ⊢V⦂ X) →
-                     (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     -----------------------------
-                     let= (return V) `in N
-                     ↝
-                     N [ id-subst [ V ]s ]m
+    let-return      : {X Y : VType}
+                      {o : O}
+                      {i : I} → 
+                      (V : Γ ⊢V⦂ X) →
+                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
+                      -----------------------------
+                      let= (return V) `in N
+                      ↝
+                      N [ id-subst [ V ]s ]m
 
-    let-↑          : {X Y : VType}
-                     {o : O}
-                     {i : I}
-                     {op : Σₙ} →
-                     (p : op ∈ₒ o) →
-                     (V : Γ ⊢V⦂ ``(arₙ op)) →
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                     -----------------------------
-                     let= (↑ op p V M) `in N
-                     ↝
-                     ↑ op p V (let= M `in N)
+    let-↑           : {X Y : VType}
+                      {o : O}
+                      {i : I}
+                      {op : Σₙ} →
+                      (p : op ∈ₒ o) →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) →
+                      (M : Γ ⊢M⦂ X ! (o , i)) →
+                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
+                      -----------------------------
+                      let= (↑ op p V M) `in N
+                      ↝
+                      ↑ op p V (let= M `in N)
 
-    let-promise    : {X Y Z : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {op : Σₙ} →
-                     (p : lkpᵢ op i ≡ just (o' , i')) →
-                     (M₁ : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
-                     (M₂ : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                     (N : Γ ∷ Y ⊢M⦂ Z ! (o , i)) →
-                     ---------------------------------------------------------------------------
-                     let= (promise op ∣ p ↦ M₁ `in M₂) `in N
-                     ↝
-                     (promise op ∣ p ↦ M₁ `in (let= M₂ `in (M-rename (comp-ren exchange wk₁) N)))
+    let-promise     : {X Y Z : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {op : Σₙ} →
+                      (p : lkpᵢ op i ≡ just (o' , i')) →
+                      (M₁ : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
+                      (M₂ : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                      (N : Γ ∷ Y ⊢M⦂ Z ! (o , i)) →
+                      ---------------------------------------------------------------------------
+                      let= (promise op ∣ p ↦ M₁ `in M₂) `in N
+                      ↝
+                      (promise op ∣ p ↦ M₁ `in (let= M₂ `in (M-rename (comp-ren exchange wk₁) N)))
 
-    ↓-return       : {X : VType}
-                     {o : O}
-                     {i : I}
-                     {op : Σₙ} →
-                     (V : Γ ⊢V⦂ ``(arₙ op)) →
-                     (W : Γ ⊢V⦂ X) →
-                     ---------------------------------------------------------------
-                     ↓ {o = o} {i = i} op V (return W)
-                     ↝
-                     return {o = proj₁ (op ↓ₑ (o , i))} {i = proj₂ (op ↓ₑ (o , i))} W
+    ↓-return        : {X : VType}
+                      {o : O}
+                      {i : I}
+                      {op : Σₙ} →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) →
+                      (W : Γ ⊢V⦂ X) →
+                      ---------------------------------------------------------------
+                      ↓ {o = o} {i = i} op V (return W)
+                      ↝
+                      return {o = proj₁ (op ↓ₑ (o , i))} {i = proj₂ (op ↓ₑ (o , i))} W
 
-    ↓-↑            : {X : VType}
-                     {o : O}
-                     {i : I}
-                     {op : Σₙ}
-                     {op' : Σₙ} →
-                     (p : op' ∈ₒ o) →
-                     (V : Γ ⊢V⦂ ``(arₙ op)) →
-                     (W : Γ ⊢V⦂ ``(arₙ op')) →
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     -----------------------------------
-                     ↓ op V (↑ op' p W M)
-                     ↝
-                     ↑ op' (opₒ-in-↓ₑ-lem p) W (↓ op V M)
+    ↓-↑             : {X : VType}
+                      {o : O}
+                      {i : I}
+                      {op : Σₙ}
+                      {op' : Σₙ} →
+                      (p : op' ∈ₒ o) →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) →
+                      (W : Γ ⊢V⦂ ``(arₙ op')) →
+                      (M : Γ ⊢M⦂ X ! (o , i)) →
+                      -----------------------------------
+                      ↓ op V (↑ op' p W M)
+                      ↝
+                      ↑ op' (opₒ-in-↓ₑ-lem p) W (↓ op V M)
 
-    ↓-promise-op   : {X Y : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {op : Σₙ} →
-                     (p : lkpᵢ op i ≡ just (o' , i')) →
-                     (V : Γ ⊢V⦂ ``(arₙ op)) → 
-                     (M : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
-                     (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                     ------------------------------------------------------------------------------------------
-                     ↓ op V (promise op ∣ p ↦ M `in N )
-                     ↝
-                     (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]s ]m)) `in
-                       ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]s ]m))
+    ↓-promise-op    : {X Y : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {op : Σₙ} →
+                      (p : lkpᵢ op i ≡ just (o' , i')) →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) → 
+                      (M : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
+                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                      ------------------------------------------------------------------------------------------
+                      ↓ op V (promise op ∣ p ↦ M `in N )
+                      ↝
+                      (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]s ]m)) `in
+                        ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]s ]m))
 
-    ↓-promise-op'  : {X Y : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {op op' : Σₙ} →
-                     (p : ¬ op ≡ op') →
-                     (q : lkpᵢ op' i ≡ just (o' , i')) →
-                     (V : Γ ⊢V⦂ ``(arₙ op)) → 
-                     (M : Γ ∷ ``(arₙ op') ⊢M⦂ X ! (o' , i')) →
-                     (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                     ---------------------------------------------------------------------------------------
-                     ↓ op V (promise op' ∣ q ↦ M `in N )
-                     ↝
-                     promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)}
-                                      {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
-                                      op'
-                                      (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))))
-                                      (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                               (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                               M)
-                                      (↓ op (V-rename wk₁ V) N)
+    ↓-promise-op'   : {X Y : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {op op' : Σₙ} →
+                      (p : ¬ op ≡ op') →
+                      (q : lkpᵢ op' i ≡ just (o' , i')) →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) → 
+                      (M : Γ ∷ ``(arₙ op') ⊢M⦂ X ! (o' , i')) →
+                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                      ---------------------------------------------------------------------------------------
+                      ↓ op V (promise op' ∣ q ↦ M `in N )
+                      ↝
+                      promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)}
+                                       {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
+                                       op'
+                                       (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))))
+                                       (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                                (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                                M)
+                                       (↓ op (V-rename wk₁ V) N)
 
-    await-promise  : {X : VType}
-                     {C : CType} → 
-                     (V : Γ ⊢V⦂ X) → 
-                     (M : Γ ∷ X ⊢M⦂ C) →
-                     --------------------
-                     await ⟨ V ⟩ until M
-                     ↝
-                     M [ id-subst [ V ]s ]m
+    await-promise   : {X : VType}
+                      {C : CType} → 
+                      (V : Γ ⊢V⦂ X) → 
+                      (M : Γ ∷ X ⊢M⦂ C) →
+                      --------------------
+                      await ⟨ V ⟩ until M
+                      ↝
+                      M [ id-subst [ V ]s ]m
 
     -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION CONGRUENCE)
 
-    context        : {Δ : BCtx}
-                     {C : CType} → 
-                     (E : Γ ⊢E[ Δ ]⦂ C) →
-                     {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty-e E)} →
-                     M ↝ N →
-                     -------------------------------
-                     E [ M ] ↝ E [ N ]
+    context         : {Δ : BCtx}
+                      {C : CType} → 
+                      (E : Γ ⊢E[ Δ ]⦂ C) →
+                      {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty-e E)} →
+                      M ↝ N →
+                      -------------------------------
+                      E [ M ] ↝ E [ N ]
 
     -- SUBSUMPTION RULES
     -- (ADMINISTRATIVE, NEEDED FOR PROGRESS, RESULT OF WORKING WITH WELL-TYPED SYNTAX)
 
-    subsume-return : {X : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {p : o ⊑ₒ o'}
-                     {q : i ⊑ᵢ i'} → 
-                     (V : Γ ⊢V⦂ X) →
-                     ---------------------------------
-                     subsume p q (return V) ↝ return V
+    subsume-return  : {X : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {p : o ⊑ₒ o'}
+                      {q : i ⊑ᵢ i'} → 
+                      (V : Γ ⊢V⦂ X) →
+                      ---------------------------------
+                      subsume p q (return V) ↝ return V
 
-    subsume-↑      : {X : VType}
-                     {o o' : O}
-                     {i i' : I}
-                     {p : o ⊑ₒ o'}
-                     {q : i ⊑ᵢ i'}
-                     {op : Σₙ} → 
-                     (r : op ∈ₒ o) →
-                     (V : Γ ⊢V⦂ `` (arₙ op)) →
-                     (M : Γ ⊢M⦂ X ! (o , i)) →
-                     -------------------------------
-                     subsume p q (↑ op r V M)
-                     ↝
-                     ↑ op (p op r) V (subsume p q M)
+    subsume-let     : {X Y : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {p : o ⊑ₒ o'}
+                      {q : i ⊑ᵢ i'} →
+                      (M : Γ ⊢M⦂ X ! (o , i)) →
+                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
+                      ----------------------------------------
+                      subsume p q (let= M `in N)
+                      ↝
+                      let= (subsume p q M) `in (subsume p q N)
+
+    subsume-↑       : {X : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {p : o ⊑ₒ o'}
+                      {q : i ⊑ᵢ i'}
+                      {op : Σₙ} → 
+                      (r : op ∈ₒ o) →
+                      (V : Γ ⊢V⦂ ``(arₙ op)) →
+                      (M : Γ ⊢M⦂ X ! (o , i)) →
+                      -------------------------------
+                      subsume p q (↑ op r V M)
+                      ↝
+                      ↑ op (p op r) V (subsume p q M)                      
 
     subsume-promise : {X Y : VType}
                       {o o' o'' : O}
@@ -290,7 +302,7 @@ mutual
                       (r : lkpᵢ op i ≡ just (o'' , i''))
                       (M : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o'' , i'')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                      ---------------------------------------
+                      ----------------------------------------------------------------
                       subsume p q (promise op ∣ r ↦ M `in N)
                       ↝
                       promise_∣_↦_`in_ {o' = lkpᵢ-nextₒ q r}
@@ -299,3 +311,16 @@ mutual
                                        (lkpᵢ-next-eq q r)
                                        (subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M)
                                        (subsume p q N)
+
+    subsume-subsume : {X : VType}
+                      {o o' o'' : O}
+                      {i i' i'' : I}
+                      {p : o ⊑ₒ o'}
+                      {p' : o' ⊑ₒ o''}
+                      {q : i ⊑ᵢ i'}
+                      {q' : i' ⊑ᵢ i''} →
+                      (M : Γ ⊢M⦂ X ! (o , i)) →
+                      ----------------------------------------
+                      subsume p' q' (subsume p q M)
+                      ↝
+                      subsume (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
