@@ -11,7 +11,7 @@ open import Types
 
 module Calculus where
 
--- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND GROUND CONSTANTS
+-- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND BASE CONSTANTS
 
 postulate arₒ : Σₒ → GType -- arity assignment to outgoing signals
 postulate arᵢ : Σᵢ → GType  -- arity assignment to incoming interrupts
