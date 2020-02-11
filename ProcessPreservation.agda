@@ -191,7 +191,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
             (V : Γ ⊢V⦂ `` (arₙ op)) →
             (P : Γ ⊢P⦂ PP ‼ o) →
             (Q : Γ ⊢P⦂ QQ ‼ o) →
-            ------------------------
+            ------------------------------------------
             (↑ op p V P ∥ Q)
             [ par id (ops op) ]↝
             (↑ op (⊑ₒ-inl op p)
@@ -207,7 +207,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
             (V : Γ ⊢V⦂ `` (arₙ op)) →
             (P : Γ ⊢P⦂ PP ‼ o) →
             (Q : Γ ⊢P⦂ QQ ‼ o) →
-            ------------------------
+            ----------------------------------------
             (P ∥ ↑ op p V Q)
             [ par (ops op) id ]↝
             (↑ op (⊑ₒ-inr op p)
@@ -235,12 +235,23 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           (V : Γ ⊢V⦂ `` (arₙ op)) →
           (P : Γ ⊢P⦂ PP ‼ o) →
           (Q : Γ ⊢P⦂ QQ ‼ o) →
-          ------------------------
+          ----------------------------------------------------------------------
           ↓ op V (P ∥ Q)
           [ id ]↝
           (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q))
 
-  -- ...
+  ↓-↑   : {PP : SkelPType}
+          {o : O}
+          {op : Σₙ}
+          {op' : Σₙ} →
+          (p : op' ∈ₒ o) →
+          (V : Γ ⊢V⦂ ``(arₙ op)) →
+          (W : Γ ⊢V⦂ ``(arₙ op')) →
+          (P : Γ ⊢P⦂ PP ‼ o) →
+          -----------------------------------
+          ↓ op V (↑ op' p W P)
+          [ id ]↝
+          ↑ op' (↓ₚ-in-lem PP p) W (↓ op V P)
 
   -- HOISTING RULE
 
@@ -253,7 +264,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           (p : op ∈ₒ hole-ty-sₒ H) →
           (V : Γ ⋈ Δ ⊢V⦂ `` (arₙ op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-sₒ H , hole-ty-sᵢ H)) →
-          -----------------------------------------------
+          ----------------------------------------------------------------------
           (run (H [ ↑ op p V M ]h))
           [ id ]↝
           (↑ op (hole-ty-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]h)))
@@ -261,4 +272,6 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
   -- CONTEXT RULE
 
   -- ...
+
+  -- SUBSUMPTION RULES
 

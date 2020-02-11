@@ -71,3 +71,19 @@ op ↓ₚ ((X ! i) , o) with op ↓ₑ (o , i)
 op ↓ₚ ((PP ∥ QQ) , o) with op ↓ₚ (PP , o) | op ↓ₚ (QQ , o)
 ... | (PP' , o') | (QQ' , o'') =
   (PP' ∥ QQ') , (o' ∪ₒ o'')
+
+
+-- SIGNAL ANNOTATIONS ARE PRESERVED BY THE ACTION
+
+↓ₚ-in-lem :  (PP : SkelPType) →
+             {o : O}
+             {op op' : Σₙ} →
+             op' ∈ₒ o →
+             ----------------------------
+             op' ∈ₒ proj₂ (op ↓ₚ (PP , o))
+             
+↓ₚ-in-lem (X ! i) {o} {op} p =
+  opₒ-in-↓ₑ-lem p
+↓ₚ-in-lem (PP ∥ QQ) {o} {op} {op'} p with ↓ₚ-in-lem PP {o} {op} {op'} p
+... | r =
+  ⊑ₒ-inl op' r
