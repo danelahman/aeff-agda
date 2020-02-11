@@ -200,6 +200,22 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                    ∥
                    subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q)))
 
+  bcast-r : {PP QQ : SkelPType}
+            {o : O}
+            {op : Σₙ} → 
+            (p : op ∈ₒ o) →
+            (V : Γ ⊢V⦂ `` (arₙ op)) →
+            (P : Γ ⊢P⦂ PP ‼ o) →
+            (Q : Γ ⊢P⦂ QQ ‼ o) →
+            ------------------------
+            (P ∥ ↑ op p V Q)
+            [ par (ops op) id ]↝
+            (↑ op (⊑ₒ-inr op p)
+                  V
+                  (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P)
+                   ∥
+                   subsume ⊑ₚ-refl ⊑ₒ-inr Q))
+
   -- HOISTING RULE
 
   hoist : {Δ : BCtx}
