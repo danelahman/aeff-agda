@@ -16,8 +16,8 @@ module Calculus where
 postulate arₒ : Σₒ → GType -- arity assignment to outgoing signals
 postulate arᵢ : Σᵢ → GType  -- arity assignment to incoming interrupts
 
-postulate Σₖ : Set        -- set of ground constants
-postulate arₖ : Σₖ → GType -- arity assignment to ground constants
+postulate Σ-base : Set             -- set of base constants
+postulate ar-base : Σ-base → BType -- arity assignment to base constants
 
 
 -- SNOC LISTS FOR MODELLING CONTEXTS
@@ -62,9 +62,9 @@ mutual
           -------------
           Γ ⊢V⦂ X
           
-    ``_  : (c : Σₖ) →
+    ``_  : (c : Σ-base) →
           --------------
-          Γ ⊢V⦂ ``(arₖ c)
+          Γ ⊢V⦂ ``(ar-base c)
           
     ƛ   : {X : VType}
           {C : CType} →
