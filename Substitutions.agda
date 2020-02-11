@@ -18,9 +18,9 @@ Sub Γ Γ' = {X : VType} → X ∈ Γ → Γ' ⊢V⦂ X
 id-subst : {Γ : Ctx} → Sub Γ Γ
 id-subst x = ` x
 
-_[_]ₛ : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Γ' ⊢V⦂ X → Sub (Γ ∷ X) Γ'
-(s [ V ]ₛ) Hd = V
-(s [ V ]ₛ) (Tl x) = s x
+_[_]s : {Γ Γ' : Ctx} {X : VType} → Sub Γ Γ' → Γ' ⊢V⦂ X → Sub (Γ ∷ X) Γ'
+(s [ V ]s) Hd = V
+(s [ V ]s) (Tl x) = s x
 
 
 -- LIFTING SUBSTITUTIONS
@@ -34,33 +34,33 @@ lift s (Tl x) = V-rename Tl (s x)
 
 mutual
 
-  infix 40 _[_]ᵥ
-  infix 40 _[_]ₘ
+  infix 40 _[_]v
+  infix 40 _[_]m
 
-  _[_]ᵥ : {Γ Γ' : Ctx} → {X : VType} → Γ ⊢V⦂ X → Sub Γ Γ' → Γ' ⊢V⦂ X
-  (` x) [ s ]ᵥ =
+  _[_]v : {Γ Γ' : Ctx} → {X : VType} → Γ ⊢V⦂ X → Sub Γ Γ' → Γ' ⊢V⦂ X
+  (` x) [ s ]v =
     s x
-  (`` c) [ s ]ᵥ =
+  (`` c) [ s ]v =
     `` c
-  (ƛ M) [ s ]ᵥ =
-    ƛ (M [ lift s ]ₘ)
-  ⟨ V ⟩ [ s ]ᵥ =
-    ⟨ V [ s ]ᵥ ⟩
+  (ƛ M) [ s ]v =
+    ƛ (M [ lift s ]m)
+  ⟨ V ⟩ [ s ]v =
+    ⟨ V [ s ]v ⟩
 
-  _[_]ₘ : {Γ Γ' : Ctx} → {C : CType} → Γ ⊢M⦂ C → Sub Γ Γ'  → Γ' ⊢M⦂ C
-  (return V) [ s ]ₘ =
-    return (V [ s ]ᵥ)
-  (let= M `in N) [ s ]ₘ =
-    let= (M [ s ]ₘ) `in (N [ lift s ]ₘ)
-  (V · W) [ s ]ₘ =
-    (V [ s ]ᵥ) · (W [ s ]ᵥ)
-  (↑ op p V M) [ s ]ₘ =
-    ↑ op p (V [ s ]ᵥ) (M [ s ]ₘ)
-  (↓ op V M) [ s ]ₘ =
-    ↓ op (V [ s ]ᵥ) (M [ s ]ₘ)
-  (promise op ∣ p ↦ M `in N) [ s ]ₘ =
-    promise op ∣ p ↦ (M [ lift s ]ₘ) `in (N [ lift s ]ₘ)
-  (await V until M) [ s ]ₘ =
-    await (V [ s ]ᵥ) until (M [ lift s ]ₘ)
-  (subsume p q M) [ s ]ₘ =
-    subsume p q (M [ s ]ₘ)
+  _[_]m : {Γ Γ' : Ctx} → {C : CType} → Γ ⊢M⦂ C → Sub Γ Γ'  → Γ' ⊢M⦂ C
+  (return V) [ s ]m =
+    return (V [ s ]v)
+  (let= M `in N) [ s ]m =
+    let= (M [ s ]m) `in (N [ lift s ]m)
+  (V · W) [ s ]m =
+    (V [ s ]v) · (W [ s ]v)
+  (↑ op p V M) [ s ]m =
+    ↑ op p (V [ s ]v) (M [ s ]m)
+  (↓ op V M) [ s ]m =
+    ↓ op (V [ s ]v) (M [ s ]m)
+  (promise op ∣ p ↦ M `in N) [ s ]m =
+    promise op ∣ p ↦ (M [ lift s ]m) `in (N [ lift s ]m)
+  (await V until M) [ s ]m =
+    await (V [ s ]v) until (M [ lift s ]m)
+  (subsume p q M) [ s ]m =
+    subsume p q (M [ s ]m)

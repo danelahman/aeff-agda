@@ -55,21 +55,17 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
             {p : lkpᵢ op i ≡ just (o' , i')}
             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')}
             {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
-            (Result⟨ Γ ∷ X ∣ N ⟩
-             ⊎
-             (Hd ◅ N)) →
+            Result⟨ Γ ∷ X ∣ N ⟩ →
             -------------------------------------------
             Result⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
- 
-  subsume : {X : VType}
-            {o o' : O}
-            {i i' : I}
-            {p : o ⊑ₒ o'}
-            {q : i ⊑ᵢ i'}
-            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} → 
-            Result⟨ Γ ∣ M ⟩ →
-            -------------------------------
-            Result⟨ Γ ∣ subsume p q M ⟩
+
+  stuck   : {C : CType}
+            {Y : VType}
+            {y : ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩}
+            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
+            y ◄ M →
+            --------------------------------
+            Result⟨ Γ ∣ M ⟩
 
 
 -- PROGRESS THEOREM
@@ -77,52 +73,82 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
 ⇒-not-in-ctx : {Γ : Ctx} {X : VType} {C : CType} → X ⇒ C ∈ ⟨⟨ Γ ⟩⟩ → ⊥
 ⇒-not-in-ctx {Γ ∷ y} (Tl x) =
   ⇒-not-in-ctx x
-
-
-◅-to-let : {Γ : Ctx} {X Y Z : VType} {o : O} {i : I}
-           {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ Y ! (o , i)} {N : ⟨⟨ Γ ⟩⟩ ∷ Y ⊢M⦂ Z ! (o , i)} {x : ⟨ X ⟩ ∈ ⟨⟨ Γ ⟩⟩} →
-           x ◅ M → x ◅ (let= M `in N)
-◅-to-let p = {!!}
-
--- x ◅ M → Σ[ N' ∈ ... ] (let= M `in N ↝⋆ N' × x ◅ N')
+  
 
 progress : {Γ : Ctx} {C : CType} →
            (M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C) →
-           ({Y : VType} → (y : ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩) → ¬ (y ◅ M)) →
            (Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⊢M⦂ C ] (M ↝ N)
             ⊎
             Result⟨ Γ ∣ M ⟩)
-progress (return V) H =
+
+progress (return V) =
   inj₂ (return V)
-progress (let= M `in N) H with progress M (λ y → contraposition {!!} (H y))
-... | p = {!!}
-progress ((` x) · W) H with ⇒-not-in-ctx x
+progress (let= M `in N) with progress M -- (λ y → contraposition let-in (H y))
+... | inj₁ (M' , r) =
+  inj₁ (let= M' `in N , context (let= [-] `in N) r)
+... | inj₂ (return V) =
+  inj₁ (N [ `_ [ V ]s ]m , let-return V N)
+... | inj₂ (signal {X} {o} {i} {op} {p} {V} {M'} r) =
+  inj₁ (↑ op p V (let= M' `in N) , let-↑ p V M' N)
+... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M'} {M''} r) =
+  inj₁ ((promise op ∣ p ↦ M' `in (let= M'' `in M-rename (comp-ren exchange wk₁) N)) , let-promise p M' M'' N)
+... | inj₂ (stuck r) =
+  inj₂ (stuck (let-in r))
+progress ((` x) · W) with ⇒-not-in-ctx x
 ... | ()
-progress (ƛ x · W) H =
-  inj₁ (x [ `_ [ W ]ₛ ]ₘ , apply x W)
-progress (↑ op p V M) H with progress M (λ y → contraposition signal (H y))
+progress (ƛ M · W) =
+  inj₁ (M [ id-subst [ W ]s ]m , apply M W)
+progress (↑ op p V M) with progress M
 ... | inj₁ (N , r) =
-  inj₁ (↑ op p V N , context (↑ op p V [-]) r)
+  inj₁ (↑ op p V N , (context (↑ op p V [-]) r))
 ... | inj₂ r =
   inj₂ (signal r)
-progress (↓ op V M) H with progress M (λ y → contraposition {!!} (H y))
-... | p = {!!}
-progress (promise op ∣ p ↦ M `in N) H with dec◅ Hd N
-... | yes q =
-  inj₂ (promise (inj₂ q))
-... | no ¬q with progress N λ { Hd     → ¬q ;
-                                (Tl y) → contraposition promise (H y) }
+progress (↓ op V M) with progress M
+progress (↓ op V M) | inj₁ (N , r) =
+  inj₁ (↓ op V N , context (↓ op V [-]) r)
+... | inj₂ (return W) =
+  inj₁ (return W , ↓-return V W)
+... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
+  inj₁ (↑ op' (opₒ-in-↓ₑ-lem p) W' (↓ op V M') , ↓-↑ p V W' M')
+... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decᵢ op op'
+... | yes refl =
+  inj₁ (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M' [ id-subst [ V ]s ]m)) `in
+             ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) M'') [ id-subst [ ⟨ ` Hd ⟩ ]s ]m) ,
+        ↓-promise-op p V M' M'')
+... | no ¬r =
+  inj₁ (promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)}
+                         {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))}
+                         op'
+                         (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))))
+                         (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
+                                  (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
+                                  M')
+                         (↓ op (V-rename wk₁ V) M'') ,
+        ↓-promise-op' ¬r p V M' M'')
+progress (↓ op V M) | inj₂ (stuck r) =
+  inj₂ (stuck (interrupt r))
+progress (promise op ∣ p ↦ M `in N) with progress N
 ... | inj₁ (N' , r) =
   inj₁ (promise op ∣ p ↦ M `in N' , context (promise op ∣ p ↦ M `in [-]) r)
 ... | inj₂ r =
-  inj₂ (promise (inj₁ r))
-progress (await ` x until M) H =
-  contradiction (◅◄ await) (H x)
-progress (await ⟨ V ⟩ until M) H =
-  inj₁ (M [ id-subst [ V ]ₛ ]ₘ , await-promise V M)
-progress (subsume p q M) H with progress M (λ y → contraposition subsume (H y))
+  inj₂ (promise r)
+progress (await ` x until M) =
+  inj₂ (stuck await)
+progress (await ⟨ V ⟩ until M) =
+  inj₁ (M [ `_ [ V ]s ]m , await-promise V M)
+progress (subsume p q M) with progress M
 ... | inj₁ (N , r) =
   inj₁ (subsume p q N , context (subsume p q [-]) r)
-... | inj₂ r =
-  inj₂ (subsume r)
+... | inj₂ (return V) =
+  inj₁ (return V , subsume-return V)
+... | inj₂ (signal {X} {o} {i} {op} {r} {V} {M'} s) =
+  inj₁ (↑ op (p op r) V (subsume p q M') , subsume-↑ r V M')
+... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {r} {M'} {M''} s) =
+  inj₁
+    ((promise op ∣ lkpᵢ-next-eq q r ↦
+      subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M' `in
+      subsume p q M'')
+     , subsume-promise r M' M'')
+... | inj₂ (stuck r) =
+  inj₂ (stuck (subsume r))
 

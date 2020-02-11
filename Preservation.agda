@@ -138,7 +138,7 @@ mutual
                      ----------------------
                      (ƛ M) · V
                      ↝
-                     M [ id-subst [ V ]ₛ ]ₘ
+                     M [ id-subst [ V ]s ]m
 
     let-return     : {X Y : VType}
                      {o : O}
@@ -148,7 +148,7 @@ mutual
                      -----------------------------
                      let= (return V) `in N
                      ↝
-                     N [ id-subst [ V ]ₛ ]ₘ
+                     N [ id-subst [ V ]s ]m
 
     let-↑          : {X Y : VType}
                      {o : O}
@@ -212,8 +212,8 @@ mutual
                      ------------------------------------------------------------------------------------------
                      ↓ op V (promise op ∣ p ↦ M `in N )
                      ↝
-                     (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]ₛ ]ₘ)) `in
-                       ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]ₛ ]ₘ))
+                     (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]s ]m)) `in
+                       ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]s ]m))
 
     ↓-promise-op'  : {X Y : VType}
                      {o o' : O}
@@ -243,9 +243,9 @@ mutual
                      --------------------
                      await ⟨ V ⟩ until M
                      ↝
-                     M [ id-subst [ V ]ₛ ]ₘ
+                     M [ id-subst [ V ]s ]m
 
-    -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION RULE)
+    -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION CONGRUENCE)
 
     context        : {Δ : BCtx}
                      {C : CType} → 
@@ -254,3 +254,60 @@ mutual
                      M ↝ N →
                      -------------------------------
                      E [ M ] ↝ E [ N ]
+
+    -- SUBSUMPTION RULES
+    -- (ADMINISTRATIVE, NEEDED FOR PROGRESS, RESULT OF WORKING WITH WELL-TYPED SYNTAX)
+
+    subsume-return : {X : VType}
+                     {o o' : O}
+                     {i i' : I}
+                     {p : o ⊑ₒ o'}
+                     {q : i ⊑ᵢ i'} → 
+                     (V : Γ ⊢V⦂ X) →
+                     ---------------------------------
+                     subsume p q (return V) ↝ return V
+{-
+    subsume-let    : {X Y : VType}
+                     {o o' : O}
+                     {i i' : I}
+                     {p : o ⊑ₒ o'}
+                     {q : i ⊑ᵢ i'} → 
+                     (M : Γ ⊢M⦂ X ! (o , i)) →
+                     (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
+                     ----------------------------------------
+                     subsume p q (let= M `in N)
+                     ↝
+                     let= (subsume p q M) `in (subsume p q N)
+-}
+    subsume-↑      : {X : VType}
+                     {o o' : O}
+                     {i i' : I}
+                     {p : o ⊑ₒ o'}
+                     {q : i ⊑ᵢ i'}
+                     {op : Σₒ} → 
+                     (r : op ∈ₒ o) →
+                     (V : Γ ⊢V⦂ `` (arₒ op)) →
+                     (M : Γ ⊢M⦂ X ! (o , i)) →
+                     -------------------------------
+                     subsume p q (↑ op r V M)
+                     ↝
+                     ↑ op (p op r) V (subsume p q M)
+
+    subsume-promise : {X Y : VType}
+                      {o o' o'' : O}
+                      {i i' i'' : I}
+                      {p : o ⊑ₒ o'}
+                      {q : i ⊑ᵢ i'}
+                      {op : Σᵢ} →
+                      (r : lkpᵢ op i ≡ just (o'' , i''))
+                      (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o'' , i'')) →
+                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                      ---------------------------------------
+                      subsume p q (promise op ∣ r ↦ M `in N)
+                      ↝
+                      promise_∣_↦_`in_ {o' = lkpᵢ-nextₒ q r}
+                                       {i' = lkpᵢ-nextᵢ q r}
+                                       op
+                                       (lkpᵢ-next-eq q r)
+                                       (subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M)
+                                       (subsume p q N)
