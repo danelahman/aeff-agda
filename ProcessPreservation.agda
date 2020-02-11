@@ -72,35 +72,32 @@ subsume p q E [ M ]h =
 
 -- EVOLUTION OF PROCESS TYPES
 
-data G[-] : Set where
-  hole : G[-]
-  par-l : G[-] → SkelPType → G[-]
-  par-r : SkelPType → G[-] → G[-]
-
-
-_[_]g : G[-] → SkelPType → SkelPType
-hole [ PP ]g = PP
-par-l G QQ [ PP ]g = (G [ PP ]g) ∥ PP
-par-r QQ G [ PP ]g = QQ ∥ (G [ PP ]g)
-
+infix 10 _⇝_
 
 data _⇝_ : PType → PType → Set where
 
-  stop : {P : PType} →
-         --------------
-         P ⇝ P
+  id  : {PP : PType} →
+        -------------------
+        PP ⇝ PP
 
-  step : {PP PP' : SkelPType}
-         {o : O}
-         {G : G[-]}
-         {op : Σᵢ} →
-         PP ≡ G [ PP' ]g →
-         ---------------------------------
-         (PP ‼ o)
-         ⇝
-         ((G [ proj₁ (op ↓-p (PP' , o)) ]g) ‼ (o ∪ₒ (proj₂ (op ↓-p (PP' , o)))))
+  op  : {X : VType}
+        {o o' : O}
+        {i i' : I} → 
+        (op : Σᵢ) →
+        op ↓ₑ (o , i) ≡ (o' , i') →
+        ---------------------------
+        (X ! i) ‼ o ⇝ (X ! i') ‼ o'
 
+  par : {PP PP' QQ QQ' : SkelPType}
+        {o o' o'' o''' : O} → 
+        PP ‼ o ⇝ PP' ‼ o' →
+        QQ ‼ o ⇝ QQ' ‼ o'' →
+        o' ⊑ₒ o''' →
+        o'' ⊑ₒ o''' →
+        ---------------------------------
+        (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ o''' 
 
+  
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
 
@@ -114,5 +111,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
         {M N : Γ ⊢M⦂ X ! (o , i)} → 
         M ↝ N →
         ---------------------------
-        (run M) [ stop ]↝ (run N)
+        (run M) [ id ]↝ (run N)
+
+  -- ...
 
