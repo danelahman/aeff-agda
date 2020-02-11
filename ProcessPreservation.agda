@@ -57,11 +57,65 @@ hole-ty-s (subsume p q H) =
   hole-ty-s H
 
 
+hole-ty-sₒ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
+             Γ ⊢H[ Δ ]⦂ X ! (o , i) → O
+hole-ty-sₒ {_} {_} {_} {o} [-] =
+  o
+hole-ty-sₒ (promise op ∣ p ↦ M `in H) =
+  hole-ty-sₒ H
+hole-ty-sₒ (subsume p q H) =
+  hole-ty-sₒ H
+
+
+hole-ty-sᵢ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
+             Γ ⊢H[ Δ ]⦂ X ! (o , i) → I
+hole-ty-sᵢ {_} {_} {_} {_} {o} [-] =
+  o
+hole-ty-sᵢ (promise op ∣ p ↦ M `in H) =
+  hole-ty-sᵢ H
+hole-ty-sᵢ (subsume p q H) =
+  hole-ty-sᵢ H
+
+
+hole-ty-⊑ₒ : {Γ : Ctx}
+             {Δ : BCtx}
+             {X : VType}
+             {o : O}
+             {i : I} →
+             (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
+             ------------------------------
+             hole-ty-sₒ H ⊑ₒ o
+hole-ty-⊑ₒ [-] =
+  ⊑ₒ-refl
+hole-ty-⊑ₒ (promise op ∣ p ↦ M `in H) =
+  hole-ty-⊑ₒ H
+hole-ty-⊑ₒ (subsume p q H) =
+  ⊑ₒ-trans (hole-ty-⊑ₒ H) p
+
+
+hole-ty-⊑ᵢ : {Γ : Ctx}
+             {Δ : BCtx}
+             {X : VType}
+             {o : O}
+             {i : I} →
+             (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
+             ------------------------------
+             hole-ty-sᵢ H ⊑ᵢ i
+hole-ty-⊑ᵢ [-] =
+  ⊑ᵢ-refl
+hole-ty-⊑ᵢ (promise op ∣ p ↦ M `in H) =
+  hole-ty-⊑ᵢ H
+hole-ty-⊑ᵢ (subsume p q H) =
+  ⊑ᵢ-trans (hole-ty-⊑ᵢ H) q
+
+
 -- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT
 
 infix 30 _[_]h
 
-_[_]h : {Γ : Ctx} {Δ : BCtx} {C : CType} → (H : Γ ⊢H[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty-s H) → Γ ⊢M⦂ C
+_[_]h : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
+        (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → Γ ⋈ Δ ⊢M⦂ (X ! (hole-ty-sₒ H , hole-ty-sᵢ H)) →
+        Γ ⊢M⦂ X ! (o , i)
 [-] [ M ]h =
   M
 (promise op ∣ p ↦ N `in E) [ M ]h =
@@ -92,10 +146,23 @@ data _⇝_ : PType → PType → Set where
         {o o' o'' o''' : O} → 
         PP ‼ o ⇝ PP' ‼ o' →
         QQ ‼ o ⇝ QQ' ‼ o'' →
-        o' ⊑ₒ o''' →
-        o'' ⊑ₒ o''' →
-        ---------------------------------
-        (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ o''' 
+        ----------------------------------------
+        (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ (o' ∪ₒ o'') 
+
+
+-- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
+
+strengthen-var : {Γ : Ctx} → (Δ : BCtx) → {A : BType} → `` A ∈ Γ ⋈ Δ → `` A ∈ Γ
+strengthen-var [] x = x
+strengthen-var (y :: Δ) x with strengthen-var Δ x
+... | Tl p = p
+
+
+strengthen-val : {Γ : Ctx} {Δ : BCtx} {A : BType} → Γ ⋈ Δ ⊢V⦂ `` A → Γ ⊢V⦂ `` A
+strengthen-val {_} {Δ} (` x) =
+  ` strengthen-var Δ x
+strengthen-val (``_ c) =
+  ``_ c
 
   
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
@@ -105,13 +172,48 @@ infix 10 _[_]↝_
 
 data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → PP ⇝ QQ → Γ ⊢P⦂ PP → Set where
 
-  run : {X : VType}
-        {o : O}
-        {i : I}
-        {M N : Γ ⊢M⦂ X ! (o , i)} → 
-        M ↝ N →
-        ---------------------------
-        (run M) [ id ]↝ (run N)
+  -- RUNNING INDIVIDUAL COMPUTATIONS
+
+  run   : {X : VType}
+          {o : O}
+          {i : I}
+          {M N : Γ ⊢M⦂ X ! (o , i)} → 
+          M ↝ N →
+          ---------------------------
+          (run M) [ id ]↝ (run N)
+
+  -- BROADCAST RULES
+
+  bcast-l : {PP QQ : SkelPType}
+            {o : O}
+            {op : Σₒ} → 
+            (p : op ∈ₒ o) →
+            (V : Γ ⊢V⦂ `` (arₒ op)) →
+            (P : Γ ⊢P⦂ PP ‼ o) →
+            (Q : Γ ⊢P⦂ QQ ‼ o) →
+            ------------------------
+            (↑ op p V P ∥ Q)
+            [ {!!} ]↝
+            ↑ op {!!} V (P ∥ {!↓ op V Q!})
+
+
+  -- HOISTING SIGNALS
+
+  hoist : {Δ : BCtx}
+          {X : VType}
+          {o o' : O}
+          {i i' : I} → 
+          (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → 
+          {op : Σₒ} → 
+          (p : op ∈ₒ hole-ty-sₒ H) →
+          (V : Γ ⋈ Δ ⊢V⦂ `` (arₒ op)) →
+          (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-sₒ H , hole-ty-sᵢ H)) →
+          -----------------------------------------------
+          (run (H [ ↑ op p V M ]h))
+          [ id ]↝
+          (↑ op (hole-ty-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]h)))
+
+  -- CONTEXT RULE
 
   -- ...
 
