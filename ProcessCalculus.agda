@@ -36,17 +36,17 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
 
   ↑       : {PP : SkelPType}
             {o : O}
-            (op : Σₒ) →
+            (op : Σₙ) →
             op ∈ₒ o →
-            Γ ⊢V⦂ ``(arₒ op) →
+            Γ ⊢V⦂ ``(arₙ op) →
             Γ ⊢P⦂ PP ‼ o →
             -------------------
             Γ ⊢P⦂ PP ‼ o
 
   ↓       : {PP : SkelPType}
             {o : O}
-            (op : Σᵢ) →
-            Γ ⊢V⦂ ``(arᵢ op) →
+            (op : Σₙ) →
+            Γ ⊢V⦂ ``(arₙ op) →
             Γ ⊢P⦂ PP ‼ o →
             --------------------------------------------------------
             Γ ⊢P⦂ (proj₁ (op ↓-p (PP , o)) ‼ proj₂ (op ↓-p (PP , o)))

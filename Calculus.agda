@@ -13,8 +13,7 @@ module Calculus where
 
 -- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND BASE CONSTANTS
 
-postulate arₒ : Σₒ → GType -- arity assignment to outgoing signals
-postulate arᵢ : Σᵢ → GType  -- arity assignment to incoming interrupts
+postulate arₙ : Σₙ → GType -- arity assignment for signal names
 
 postulate Σ-base : Set             -- set of base constants
 postulate ar-base : Σ-base → BType -- arity assignment to base constants
@@ -106,9 +105,9 @@ mutual
     ↑                : {X : VType}
                        {o : O}
                        {i : I} →
-                       (op : Σₒ) →
+                       (op : Σₙ) →
                        op ∈ₒ o →
-                       Γ ⊢V⦂ ``(arₒ op) →
+                       Γ ⊢V⦂ ``(arₙ op) →
                        Γ ⊢M⦂ X ! (o , i) →
                        -------------------
                        Γ ⊢M⦂ X ! (o , i)
@@ -116,8 +115,8 @@ mutual
     ↓                : {X : VType}
                        {o : O}
                        {i : I}
-                       (op : Σᵢ) →
-                       Γ ⊢V⦂ ``(arᵢ op) →
+                       (op : Σₙ) →
+                       Γ ⊢V⦂ ``(arₙ op) →
                        Γ ⊢M⦂ X ! (o , i) →
                        ----------------------
                        Γ ⊢M⦂ X ! op ↓ₑ (o , i)
@@ -125,9 +124,9 @@ mutual
     promise_∣_↦_`in_ : {X Y : VType}
                        {o o' : O}
                        {i i' : I} → 
-                       (op : Σᵢ) →
+                       (op : Σₙ) →
                        lkpᵢ op i ≡ just (o' , i') →
-                       Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
+                       Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i') →
                        Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i) →
                        ----------------------------------
                        Γ ⊢M⦂ Y ! (o , i)

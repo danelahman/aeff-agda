@@ -40,9 +40,9 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
   signal  : {X : VType}
             {o : O}
             {i : I}
-            {op : Σₒ}
+            {op : Σₙ}
             {p : op ∈ₒ o}
-            {V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ ``(arₒ op)}
+            {V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ ``(arₙ op)}
             {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
             Result⟨ Γ ∣ M ⟩ →
             -------------------------------
@@ -51,9 +51,9 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
   promise : {X Y : VType}
             {o o' : O}
             {i i' : I}
-            {op : Σᵢ}
+            {op : Σₙ}
             {p : lkpᵢ op i ≡ just (o' , i')}
-            {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')}
+            {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')}
             {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
             Result⟨ Γ ∷ X ∣ N ⟩ →
             -------------------------------------------
@@ -110,7 +110,7 @@ progress (↓ op V M) | inj₁ (N , r) =
   inj₁ (return W , ↓-return V W)
 ... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
   inj₁ (↑ op' (opₒ-in-↓ₑ-lem p) W' (↓ op V M') , ↓-↑ p V W' M')
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decᵢ op op'
+... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decₙ op op'
 ... | yes refl =
   inj₁ (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M' [ id-subst [ V ]s ]m)) `in
              ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) M'') [ id-subst [ ⟨ ` Hd ⟩ ]s ]m) ,

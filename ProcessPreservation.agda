@@ -28,9 +28,9 @@ data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {X Y : VType}
                      {o o' : O}
                      {i i' : I} → 
-                     (op : Σᵢ) →
+                     (op : Σₙ) →
                      lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
+                     Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢H[ Δ ]⦂ Y ! (o , i) →
                      ----------------------------------
                      Γ ⊢H[ X :: Δ ]⦂ Y ! (o , i)
@@ -137,7 +137,7 @@ data _⇝_ : PType → PType → Set where
   op  : {X : VType}
         {o o' : O}
         {i i' : I} → 
-        (op : Σᵢ) →
+        (op : Σₙ) →
         op ↓ₑ (o , i) ≡ (o' , i') →
         ---------------------------
         (X ! i) ‼ o ⇝ (X ! i') ‼ o'
@@ -186,9 +186,9 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
 
   bcast-l : {PP QQ : SkelPType}
             {o : O}
-            {op : Σₒ} → 
+            {op : Σₙ} → 
             (p : op ∈ₒ o) →
-            (V : Γ ⊢V⦂ `` (arₒ op)) →
+            (V : Γ ⊢V⦂ `` (arₙ op)) →
             (P : Γ ⊢P⦂ PP ‼ o) →
             (Q : Γ ⊢P⦂ QQ ‼ o) →
             ------------------------
@@ -204,9 +204,9 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           {o o' : O}
           {i i' : I} → 
           (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → 
-          {op : Σₒ} → 
+          {op : Σₙ} → 
           (p : op ∈ₒ hole-ty-sₒ H) →
-          (V : Γ ⋈ Δ ⊢V⦂ `` (arₒ op)) →
+          (V : Γ ⋈ Δ ⊢V⦂ `` (arₙ op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-sₒ H , hole-ty-sᵢ H)) →
           -----------------------------------------------
           (run (H [ ↑ op p V M ]h))

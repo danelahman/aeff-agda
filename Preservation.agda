@@ -36,9 +36,9 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {X : VType}
                      {o : O}
                      {i : I} →
-                     (op : Σₒ) →
+                     (op : Σₙ) →
                      op ∈ₒ o →
-                     Γ ⊢V⦂ ``(arₒ op) →
+                     Γ ⊢V⦂ ``(arₙ op) →
                      Γ ⊢E[ Δ ]⦂ X ! (o , i) →
                      ------------------------
                      Γ ⊢E[ Δ ]⦂ X ! (o , i)
@@ -47,8 +47,8 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {X : VType}
                      {o : O}
                      {i : I}
-                     (op : Σᵢ) →
-                     Γ ⊢V⦂ ``(arᵢ op) →
+                     (op : Σₙ) →
+                     Γ ⊢V⦂ ``(arₙ op) →
                      Γ ⊢E[ Δ ]⦂ X ! (o , i) →
                      ---------------------------
                      Γ ⊢E[ Δ ]⦂ X ! op ↓ₑ (o , i)
@@ -57,9 +57,9 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {X Y : VType}
                      {o o' : O}
                      {i i' : I} → 
-                     (op : Σᵢ) →
+                     (op : Σₙ) →
                      lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i') →
+                     Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
                      ----------------------------------
                      Γ ⊢E[ X :: Δ ]⦂ Y ! (o , i)
@@ -153,9 +153,9 @@ mutual
     let-↑          : {X Y : VType}
                      {o : O}
                      {i : I}
-                     {op : Σₒ} →
+                     {op : Σₙ} →
                      (p : op ∈ₒ o) →
-                     (V : Γ ⊢V⦂ ``(arₒ op)) →
+                     (V : Γ ⊢V⦂ ``(arₙ op)) →
                      (M : Γ ⊢M⦂ X ! (o , i)) →
                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
                      -----------------------------
@@ -166,9 +166,9 @@ mutual
     let-promise    : {X Y Z : VType}
                      {o o' : O}
                      {i i' : I}
-                     {op : Σᵢ} →
+                     {op : Σₙ} →
                      (p : lkpᵢ op i ≡ just (o' , i')) →
-                     (M₁ : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')) →
+                     (M₁ : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
                      (M₂ : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                      (N : Γ ∷ Y ⊢M⦂ Z ! (o , i)) →
                      ---------------------------------------------------------------------------
@@ -179,8 +179,8 @@ mutual
     ↓-return       : {X : VType}
                      {o : O}
                      {i : I}
-                     {op : Σᵢ} →
-                     (V : Γ ⊢V⦂ ``(arᵢ op)) →
+                     {op : Σₙ} →
+                     (V : Γ ⊢V⦂ ``(arₙ op)) →
                      (W : Γ ⊢V⦂ X) →
                      ---------------------------------------------------------------
                      ↓ {o = o} {i = i} op V (return W)
@@ -190,11 +190,11 @@ mutual
     ↓-↑            : {X : VType}
                      {o : O}
                      {i : I}
-                     {op : Σᵢ}
-                     {op' : Σₒ} →
+                     {op : Σₙ}
+                     {op' : Σₙ} →
                      (p : op' ∈ₒ o) →
-                     (V : Γ ⊢V⦂ ``(arᵢ op)) →
-                     (W : Γ ⊢V⦂ ``(arₒ op')) →
+                     (V : Γ ⊢V⦂ ``(arₙ op)) →
+                     (W : Γ ⊢V⦂ ``(arₙ op')) →
                      (M : Γ ⊢M⦂ X ! (o , i)) →
                      -----------------------------------
                      ↓ op V (↑ op' p W M)
@@ -204,10 +204,10 @@ mutual
     ↓-promise-op   : {X Y : VType}
                      {o o' : O}
                      {i i' : I}
-                     {op : Σᵢ} →
+                     {op : Σₙ} →
                      (p : lkpᵢ op i ≡ just (o' , i')) →
-                     (V : Γ ⊢V⦂ ``(arᵢ op)) → 
-                     (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o' , i')) →
+                     (V : Γ ⊢V⦂ ``(arₙ op)) → 
+                     (M : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')) →
                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                      ------------------------------------------------------------------------------------------
                      ↓ op V (promise op ∣ p ↦ M `in N )
@@ -218,11 +218,11 @@ mutual
     ↓-promise-op'  : {X Y : VType}
                      {o o' : O}
                      {i i' : I}
-                     {op op' : Σᵢ} →
+                     {op op' : Σₙ} →
                      (p : ¬ op ≡ op') →
                      (q : lkpᵢ op' i ≡ just (o' , i')) →
-                     (V : Γ ⊢V⦂ ``(arᵢ op)) → 
-                     (M : Γ ∷ ``(arᵢ op') ⊢M⦂ X ! (o' , i')) →
+                     (V : Γ ⊢V⦂ ``(arₙ op)) → 
+                     (M : Γ ∷ ``(arₙ op') ⊢M⦂ X ! (o' , i')) →
                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                      ---------------------------------------------------------------------------------------
                      ↓ op V (promise op' ∣ q ↦ M `in N )
@@ -272,9 +272,9 @@ mutual
                      {i i' : I}
                      {p : o ⊑ₒ o'}
                      {q : i ⊑ᵢ i'}
-                     {op : Σₒ} → 
+                     {op : Σₙ} → 
                      (r : op ∈ₒ o) →
-                     (V : Γ ⊢V⦂ `` (arₒ op)) →
+                     (V : Γ ⊢V⦂ `` (arₙ op)) →
                      (M : Γ ⊢M⦂ X ! (o , i)) →
                      -------------------------------
                      subsume p q (↑ op r V M)
@@ -286,9 +286,9 @@ mutual
                       {i i' i'' : I}
                       {p : o ⊑ₒ o'}
                       {q : i ⊑ᵢ i'}
-                      {op : Σᵢ} →
+                      {op : Σₙ} →
                       (r : lkpᵢ op i ≡ just (o'' , i''))
-                      (M : Γ ∷ ``(arᵢ op) ⊢M⦂ X ! (o'' , i'')) →
+                      (M : Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o'' , i'')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       ---------------------------------------
                       subsume p q (promise op ∣ r ↦ M `in N)
