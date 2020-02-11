@@ -83,7 +83,7 @@ progress : {Γ : Ctx} {C : CType} →
 
 progress (return V) =
   inj₂ (return V)
-progress (let= M `in N) with progress M -- (λ y → contraposition let-in (H y))
+progress (let= M `in N) with progress M
 ... | inj₁ (M' , r) =
   inj₁ (let= M' `in N , context (let= [-] `in N) r)
 ... | inj₂ (return V) =
