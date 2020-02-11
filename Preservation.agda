@@ -86,26 +86,26 @@ _⋈_ : Ctx → BCtx → Ctx
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED EVALUATION CONTEXT
 
-hole-ty : {Γ : Ctx} {Δ : BCtx} {C : CType} → Γ ⊢E[ Δ ]⦂ C → CType
-hole-ty {_} {_} {C} [-] =
+hole-ty-e : {Γ : Ctx} {Δ : BCtx} {C : CType} → Γ ⊢E[ Δ ]⦂ C → CType
+hole-ty-e {_} {_} {C} [-] =
   C
-hole-ty (let= E `in M) =
-  hole-ty E
-hole-ty (↑ op p V E) =
-  hole-ty E
-hole-ty (↓ op V E) =
-  hole-ty E
-hole-ty (promise op ∣ p ↦ M `in E) =
-  hole-ty E
-hole-ty (subsume p q E) =
-  hole-ty E
+hole-ty-e (let= E `in M) =
+  hole-ty-e E
+hole-ty-e (↑ op p V E) =
+  hole-ty-e E
+hole-ty-e (↓ op V E) =
+  hole-ty-e E
+hole-ty-e (promise op ∣ p ↦ M `in E) =
+  hole-ty-e E
+hole-ty-e (subsume p q E) =
+  hole-ty-e E
 
 
 -- FILLING A WELL-TYPED EVALUATION CONTEXT
 
 infix 30 _[_]
 
-_[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty E) → Γ ⊢M⦂ C
+_[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty-e E) → Γ ⊢M⦂ C
 [-] [ M ] =
   M
 (let= E `in N) [ M ] =
@@ -250,7 +250,7 @@ mutual
     context        : {Δ : BCtx}
                      {C : CType} → 
                      (E : Γ ⊢E[ Δ ]⦂ C) →
-                     {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty E)} →
+                     {M N : Γ ⋈ Δ ⊢M⦂ (hole-ty-e E)} →
                      M ↝ N →
                      -------------------------------
                      E [ M ] ↝ E [ N ]

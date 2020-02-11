@@ -50,10 +50,10 @@ data _⊑-p_ : PType → PType → Set where
 
 -- ACTION OF INTERRUPTS ON PROCESS TYPES
 
-_↓-p_ : (op : Σᵢ) → PType → PType
-op ↓-p ((X ! i) ‼ o) with op ↓ₑ (o , i)
+_↓-p_ : (op : Σᵢ) → SkelPType × O → SkelPType × O
+op ↓-p ((X ! i) , o) with op ↓ₑ (o , i)
 ... | (o' , i') =
-  (X ! i') ‼ o'
-op ↓-p ((PP ∥ QQ) ‼ o) with op ↓-p (PP ‼ o) | op ↓-p (QQ ‼ o)
-... | (PP' ‼ o') | (QQ' ‼ o'') =
-  (PP' ∥ QQ') ‼ (o' ∪ₒ o'')
+  (X ! i') , o'
+op ↓-p ((PP ∥ QQ) , o) with op ↓-p (PP , o) | op ↓-p (QQ , o)
+... | (PP' , o') | (QQ' , o'') =
+  (PP' ∥ QQ') , (o' ∪ₒ o'')
