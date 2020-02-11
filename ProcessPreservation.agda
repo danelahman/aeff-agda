@@ -216,6 +216,10 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                    ∥
                    subsume ⊑ₚ-refl ⊑ₒ-inr Q))
 
+  -- INTERRUPT RULES
+
+  -- ...
+
   -- HOISTING RULE
 
   hoist : {Δ : BCtx}
