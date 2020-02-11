@@ -77,6 +77,7 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
 
 progress : {Γ : Ctx} {C : CType} →
            (M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C) →
+           -------------------------------
            (Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⊢M⦂ C ] (M ↝ N)
             ⊎
             Result⟨ Γ ∣ M ⟩)
@@ -109,10 +110,10 @@ progress (↓ op V M) | inj₁ (N , r) =
 ... | inj₂ (return W) =
   inj₁ (return W , ↓-return V W)
 ... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
-  inj₁ (↑ op' (opₒ-in-↓ₑ-lem p) W' (↓ op V M') , ↓-↑ p V W' M')
+  inj₁ (↑ op' (opₒ-in-↓ₑ p) W' (↓ op V M') , ↓-↑ p V W' M')
 ... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decₙ op op'
 ... | yes refl =
-  inj₁ (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M' [ id-subst [ V ]s ]m)) `in
+  inj₁ (let= (subsume (⊑ₒ-↓ₑ-o' {o} p) (⊑ᵢ-↓ₑ-i' {o} p) (M' [ id-subst [ V ]s ]m)) `in
              ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) M'') [ id-subst [ ⟨ ` Hd ⟩ ]s ]m) ,
         ↓-promise-op p V M' M'')
 ... | no ¬r =
@@ -157,6 +158,7 @@ progress (subsume p q M) with progress M
 
 closed-progress : {C : CType} →
                   (M : [] ⊢M⦂ C) →
+                  --------------------------
                   (Σ[ N ∈ [] ⊢M⦂ C ] (M ↝ N)
                    ⊎
                    Result⟨ [] ∣ M ⟩)

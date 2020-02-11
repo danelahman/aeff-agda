@@ -251,7 +251,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           -----------------------------------
           ↓ op V (↑ op' p W P)
           [ id ]↝
-          ↑ op' (↓ₚ-in-lem PP p) W (↓ op V P)
+          ↑ op' (opₒ-in-↓ₚ PP p) W (↓ op V P)
 
   -- HOISTING RULE
 

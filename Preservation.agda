@@ -196,10 +196,10 @@ mutual
                       (V : Γ ⊢V⦂ ``(arₙ op)) →
                       (W : Γ ⊢V⦂ ``(arₙ op')) →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
-                      -----------------------------------
+                      -------------------------------
                       ↓ op V (↑ op' p W M)
                       ↝
-                      ↑ op' (opₒ-in-↓ₑ-lem p) W (↓ op V M)
+                      ↑ op' (opₒ-in-↓ₑ p) W (↓ op V M)
 
     ↓-promise-op    : {X Y : VType}
                       {o o' : O}
@@ -212,7 +212,7 @@ mutual
                       ------------------------------------------------------------------------------------------
                       ↓ op V (promise op ∣ p ↦ M `in N )
                       ↝
-                      (let= (subsume (⊑ₒ-↓ₑ-o'-lem {o} p) (⊑ᵢ-↓ₑ-i'-lem {o} p) (M [ id-subst [ V ]s ]m)) `in
+                      (let= (subsume (⊑ₒ-↓ₑ-o' {o} p) (⊑ᵢ-↓ₑ-i' {o} p) (M [ id-subst [ V ]s ]m)) `in
                         ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]s ]m))
 
     ↓-promise-op'   : {X Y : VType}
