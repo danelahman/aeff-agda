@@ -48,14 +48,16 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             (op : Σₙ) →
             Γ ⊢V⦂ ``(arₙ op) →
             Γ ⊢P⦂ PP ‼ o →
-            --------------------------------------------------------
-            Γ ⊢P⦂ (proj₁ (op ↓-p (PP , o)) ‼ proj₂ (op ↓-p (PP , o)))
+            ------------------------------------------------------
+            Γ ⊢P⦂ (proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o)))
 
-  subsume : {PP QQ : PType} → 
-            PP ⊑-p QQ →
-            Γ ⊢P⦂ PP →
+  subsume : {PP QQ : SkelPType}
+            {o o' : O} → 
+            PP ⊑ₚ QQ →
+            o ⊑ₒ o' →
+            Γ ⊢P⦂ PP ‼ o →
             -----------------
-            Γ ⊢P⦂ QQ
+            Γ ⊢P⦂ QQ ‼ o'
 
   
 

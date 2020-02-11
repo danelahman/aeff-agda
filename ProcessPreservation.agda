@@ -134,16 +134,16 @@ data _⇝_ : PType → PType → Set where
         -------------------
         PP ⇝ PP
 
-  op  : {X : VType}
-        {o o' : O}
-        {i i' : I} → 
-        (op : Σₙ) →
-        op ↓ₑ (o , i) ≡ (o' , i') →
-        ---------------------------
-        (X ! i) ‼ o ⇝ (X ! i') ‼ o'
+  ops : {PP : SkelPType}
+        {o : O}
+        (op : Σₙ) → 
+        ----------------------------------------------
+        PP ‼ o
+        ⇝
+        proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o))
 
   par : {PP PP' QQ QQ' : SkelPType}
-        {o o' o'' o''' : O} → 
+        {o o' o'' : O} → 
         PP ‼ o ⇝ PP' ‼ o' →
         QQ ‼ o ⇝ QQ' ‼ o'' →
         ----------------------------------------
@@ -170,7 +170,7 @@ strengthen-val (``_ c) =
 
 infix 10 _[_]↝_
 
-data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → PP ⇝ QQ → Γ ⊢P⦂ PP → Set where
+data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → PP ⇝ QQ → Γ ⊢P⦂ QQ → Set where
 
   -- RUNNING INDIVIDUAL COMPUTATIONS
 
@@ -193,11 +193,14 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
             (Q : Γ ⊢P⦂ QQ ‼ o) →
             ------------------------
             (↑ op p V P ∥ Q)
-            [ {!!} ]↝
-            ↑ op {!!} V (P ∥ {!↓ op V Q!})
+            [ par id (ops op) ]↝
+            (↑ op (⊑ₒ-inl op p)
+                  V
+                  (subsume ⊑ₚ-refl ⊑ₒ-inl P
+                   ∥
+                   subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q)))
 
-
-  -- HOISTING SIGNALS
+  -- HOISTING RULE
 
   hoist : {Δ : BCtx}
           {X : VType}

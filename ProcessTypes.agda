@@ -21,39 +21,53 @@ data PType : Set where
 
 -- SUBTYPING RELATIONS ON PROCESS TYPES
 
-infix 10 _⊑-sp_
-infix 10 _⊑-p_
+infix 10 _⊑ₚ_
 
-data _⊑-sp_ : SkelPType → SkelPType → Set where
+data _⊑ₚ_ : SkelPType → SkelPType → Set where
 
   sub-run : {X : VType}
             {i i' : I} →
             i ⊑ᵢ i' →
-            -----------------
-            X ! i ⊑-sp X ! i'
+            ----------------
+            X ! i ⊑ₚ X ! i'
 
   sub-par : {PP PP' QQ QQ' : SkelPType} → 
-            PP ⊑-sp PP' →
-            QQ ⊑-sp QQ' →
-            ---------------------
-            PP ∥ QQ ⊑-sp PP' ∥ QQ'
+            PP ⊑ₚ PP' →
+            QQ ⊑ₚ QQ' →
+            --------------------
+            PP ∥ QQ ⊑ₚ PP' ∥ QQ'
 
-data _⊑-p_ : PType → PType → Set where
 
-  sub-proc : {PP QQ : SkelPType}
-             {o o' : O} → 
-             PP ⊑-sp QQ →
-             o ⊑ₒ o' →
-             -------------------
-             PP ‼ o ⊑-p QQ ‼ o'
+-- SUBTYPING RELATION FOR PROCESS TYPES IS A PREORDER
+
+⊑ₚ-refl : {PP : SkelPType} →
+          ------------------
+          PP ⊑ₚ PP
+
+⊑ₚ-refl {X ! i} =
+  sub-run ⊑ᵢ-refl
+⊑ₚ-refl {PP ∥ QQ} =
+  sub-par ⊑ₚ-refl ⊑ₚ-refl 
+
+
+⊑ₚ-trans : {PP QQ RR : SkelPType} →
+           PP ⊑ₚ QQ →
+           QQ ⊑ₚ RR → 
+           ------------------------
+           PP ⊑ₚ RR
+
+⊑ₚ-trans (sub-run p) (sub-run q) =
+  sub-run (⊑ᵢ-trans p q)
+⊑ₚ-trans (sub-par p q) (sub-par r s) =
+  sub-par (⊑ₚ-trans p r) (⊑ₚ-trans q s)
 
 
 -- ACTION OF INTERRUPTS ON PROCESS TYPES
 
-_↓-p_ : (op : Σₙ) → SkelPType × O → SkelPType × O
-op ↓-p ((X ! i) , o) with op ↓ₑ (o , i)
+_↓ₚ_ : (op : Σₙ) → SkelPType × O → SkelPType × O
+op ↓ₚ ((X ! i) , o) with op ↓ₑ (o , i)
 ... | (o' , i') =
   (X ! i') , o'
-op ↓-p ((PP ∥ QQ) , o) with op ↓-p (PP , o) | op ↓-p (QQ , o)
+op ↓ₚ ((PP ∥ QQ) , o) with op ↓ₚ (PP , o) | op ↓ₚ (QQ , o)
 ... | (PP' , o') | (QQ' , o'') =
   (PP' ∥ QQ') , (o' ∪ₒ o'')
