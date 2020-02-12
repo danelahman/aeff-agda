@@ -19,7 +19,7 @@ BCtx = List VType
 
 data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
 
-  [-]              : {C : CType} →
+  [-]              : {C : CType} → 
                      -------------
                      Γ ⊢E[ [] ]⦂ C
 
