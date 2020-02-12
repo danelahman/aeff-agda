@@ -275,3 +275,51 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
 
   -- SUBSUMPTION RULES
 
+  subsume-run     : {X : VType}
+                    {o o' : O}
+                    {i i' : I}
+                    {p : o ⊑ₒ o'}
+                    {q : i ⊑ᵢ i'} → 
+                    (M : Γ ⊢M⦂ X ! (o , i)) →
+                    -----------------------------
+                    subsume (sub-run q) p (run M)
+                    [ id ]↝
+                    run (subsume p q M)
+
+  subume-∥        : {PP PP' QQ QQ' : SkelPType}
+                    {o o' : O}
+                    {p : PP ⊑ₚ PP'}
+                    {q : QQ ⊑ₚ QQ'}
+                    {r : o ⊑ₒ o'} → 
+                    (P : Γ ⊢P⦂ PP ‼ o) →
+                    (Q : Γ ⊢P⦂ QQ ‼ o) → 
+                    --------------------------------
+                    subsume (sub-par p q) r (P ∥ Q)
+                    [ id ]↝
+                    (subsume p r P) ∥ (subsume q r Q)
+
+  subsume-↑       : {PP PP' : SkelPType}
+                    {o o' : O}
+                    {op : Σₙ}
+                    {p : PP ⊑ₚ PP'}
+                    {q : o ⊑ₒ o'} → 
+                    (r : op ∈ₒ o) →
+                    (V : Γ ⊢V⦂ ``(arₙ op)) →
+                    (P : Γ ⊢P⦂ PP ‼ o) →
+                    -------------------------------
+                    subsume p q (↑ op r V P)
+                    [ id ]↝
+                    ↑ op (q op r) V (subsume p q P)
+
+  subsume-subsume : {PP PP' PP'' : SkelPType}
+                    {o o' o'' : O}
+                    {p : PP ⊑ₚ PP'}
+                    {p' : PP' ⊑ₚ PP''}
+                    {q : o ⊑ₒ o'}
+                    {q' : o' ⊑ₒ o''}
+                    (P : Γ ⊢P⦂ PP ‼ o) →
+                    -----------------------------------------
+                    subsume p' q' (subsume p q P)
+                    [ id ]↝
+                    subsume (⊑ₚ-trans p p') (⊑ₒ-trans q q') P
+

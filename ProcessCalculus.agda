@@ -51,13 +51,13 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             ------------------------------------------------------
             Γ ⊢P⦂ (proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o)))
 
-  subsume : {PP QQ : SkelPType}
+  subsume : {PP PP' : SkelPType}
             {o o' : O} → 
-            PP ⊑ₚ QQ →
+            PP ⊑ₚ PP' →
             o ⊑ₒ o' →
             Γ ⊢P⦂ PP ‼ o →
             -----------------
-            Γ ⊢P⦂ QQ ‼ o'
+            Γ ⊢P⦂ PP' ‼ o'
 
   
 
