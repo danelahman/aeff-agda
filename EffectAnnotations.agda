@@ -11,7 +11,12 @@ open import Relation.Nullary.Negation
 module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
-postulate fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+postulate
+  fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+
+postulate
+  dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)      -- functions are pointwise decidable
+
 
 -- SIGNAL AND INTERRUPT NAMES
 
@@ -56,7 +61,6 @@ dec-maybe p (just x) (just y) with p x y
 ... | no ¬q =
   no (λ { refl → contradiction refl ¬q })
 
-postulate dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)
 
 dec-effₒ : (o o' : O) → Dec (o ≡ o')
 dec-effₒ (omap o) (omap o') with dec-ext o o' (λ op → dec-maybe dec-⊤ (o op) (o' op))
@@ -185,7 +189,7 @@ o ⊑ₒ o' = (op : Σₙ) → op ∈ₒ o → op ∈ₒ o'
 
 data _⊑ᵢ_ (i i' : I) : Set where
   rel : ((op : Σₙ) → {o : O} → {i'' : I} → lkpᵢ op i ≡ just (o , i'') →
-         Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (lkpᵢ op i' ≡ just (o' , i''') × o ⊑ₒ o' × i'' ⊑ᵢ i''')) →
+          Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (lkpᵢ op i' ≡ just (o' , i''') × o ⊑ₒ o' × i'' ⊑ᵢ i''')) →
         i ⊑ᵢ i'
         
 
@@ -462,5 +466,4 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
 
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
-
 

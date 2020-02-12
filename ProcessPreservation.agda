@@ -144,6 +144,7 @@ data _⇝_ : PType → PType → Set where
         (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ (o' ∪ₒ o'')
 
 
+
 -- EVOLUTION OF PROCESS TYPES IS REFLEXIVE
 
 ⇝-refl : {PP : PType} →
@@ -201,10 +202,14 @@ data _⇝_ : PType → PType → Set where
       
 ⇝-↓ₚ id =
   id
-⇝-↓ₚ int =
+⇝-↓ₚ {_} {_} {_} {_} {op} (int {X} {o} {i} {op'}) with decₙ op op'
+... | yes refl =
+  int
+... | no ¬p =
   {!!}
-⇝-↓ₚ (par p p₁) =
-  par {!!} {!!}
+⇝-↓ₚ {_} {_} {_} {_} {op} (par p p₁) =
+  par {!⇝-↓ₚ {op = op} p!} {!!}
+  
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
 
@@ -324,28 +329,10 @@ _[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole
 ⇝-f-ty (↓ op V F) p with ⇝-f-ty F p
 ... | ((RR ‼ o') , r) =
   ((proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o')))) , {!!}
-⇝-f-ty (subsume p q F) r =
-  {!!}
+⇝-f-ty (subsume p q F) r with ⇝-f-ty F r
+... | ((RR ‼ o') , s) =
+  (? ‼ {!!}) , {!!}
 
-
-{-
-⇝-f : {Γ : Ctx} {PP QQ : PType} → (F : Γ ⊢F⦂ PP) → hole-ty-f F ⇝ QQ → Σ[ RR ∈ PType ] (Γ ⊢F⦂ RR)
-⇝-f {_} {_} {QQ} [-] p =
-  QQ , [-]
-⇝-f (∥ₗ {_} {QQ'} {o''} F Q) p with ⇝-f F p
-... | (PP' ‼ o') , F' =
-  ((PP' ∥ QQ') ‼ (o' ∪ₒ o'')) , ∥ₗ (subsume ⊑ₚ-refl ⊑ₒ-inl F') (subsume ⊑ₚ-refl ⊑ₒ-inr Q)
-⇝-f (∥ᵣ {PP'} {_} {o'}  P F) p with ⇝-f F p
-... | (QQ' ‼ o'') , F' =
-  ((PP' ∥ QQ') ‼ (o' ∪ₒ o'')) , ∥ᵣ (subsume ⊑ₚ-refl ⊑ₒ-inl P) (subsume ⊑ₚ-refl ⊑ₒ-inr F')
-⇝-f (↑ op p V F) q with ⇝-f F q
-... | (QQ' ‼ o') , F' =
-  (QQ' ‼ {!!}) , ↑ op {!!} V F'
-⇝-f (↓ op V F) p =
-  {!!}
-⇝-f (subsume p q F) r =
-  {!!}
--}
   
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
