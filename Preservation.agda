@@ -199,7 +199,7 @@ mutual
                       -------------------------------
                       ↓ op V (↑ op' p W M)
                       ↝
-                      ↑ op' (opₒ-in-↓ₑ p) W (↓ op V M)
+                      ↑ op' (opₒ-in-↓ₑ op' p) W (↓ op V M)
 
     ↓-promise-op    : {X Y : VType}
                       {o o' : O}

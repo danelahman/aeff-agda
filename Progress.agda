@@ -110,7 +110,7 @@ progress (↓ op V M) | inj₁ (N , r) =
 ... | inj₂ (return W) =
   inj₁ (return W , ↓-return V W)
 ... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
-  inj₁ (↑ op' (opₒ-in-↓ₑ p) W' (↓ op V M') , ↓-↑ p V W' M')
+  inj₁ (↑ op' (opₒ-in-↓ₑ op' p) W' (↓ op V M') , ↓-↑ p V W' M')
 ... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decₙ op op'
 ... | yes refl =
   inj₁ (let= (subsume (⊑ₒ-↓ₑ-o' {o} p) (⊑ᵢ-↓ₑ-i' {o} p) (M' [ id-subst [ V ]s ]m)) `in

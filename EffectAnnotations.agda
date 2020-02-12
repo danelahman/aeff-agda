@@ -11,7 +11,7 @@ open import Relation.Nullary.Negation
 module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
-postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+postulate fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
 
 -- SIGNAL AND INTERRUPT NAMES
 
@@ -126,6 +126,23 @@ mutual
 _∪ᵢ_ : I → I → I
 (imap i) ∪ᵢ (imap i') =
   imap (∪ᵢ-aux i i')
+
+
+-- IDEMPOTENCE OF EFFECT ANNOTATIONS
+
+∪ₒ-idem : (o : O) → o ∪ₒ o ≡ o
+∪ₒ-idem (omap o) =
+  cong omap (fun-ext (λ op → ∪ₒ-idem-aux (o op) (o op)))
+
+  where
+    ∪ₒ-idem-aux : (o o' : Maybe ⊤) →
+                  ------------------
+                  ∪ₒ-aux' o o ≡ o
+                  
+    ∪ₒ-idem-aux nothing nothing = refl
+    ∪ₒ-idem-aux nothing (just tt) = refl
+    ∪ₒ-idem-aux (just tt) nothing = refl
+    ∪ₒ-idem-aux (just tt) (just tt) = refl
 
 
 -- SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
@@ -306,13 +323,11 @@ opₒ-in-∪ₒ {omap o} {omap o'} {op} refl | just .tt = refl
 
 opₒ-in-↓ₑ : {o : O}
             {i : I}
-            {op : Σₙ}
-            {op' : Σₙ} →
-            op' ∈ₒ o →
-            ---------------------------
-            op' ∈ₒ proj₁ (op ↓ₑ (o , i))
-               
-opₒ-in-↓ₑ {omap o} {imap i} {op} {op'} p with i (op)
+            {op : Σₙ} →
+            --------------------------
+            o ⊑ₒ proj₁ (op ↓ₑ (o , i))
+                           
+opₒ-in-↓ₑ {omap o} {imap i} {op} op' p with i (op)
 ... | nothing = p
 ... | just (o' , i') = ⊑ₒ-inl op' p
 
@@ -447,4 +462,5 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
 
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
+
 

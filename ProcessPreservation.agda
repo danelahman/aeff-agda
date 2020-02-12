@@ -121,17 +121,20 @@ infix 10 _⇝_
 
 data _⇝_ : PType → PType → Set where
 
-  id  : {PP : PType} →
-        -------------------
-        PP ⇝ PP
-
-  ops : {PP : SkelPType}
+  id  : {X : VType}
         {o : O}
-        (op : Σₙ) → 
-        ----------------------------------------------
-        PP ‼ o
+        {i : I} →
+        -------------------------
+        (X ! i) ‼ o ⇝ (X ! i) ‼ o
+
+  int : {X : VType}
+        {o : O}
+        {i : I}
+        {op : Σₙ} → 
+        ---------------------------------------------------
+        (X ! i) ‼ o
         ⇝
-        proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o))
+        (X ! proj₂ (op ↓ₑ (o , i))) ‼ proj₁ (op ↓ₑ (o , i))
 
   par : {PP PP' QQ QQ' : SkelPType}
         {o o' o'' : O} → 
@@ -141,22 +144,67 @@ data _⇝_ : PType → PType → Set where
         (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ (o' ∪ₒ o'')
 
 
+-- EVOLUTION OF PROCESS TYPES IS REFLEXIVE
+
+⇝-refl : {PP : PType} →
+         --------------
+         PP ⇝ PP
+         
+⇝-refl {(X ! i) ‼ o} =
+  id
+⇝-refl {(PP ∥ QQ) ‼ o} =
+  subst (λ o' → ((PP ∥ QQ) ‼ o) ⇝ ((PP ∥ QQ) ‼ o'))
+        (∪ₒ-idem o)
+        (par (⇝-refl {PP ‼ o}) (⇝-refl {QQ ‼ o}))
+
+
+-- ACTION OF INTERRUPTS IS AN EVOLUTION
+
+⇝-↓ : {PP : SkelPType}
+      {o : O}
+      {op : Σₙ} →
+      ----------------------------------------------------------
+      (PP ‼ o) ⇝ proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o))
+      
+⇝-↓ {X ! i} =
+  int
+⇝-↓ {PP ∥ QQ} =
+  par ⇝-↓ ⇝-↓
+
+
 -- EVOLUTION OF PROCESS TYPES PRESERVES SIGNAL ANNOTATIONS
 
 ⇝-⊑ₒ : {PP QQ : SkelPType}
+       {o o' : O} → 
+       PP ‼ o ⇝ QQ ‼ o' →
+       -------------------
+       o ⊑ₒ o'
+       
+⇝-⊑ₒ id =
+  ⊑ₒ-refl
+⇝-⊑ₒ int =
+  opₒ-in-↓ₑ
+⇝-⊑ₒ (par p q) =
+  ⊑ₒ-trans (⇝-⊑ₒ p) ⊑ₒ-inl
+
+
+-- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE EVOLUTION
+
+⇝-↓ₚ : {PP QQ : SkelPType}
        {o o' : O}
        {op : Σₙ} →
-       PP ‼ o ⇝ QQ ‼ o' →
-       op ∈ₒ o →
-       -------------------
-       op ∈ₒ o'
-⇝-⊑ₒ id q =
-  q
-⇝-⊑ₒ {PP} (ops op) q =
-  opₒ-in-↓ₚ PP q
-⇝-⊑ₒ {_} {_} {_} {_} {op} (par p q) r with ⇝-⊑ₒ p r
-... | s = ⊑ₒ-inl op s 
-
+       PP ‼ o ⇝ QQ ‼ o' → 
+       ---------------------------------------------------
+       (proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o)))
+       ⇝
+       (proj₁ (op ↓ₚ (QQ , o')) ‼ proj₂ (op ↓ₚ (QQ , o')))
+      
+⇝-↓ₚ id =
+  id
+⇝-↓ₚ int =
+  {!!}
+⇝-↓ₚ (par p p₁) =
+  par {!!} {!!}
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
 
@@ -266,13 +314,18 @@ _[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole
   QQ , p
 ⇝-f-ty (∥ₗ {_} {QQ} {o} F Q) p with ⇝-f-ty F p
 ... | ((RR ‼ o') , r) =
-  ((RR ∥ QQ) ‼ (o' ∪ₒ o)) , par r id
+  ((RR ∥ QQ) ‼ (o' ∪ₒ o)) , par r (⇝-refl {QQ ‼ o})
 ⇝-f-ty (∥ᵣ {PP} {_} {o} P F) p with ⇝-f-ty F p 
 ... | ((RR ‼ o') , r) =
-  ((PP ∥ RR) ‼ (o ∪ₒ o')) , par id r
-⇝-f-ty (↑ op p V F) q = {!!}
-⇝-f-ty (↓ op V F) p = {!!}
-⇝-f-ty (subsume p q F) r = {!!}
+  ((PP ∥ RR) ‼ (o ∪ₒ o')) , par (⇝-refl {PP ‼ o}) r
+⇝-f-ty (↑ op p V F) q with ⇝-f-ty F q
+... | ((RR ‼ o') , r) =
+  (RR ‼ o') , r
+⇝-f-ty (↓ op V F) p with ⇝-f-ty F p
+... | ((RR ‼ o') , r) =
+  ((proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o')))) , {!!}
+⇝-f-ty (subsume p q F) r =
+  {!!}
 
 
 {-
@@ -313,7 +366,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
 
   -- BROADCAST RULES
 
-  bcastₗ : {PP QQ : SkelPType}
+  ↑-∥ₗ   : {PP QQ : SkelPType}
            {o : O}
            {op : Σₙ} → 
            (p : op ∈ₒ o) →
@@ -322,14 +375,14 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
            (Q : Γ ⊢P⦂ QQ ‼ o) →
            ------------------------------------------
            (↑ op p V P ∥ Q)
-           [ par id (ops op) ]↝
+           [ par ⇝-refl ⇝-↓ ]↝
            (↑ op (⊑ₒ-inl op p)
                  V
                  (subsume ⊑ₚ-refl ⊑ₒ-inl P
                   ∥
                   subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q)))
 
-  bcastᵣ : {PP QQ : SkelPType}
+  ↑-∥ᵣ   : {PP QQ : SkelPType}
            {o : O}
            {op : Σₙ} → 
            (p : op ∈ₒ o) →
@@ -338,7 +391,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
            (Q : Γ ⊢P⦂ QQ ‼ o) →
            ----------------------------------------
            (P ∥ ↑ op p V Q)
-           [ par (ops op) id ]↝
+           [ par ⇝-↓ ⇝-refl ]↝
            (↑ op (⊑ₒ-inr op p)
                  V
                  (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P)
@@ -358,7 +411,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           [ id ]↝
           run (↓ op V M)
 
-  ↓-par : {PP QQ : SkelPType}
+  ↓-∥   : {PP QQ : SkelPType}
           {o : O}
           {op : Σₙ}
           (V : Γ ⊢V⦂ `` (arₙ op)) →
@@ -366,7 +419,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           (Q : Γ ⊢P⦂ QQ ‼ o) →
           ----------------------------------------------------------------------
           ↓ op V (P ∥ Q)
-          [ id ]↝
+          [ ⇝-refl ]↝
           (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q))
 
   ↓-↑   : {PP : SkelPType}
@@ -379,8 +432,8 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           (P : Γ ⊢P⦂ PP ‼ o) →
           -----------------------------------
           ↓ op V (↑ op' p W P)
-          [ id ]↝
-          ↑ op' (opₒ-in-↓ₚ PP p) W (↓ op V P)
+          [ ⇝-refl ]↝
+          ↑ op' (opₒ-in-↓ₚ PP op' p) W (↓ op V P)
 
   -- HOISTING RULE
 
@@ -431,7 +484,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                     (Q : Γ ⊢P⦂ QQ ‼ o) → 
                     --------------------------------
                     subsume (sub-par p q) r (P ∥ Q)
-                    [ id ]↝
+                    [ ⇝-refl ]↝
                     (subsume p r P) ∥ (subsume q r Q)
 
   subsume-↑       : {PP PP' : SkelPType}
@@ -444,7 +497,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                     (P : Γ ⊢P⦂ PP ‼ o) →
                     -------------------------------
                     subsume p q (↑ op r V P)
-                    [ id ]↝
+                    [ ⇝-refl ]↝
                     ↑ op (q op r) V (subsume p q P)
 
   subsume-subsume : {PP PP' PP'' : SkelPType}
@@ -456,6 +509,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                     (P : Γ ⊢P⦂ PP ‼ o) →
                     -----------------------------------------
                     subsume p' q' (subsume p q P)
-                    [ id ]↝
+                    [ ⇝-refl ]↝
                     subsume (⊑ₚ-trans p p') (⊑ₒ-trans q q') P
+
 
