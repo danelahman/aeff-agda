@@ -373,10 +373,7 @@ inj-pair₂ refl = refl
                     (oi' ≡ i' op) →
                     (oi'' ≡ i'' op) →
                     (r : ∪ᵢ-aux' oi oi' ≡ just (o''' , i''')) → 
-                    Σ-syntax O
-                    (λ o' →
-                      Σ-syntax I
-                      (λ i'''' → oi'' ≡ just (o' , i'''') × (o''' ⊑ₒ o') × (i''' ⊑ᵢ i'''')))
+                    Σ[ o' ∈ O ] Σ[ i'''' ∈ I ] (oi'' ≡ just (o' , i'''') × (o''' ⊑ₒ o') × (i''' ⊑ᵢ i''''))
                       
     ∪ᵢ-copair-aux op o''' i''' nothing (just oi') nothing r s t u with trans t (proj₁ (proj₂ (proj₂ (q op (trans (sym s) u)))))
     ... | ()
@@ -622,7 +619,43 @@ mutual
                 ------------------------------------------------
                 proj₂ (op ↓ₑ (o , i)) ⊑ᵢ proj₂ (op ↓ₑ (o' , i'))
 
-  ↓ₑ-monotonicᵢ p (rel q) = {!!}
+  ↓ₑ-monotonicᵢ {omap o} {omap o'} {imap i} {imap i'} {op} p (rel q) =
+    rel λ op' {o''} {i''} r → ↓ₑ-monotonicᵢ-aux op' o'' i'' (i op) (i' op) refl refl r
+
+    where
+      ↓ₑ-monotonicᵢ-aux : (op' : Σₙ) →
+                          (o'' : O) →
+                          (i'' : I) →
+                          (oi oi' : Maybe (O × I)) →
+                          (r : oi ≡ i op) →
+                          (s : oi' ≡ i' op) → 
+                          (t : lkpᵢ op' (proj₂ (↓ₑ-aux op oi (omap o , imap i))) ≡ just (o'' , i'')) →
+                          -------------------------------------------------------------------------------
+                          Σ[ o''' ∈ O ] Σ[ i''' ∈ I ]
+                            (lkpᵢ op' (proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))) ≡ just (o''' , i''') ×
+                            (o'' ⊑ₒ o''') × (i'' ⊑ᵢ i'''))
+
+      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') nothing nothing r s t =
+        q op t
+      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') nothing (just (omap o'''' , imap i'''')) r s t =
+        {!!}
+      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') (just x) oi' r s t = {!!}
+
+
+{-
+      ↓ₑ-monotonicᵢ-aux : (oi oi' : Maybe (O × I)) →
+                          i op ≡ oi →
+                          i' op ≡ oi' →
+                          ---------------------------
+                          proj₂ (↓ₑ-aux op oi (omap o , imap i))
+                          ⊑ᵢ
+                          proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))
+
+      ↓ₑ-monotonicᵢ-aux nothing nothing r s =
+        rel q
+      ↓ₑ-monotonicᵢ-aux nothing (just (omap o''' , imap i''')) r s = {!!}
+      ↓ₑ-monotonicᵢ-aux (just oi) oi' r s = {!!}
+-}
 
 {-
 
