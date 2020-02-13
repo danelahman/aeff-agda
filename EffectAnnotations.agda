@@ -573,6 +573,33 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
 
 
+-- ACTION ON SETTING THE VALUE OF AN EFFECT ANNOTATION AT AN INTERRUPT
+
+↓ₑ-↦-nothing : (i : I) → 
+               (op : Σₙ) →
+               lkpᵢ op i ≡ nothing →
+               ------------------------
+               i ⊑ᵢ (i [ op ↦ nothing ]ᵢ)
+
+↓ₑ-↦-nothing (imap i) op p =
+  rel (λ op' {o'} {i'} q → ↓ₑ-↦-nothing-aux op' o' i' q)
+
+  where
+    ↓ₑ-↦-nothing-aux : (op' : Σₙ) →
+                       (o' : O) →
+                       (i' : I) →
+                       (i op' ≡ just (o' , i')) →
+                       Σ[ o'' ∈ O ] Σ[ i'' ∈ I ]
+                         ((if op ≡ op' then nothing else i op') ≡ just (o'' , i'') ×
+                         (o' ⊑ₒ o'') × (i' ⊑ᵢ i''))
+
+    ↓ₑ-↦-nothing-aux op' o' i' q with decₙ op op'
+    ↓ₑ-↦-nothing-aux op' o' i' q | yes refl with (trans (sym p) q)
+    ... | ()
+    ↓ₑ-↦-nothing-aux op' o' i' q | no ¬r =
+      o' , i' , q , ⊑ₒ-refl , ⊑ᵢ-refl
+
+
 -- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
 
 -- TODO: FINISH THE PROOFS !!!
@@ -635,27 +662,13 @@ mutual
                             (lkpᵢ op' (proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))) ≡ just (o''' , i''') ×
                             (o'' ⊑ₒ o''') × (i'' ⊑ᵢ i'''))
 
-      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') nothing nothing r s t =
-        q op t
-      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') nothing (just (omap o'''' , imap i'''')) r s t =
+      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') nothing nothing r s t =
+        q op' t
+      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') nothing (just (omap o'''' , imap i'''')) r s t =
         {!!}
-      ↓ₑ-monotonicᵢ-aux op (omap o'') (imap i'') (just x) oi' r s t = {!!}
+          
+      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') (just x) oi' r s t = {!!}
 
-
-{-
-      ↓ₑ-monotonicᵢ-aux : (oi oi' : Maybe (O × I)) →
-                          i op ≡ oi →
-                          i' op ≡ oi' →
-                          ---------------------------
-                          proj₂ (↓ₑ-aux op oi (omap o , imap i))
-                          ⊑ᵢ
-                          proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))
-
-      ↓ₑ-monotonicᵢ-aux nothing nothing r s =
-        rel q
-      ↓ₑ-monotonicᵢ-aux nothing (just (omap o''' , imap i''')) r s = {!!}
-      ↓ₑ-monotonicᵢ-aux (just oi) oi' r s = {!!}
--}
 
 {-
 
