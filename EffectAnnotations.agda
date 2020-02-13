@@ -596,9 +596,6 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
 
 -- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
 
--- TODO: FINISH THE PROOFS !!!
-
-
 mutual 
   ↓ₑ-monotonicₒ : {o o' : O}
                   {i i' : I}
@@ -682,41 +679,31 @@ mutual
       ... | ()
         
       ↓ₑ-monotonicᵢ-aux (just (omap o'' , imap i'')) (just (omap o''' , imap i''')) r s =
-        {!!} --∪ᵢ-fun {!!} {!!}
+        ∪ᵢ-fun {_}
+               {imap i''}
+               {_}
+               {imap i'''}
+               (rel λ op' {o''''} {i''''} t → ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t)
+               (subst (λ i → imap i'' ⊑ᵢ i)
+                      (sym (inj-pair₂ (inj-just (trans s (proj₁ (proj₂ (proj₂ (q op (sym r)))))))))
+                      (proj₂ (proj₂ (proj₂ (proj₂ (q op (sym r)))))))
 
-{-
-mutual
-  ∪ᵢ-aux : (i i' : Σₙ → Maybe (O × I)) → Σₙ → Maybe (O × I)
-  ∪ᵢ-aux i i' op =
-    ∪ᵢ-aux' (i op) (i' op)
 
-  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
-  ∪ᵢ-aux' nothing nothing =
-    nothing
-  ∪ᵢ-aux' nothing (just oi''') =
-    just oi'''
-  ∪ᵢ-aux' (just oi'') nothing =
-    just oi''
-  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
-    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+        where
+          ↓ₑ-monotonicᵢ-aux' : (op' : Σₙ) →
+                               (o'''' : O) →
+                               (i'''' : I) →
+                               lkpᵢ op' (imap i [ op ↦ nothing ]ᵢ)  ≡ just (o'''' , i'''') →
+                               --------------------------
+                               Σ[ o''''' ∈ O ] Σ[ i''''' ∈ I ]
+                                 (lkpᵢ op' (imap i' [ op ↦ nothing ]ᵢ)
+                                  ≡ just (o''''' , i''''') ×
+                                  (o'''' ⊑ₒ o''''') × (i'''' ⊑ᵢ i'''''))
 
-_∪ᵢ_ : I → I → I
-(imap i) ∪ᵢ (imap i') =
-  imap (∪ᵢ-aux i i')
--}
-
-{-
-
-infix 40 _↓ₑ_
-
-↓ₑ-aux : Σₙ → Maybe (O × I) → O × I → O × I
-↓ₑ-aux op nothing (o , i) =
-  (o , i)
-↓ₑ-aux op (just (o' , i')) (o , i) =
-  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
-
-_↓ₑ_ : Σₙ → O × I → O × I
-op ↓ₑ (omap o , imap i) =
-  ↓ₑ-aux op (i (op)) (omap o , imap i)
-
--}
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₙ op op'
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | no ¬u =
+            lkpᵢ-nextₒ (rel q) t ,
+            lkpᵢ-nextᵢ (rel q) t ,
+            lkpᵢ-next-eq (rel q) t ,
+            lkpᵢ-next-⊑ₒ (rel q) t ,
+            lkpᵢ-next-⊑ᵢ (rel q) t
