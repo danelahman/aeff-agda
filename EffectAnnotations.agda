@@ -113,7 +113,6 @@ _∪ₒ_ : O → O → O
 
 
 mutual
-
   ∪ᵢ-aux : (i i' : Σₙ → Maybe (O × I)) → Σₙ → Maybe (O × I)
   ∪ᵢ-aux i i' op =
     ∪ᵢ-aux' (i op) (i' op)
@@ -346,7 +345,88 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ... | just tt | just tt = p
 
 
--- FUNCTORIALITY OF UNION OF EFFECT ANNOTATIONS
+inj-just : {X : Set} {x x' : X} → just x ≡ just x' → x ≡ x'
+inj-just refl = refl
+
+inj-pair₁ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → x ≡ x'
+inj-pair₁ refl = refl
+
+inj-pair₂ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → y ≡ y'
+inj-pair₂ refl = refl
+
+
+∪ᵢ-copair : {i i' i'' : I} →
+            i ⊑ᵢ i'' →
+            i' ⊑ᵢ i'' →
+            ----------------
+            (i ∪ᵢ i') ⊑ᵢ i''
+
+∪ᵢ-copair {imap i} {imap i'} {imap i''} (rel p) (rel q) =
+  rel (λ op {o'''} {i'''} r → ∪ᵢ-copair-aux op o''' i''' (i op) (i' op) (i'' op) refl refl refl r)
+
+  where
+    ∪ᵢ-copair-aux : (op : Σₙ) →
+                    (o''' : O) →
+                    (i''' : I)
+                    (oi oi' oi'' : Maybe (O × I)) →
+                    (oi ≡ i op) →
+                    (oi' ≡ i' op) →
+                    (oi'' ≡ i'' op) →
+                    (r : ∪ᵢ-aux' oi oi' ≡ just (o''' , i''')) → 
+                    Σ-syntax O
+                    (λ o' →
+                      Σ-syntax I
+                      (λ i'''' → oi'' ≡ just (o' , i'''') × (o''' ⊑ₒ o') × (i''' ⊑ᵢ i'''')))
+                      
+    ∪ᵢ-copair-aux op o''' i''' nothing (just oi') nothing r s t u with trans t (proj₁ (proj₂ (proj₂ (q op (trans (sym s) u)))))
+    ... | ()
+    ∪ᵢ-copair-aux op o''' i''' nothing (just oi') (just oi'') r s t u =
+      proj₁ (q op (trans (sym s) u)) ,
+      proj₁ (proj₂ (q op (trans (sym s) u))) ,
+      trans t (proj₁ (proj₂ (proj₂ (q op (trans (sym s) u))))) ,
+      proj₁ (proj₂ (proj₂ (proj₂ (q op (trans (sym s) u))))) ,
+      proj₂ (proj₂ (proj₂ (proj₂ (q op (trans (sym s) u)))))
+    ∪ᵢ-copair-aux op o''' i''' (just oi) nothing oi'' r s t u =
+      proj₁ (p op (trans (sym r) u)) ,
+      proj₁ (proj₂ (p op (trans (sym r) u))) ,
+      trans t (proj₁ (proj₂ (proj₂ (p op (trans (sym r) u))))) ,
+      proj₁ (proj₂ (proj₂ (proj₂ (p op (trans (sym r) u))))) ,
+      proj₂ (proj₂ (proj₂ (proj₂ (p op (trans (sym r) u)))))
+    ∪ᵢ-copair-aux op o''' i'''
+                  (just (omap o'''' , imap i''''))
+                  (just (omap o''''' , imap i'''''))
+                  nothing r s t u
+                  with trans t (proj₁ (proj₂ (proj₂ (p op (sym r)))))
+    ... | ()
+    ∪ᵢ-copair-aux op o''' i'''
+                  (just (omap o'''' , imap i''''))
+                  (just (omap o''''' , imap i'''''))
+                  (just (omap o'''''' , imap i''''''))
+                  r s t u
+                  with inj-pair₁ (inj-just u) | inj-pair₂ (inj-just u)
+    ... | v | w =
+      omap o'''''' ,
+      imap i'''''' ,
+      refl ,
+      subst (λ o → o ⊑ₒ omap o'''''')
+            v
+            (∪ₒ-copair (subst (λ o → omap o'''' ⊑ₒ o)
+                              (inj-pair₁ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (p op (sym r)))))))))
+                              (proj₁ (proj₂ (proj₂ (proj₂ (p op (sym r)))))))
+                       (subst (λ o → omap o''''' ⊑ₒ o)
+                              (inj-pair₁ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (q op (sym s)))))))))
+                              (proj₁ (proj₂ (proj₂ (proj₂ (q op (sym s)))))))) ,
+      subst (λ i → i ⊑ᵢ imap i'''''')
+             w
+             (∪ᵢ-copair (subst (λ i → imap i'''' ⊑ᵢ i)
+                               (inj-pair₂ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (p op (sym r)))))))))
+                               (proj₂ (proj₂ (proj₂ (proj₂ (p op (sym r)))))))
+                        ((subst (λ i → imap i''''' ⊑ᵢ i)
+                               (inj-pair₂ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (q op (sym s)))))))))
+                               (proj₂ (proj₂ (proj₂ (proj₂ (q op (sym s)))))))))
+
+
+-- FUNCTORIALITY OF UNIONS OF EFFECT ANNOTATIONS
 
 ∪ₒ-fun : {o o' o'' o''' : O} →
          o ⊑ₒ o'' → 
@@ -356,6 +436,16 @@ data _⊑ᵢ_ (i i' : I) : Set where
 
 ∪ₒ-fun p q =
   ∪ₒ-copair (⊑ₒ-trans p ∪ₒ-inl) (⊑ₒ-trans q ∪ₒ-inr)
+
+
+∪ᵢ-fun : {i i' i'' i''' : I} →
+         i ⊑ᵢ i'' → 
+         i' ⊑ᵢ i''' →
+         --------------------------
+         (i ∪ᵢ i') ⊑ᵢ (i'' ∪ᵢ i''')
+
+∪ᵢ-fun p q =
+  ∪ᵢ-copair (⊑ᵢ-trans p ∪ᵢ-inl) (⊑ᵢ-trans q ∪ᵢ-inr)
 
 
 -- INCLUSION INTO ACTED UPON EFFECT ANNOTATION
@@ -523,16 +613,6 @@ mutual
         ∪ₒ-fun p (⊑ₒ-trans (proj₁ (proj₂ (proj₂ (proj₂ (q op r)))))
                            (subst (λ o → o ⊑ₒ omap o''') (inj-pair₁ (inj-just t)) ⊑ₒ-refl))
 
-        where
-          inj-just : {X : Set} {x x' : X} → just x ≡ just x' → x ≡ x'
-          inj-just refl = refl
-
-          inj-pair₁ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → x ≡ x'
-          inj-pair₁ refl = refl
-
-          inj-pair₂ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → y ≡ y'
-          inj-pair₂ refl = refl
-
 
   ↓ₑ-monotonicᵢ : {o o' : O}
                 {i i' : I}
@@ -542,7 +622,7 @@ mutual
                 ------------------------------------------------
                 proj₂ (op ↓ₑ (o , i)) ⊑ᵢ proj₂ (op ↓ₑ (o' , i'))
 
-  ↓ₑ-monotonicᵢ = {!!}
+  ↓ₑ-monotonicᵢ p (rel q) = {!!}
 
 {-
 
