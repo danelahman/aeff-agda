@@ -1,4 +1,5 @@
 open import Data.Bool hiding (if_then_else_)
+open import Data.Empty
 open import Data.List
 open import Data.Maybe
 open import Data.Product
@@ -573,31 +574,26 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
 
 
--- ACTION ON SETTING THE VALUE OF AN EFFECT ANNOTATION AT AN INTERRUPT
+-- ETA LAW FOR SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
 
-↓ₑ-↦-nothing : (i : I) → 
-               (op : Σₙ) →
-               lkpᵢ op i ≡ nothing →
-               ------------------------
-               i ⊑ᵢ (i [ op ↦ nothing ]ᵢ)
+↓ₑ-↦-eta : (i : I) → 
+           (op : Σₙ) →
+           (oi : Maybe (O × I)) → 
+           lkpᵢ op i ≡ oi →
+           ------------------------
+           i ≡ (i [ op ↦ oi ]ᵢ)
 
-↓ₑ-↦-nothing (imap i) op p =
-  rel (λ op' {o'} {i'} q → ↓ₑ-↦-nothing-aux op' o' i' q)
+↓ₑ-↦-eta (imap i) op oi p =
+  cong (λ i → imap i) (fun-ext (λ op' → ↓ₑ-↦-eta-aux op'))
 
   where
-    ↓ₑ-↦-nothing-aux : (op' : Σₙ) →
-                       (o' : O) →
-                       (i' : I) →
-                       (i op' ≡ just (o' , i')) →
-                       Σ[ o'' ∈ O ] Σ[ i'' ∈ I ]
-                         ((if op ≡ op' then nothing else i op') ≡ just (o'' , i'') ×
-                         (o' ⊑ₒ o'') × (i' ⊑ᵢ i''))
+    ↓ₑ-↦-eta-aux : (op' : Σₙ) →
+                   ----------------------------------------
+                   i op' ≡ (if op ≡ op' then oi else i op')
 
-    ↓ₑ-↦-nothing-aux op' o' i' q with decₙ op op'
-    ↓ₑ-↦-nothing-aux op' o' i' q | yes refl with (trans (sym p) q)
-    ... | ()
-    ↓ₑ-↦-nothing-aux op' o' i' q | no ¬r =
-      o' , i' , q , ⊑ₒ-refl , ⊑ᵢ-refl
+    ↓ₑ-↦-eta-aux op' with decₙ op op'
+    ... | yes refl = p
+    ... | no ¬q = refl
 
 
 -- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
@@ -647,28 +643,46 @@ mutual
                 proj₂ (op ↓ₑ (o , i)) ⊑ᵢ proj₂ (op ↓ₑ (o' , i'))
 
   ↓ₑ-monotonicᵢ {omap o} {omap o'} {imap i} {imap i'} {op} p (rel q) =
-    rel λ op' {o''} {i''} r → ↓ₑ-monotonicᵢ-aux op' o'' i'' (i op) (i' op) refl refl r
+    ↓ₑ-monotonicᵢ-aux (i op) (i' op) refl refl
 
     where
-      ↓ₑ-monotonicᵢ-aux : (op' : Σₙ) →
-                          (o'' : O) →
-                          (i'' : I) →
-                          (oi oi' : Maybe (O × I)) →
-                          (r : oi ≡ i op) →
-                          (s : oi' ≡ i' op) → 
-                          (t : lkpᵢ op' (proj₂ (↓ₑ-aux op oi (omap o , imap i))) ≡ just (o'' , i'')) →
-                          -------------------------------------------------------------------------------
-                          Σ[ o''' ∈ O ] Σ[ i''' ∈ I ]
-                            (lkpᵢ op' (proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))) ≡ just (o''' , i''') ×
-                            (o'' ⊑ₒ o''') × (i'' ⊑ᵢ i'''))
+      ↓ₑ-monotonicᵢ-aux : (oi oi' : Maybe (O × I)) →
+                          oi ≡ i op →
+                          oi' ≡ i' op →
+                          --------------------------------------------------------------------
+                          proj₂ (↓ₑ-aux op oi (omap o , imap i))
+                          ⊑ᵢ
+                          proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))
 
-      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') nothing nothing r s t =
-        q op' t
-      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') nothing (just (omap o'''' , imap i'''')) r s t =
-        {!!}
-          
-      ↓ₑ-monotonicᵢ-aux op' (omap o'') (imap i'') (just x) oi' r s t = {!!}
+      ↓ₑ-monotonicᵢ-aux nothing nothing r s =
+        rel q
+      ↓ₑ-monotonicᵢ-aux nothing (just (omap o''' , imap i''')) r s =
+        ⊑ᵢ-trans (rel q) {!!}
+      ↓ₑ-monotonicᵢ-aux (just oi) nothing r s =
+        rel {!!}
+      ↓ₑ-monotonicᵢ-aux (just (omap o'' , imap i'')) (just (omap o''' , imap i''')) r s =
+        ∪ᵢ-fun {!!} {!!}
 
+{-
+mutual
+  ∪ᵢ-aux : (i i' : Σₙ → Maybe (O × I)) → Σₙ → Maybe (O × I)
+  ∪ᵢ-aux i i' op =
+    ∪ᵢ-aux' (i op) (i' op)
+
+  ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
+  ∪ᵢ-aux' nothing nothing =
+    nothing
+  ∪ᵢ-aux' nothing (just oi''') =
+    just oi'''
+  ∪ᵢ-aux' (just oi'') nothing =
+    just oi''
+  ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
+    just (o'' ∪ₒ o''' , imap (∪ᵢ-aux i'' i'''))
+
+_∪ᵢ_ : I → I → I
+(imap i) ∪ᵢ (imap i') =
+  imap (∪ᵢ-aux i i')
+-}
 
 {-
 
