@@ -316,48 +316,86 @@ _[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole
   subsume p q (F [ P ]f)
 
 
--- PROCESS EVALUATION CONTEXT TYPE EVOLUTION
+-- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO EVOLVE
 
-⇝-f-ty : {Γ : Ctx} {PP QQ : PType} → (F : Γ ⊢F⦂ PP) → hole-ty-f F ⇝ QQ → Σ[ RR ∈ PType ] (PP ⇝ RR)
-⇝-f-ty {_} {PP} [-] p =
-  PP , ⇝-refl
-⇝-f-ty (_∥ₗ_ {_} {QQ} {o} F Q) p with ⇝-f-ty F p
+⇝-f-⇝ : {Γ : Ctx}
+        {PP QQ : PType} →
+        (F : Γ ⊢F⦂ PP) →
+        hole-ty-f F ⇝ QQ →
+        -------------------------
+        Σ[ RR ∈ PType ] (PP ⇝ RR)
+         
+⇝-f-⇝ {_} {_} {QQ} [-] p =
+  QQ , p
+⇝-f-⇝ (_∥ₗ_ {_} {QQ} {o} F Q) p with ⇝-f-⇝ F p
 ... | ((RR ‼ o') , r) =
   ((RR ∥ QQ) ‼ (o' ∪ₒ o)) , par r ⇝-refl
-⇝-f-ty (_∥ᵣ_ {PP} {_} {o} P F) p with ⇝-f-ty F p
+⇝-f-⇝ (_∥ᵣ_ {PP} {_} {o} P F) p with ⇝-f-⇝ F p
 ... | ((RR ‼ o') , r) =
   ((PP ∥ RR) ‼ (o ∪ₒ o')) , par ⇝-refl r
-⇝-f-ty (↑ op p V F) q with ⇝-f-ty F q
+⇝-f-⇝ (↑ op p V F) q with ⇝-f-⇝ F q
 ... | ((RR ‼ o') , r) =
   (RR ‼ o') , r
-⇝-f-ty (↓ op V F) p with ⇝-f-ty F p
+⇝-f-⇝ (↓ op V F) p with ⇝-f-⇝ F p
 ... | ((RR ‼ o') , r) =
   (proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o'))) , ⇝-↓ₚ r
-⇝-f-ty (subsume p q F) r with ⇝-f-ty F r
+⇝-f-⇝ (subsume p q F) r with ⇝-f-⇝ F r
 ... | ((RR ‼ o') , s) =
   (RR ‼ o') , sub s p ⊑ₚ-refl q ⊑ₒ-refl
 
-{-
-⇝-f-ty {_} {_} {QQ} [-] p =
-  QQ , p
-⇝-f-ty (∥ₗ {_} {QQ} {o} F Q) p with ⇝-f-ty F p
-... | ((RR ‼ o') , r) =
-  ((RR ∥ QQ) ‼ (o' ∪ₒ o)) , par r (⇝-refl {QQ ‼ o})
-⇝-f-ty (∥ᵣ {PP} {_} {o} P F) p with ⇝-f-ty F p 
-... | ((RR ‼ o') , r) =
-  ((PP ∥ RR) ‼ (o ∪ₒ o')) , par (⇝-refl {PP ‼ o}) r
-⇝-f-ty (↑ op p V F) q with ⇝-f-ty F q
-... | ((RR ‼ o') , r) =
-  (RR ‼ o') , r
-⇝-f-ty (↓ op V F) p with ⇝-f-ty F p
-... | ((RR ‼ o') , r) =
-  ((proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o')))) , {!!}
-⇝-f-ty (subsume p q F) r with ⇝-f-ty F r
-... | ((RR ‼ o') , s) =
-  ({!!} ‼ {!!}) , {!!}
--}
 
-{-
+⇝-f : {Γ : Ctx}
+      {PP QQ : PType} →
+      (F : Γ ⊢F⦂ PP) →
+      (p : hole-ty-f F ⇝ QQ) →
+      --------------------------
+      Γ ⊢F⦂ (proj₁ (⇝-f-⇝ F p))
+      
+⇝-f [-] p =
+  [-]
+⇝-f (F ∥ₗ Q) p with ⇝-f-⇝ F p | ⇝-f F p
+... | ((RR ‼ o') , r) | F' =
+  subsume ⊑ₚ-refl ∪ₒ-inl F' ∥ₗ subsume ⊑ₚ-refl ∪ₒ-inr Q
+⇝-f (P ∥ᵣ F) p with ⇝-f-⇝ F p | ⇝-f F p
+... | ((RR ‼ o') , r) | F' =
+  subsume ⊑ₚ-refl ∪ₒ-inl P ∥ᵣ subsume ⊑ₚ-refl ∪ₒ-inr F'
+⇝-f (↑ op p V F) q with ⇝-f-⇝ F q | ⇝-f F q
+... | ((RR ‼ o') , r) | F' =
+    F'
+⇝-f (↓ op V F) p  with ⇝-f-⇝ F p | ⇝-f F p
+... | ((RR ‼ o') , r) | F' =
+  ↓ op V F'
+⇝-f (subsume p q F) r with ⇝-f-⇝ F r | ⇝-f F r
+... | ((RR ‼ o') , s) | F' =
+  F'
+
+
+⇝-f-ty : {Γ : Ctx}
+         {PP QQ : PType} →
+         (F : Γ ⊢F⦂ PP) →
+         (p : hole-ty-f F ⇝ QQ) →
+         --------------------------
+         QQ ≡ hole-ty-f (⇝-f F p)
+
+⇝-f-ty [-] p =
+  refl
+⇝-f-ty (F ∥ₗ Q) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
+... | ((RR ‼ o') , q) | r | s =
+  s
+⇝-f-ty (P ∥ᵣ F) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
+... | ((RR ‼ o') , q) | r | s =
+  s
+⇝-f-ty (↑ op p V F) q with ⇝-f-⇝ F q | ⇝-f F q | ⇝-f-ty F q
+... | ((RR ‼ o') , r) | s | t =
+  t
+⇝-f-ty (↓ op V F) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
+... | ((RR ‼ o') , q) | r | s =
+  s
+⇝-f-ty (subsume p q F) r with ⇝-f-⇝ F r | ⇝-f F r | ⇝-f-ty F r
+... | ((RR ‼ o') , s) | t | u =
+  u
+
+
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
 
@@ -387,11 +425,11 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
            ------------------------------------------
            (↑ op p V P ∥ Q)
            [ par ⇝-refl ⇝-↓ ]↝
-           (↑ op (⊑ₒ-inl op p)
+           (↑ op (∪ₒ-inl op p)
                  V
-                 (subsume ⊑ₚ-refl ⊑ₒ-inl P
+                 (subsume ⊑ₚ-refl ∪ₒ-inl P
                   ∥
-                  subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q)))
+                  subsume ⊑ₚ-refl ∪ₒ-inr (↓ op V Q)))
 
   ↑-∥ᵣ   : {PP QQ : PTypeShape}
            {o : O}
@@ -403,11 +441,11 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
            ----------------------------------------
            (P ∥ ↑ op p V Q)
            [ par ⇝-↓ ⇝-refl ]↝
-           (↑ op (⊑ₒ-inr op p)
+           (↑ op (∪ₒ-inr op p)
                  V
-                 (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P)
+                 (subsume ⊑ₚ-refl ∪ₒ-inl (↓ op V P)
                   ∥
-                  subsume ⊑ₚ-refl ⊑ₒ-inr Q))
+                  subsume ⊑ₚ-refl ∪ₒ-inr Q))
 
   -- INTERRUPT RULES
 
@@ -431,7 +469,7 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           ----------------------------------------------------------------------
           ↓ op V (P ∥ Q)
           [ ⇝-refl ]↝
-          (subsume ⊑ₚ-refl ⊑ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ⊑ₒ-inr (↓ op V Q))
+          (subsume ⊑ₚ-refl ∪ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ∪ₒ-inr (↓ op V Q))
 
   ↓-↑   : {PP : PTypeShape}
           {o : O}
@@ -468,10 +506,10 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
             {F : Γ ⊢F⦂ PP}
             {P : Γ ⊢P⦂ hole-ty-f F}
             {Q : Γ ⊢P⦂ QQ}
-            {p : hole-ty-f F ⇝ QQ} →
+            {p : hole-ty-f F ⇝ QQ} → 
             P [ p ]↝ Q →
             ---------------
-            {!!} [ {!!} ]↝ {!!}
+            F [ P ]f [ proj₂ (⇝-f-⇝ F p) ]↝ (⇝-f F p) [ subst (λ QQ → Γ ⊢P⦂ QQ) (⇝-f-ty F p) Q ]f
 
   -- SUBSUMPTION RULES
 
@@ -522,6 +560,3 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                     subsume p' q' (subsume p q P)
                     [ ⇝-refl ]↝
                     subsume (⊑ₚ-trans p p') (⊑ₒ-trans q q') P
-
-
--}
