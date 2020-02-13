@@ -77,16 +77,44 @@ op ↓ₚ ((PP ∥ QQ) , o) with op ↓ₚ (PP , o) | op ↓ₚ (QQ , o)
 -- SIGNAL ANNOTATIONS ARE PRESERVED BY THE ACTION OF INTERRUPTS ON PROCESS TYPES
 
 ↓ₚ-⊑ₒ :  (PP : PTypeShape) →
-             {o : O}
-             {op : Σₙ} →
-             ---------------------------
-             o ⊑ₒ proj₂ (op ↓ₚ (PP , o))
+         {o : O}
+         {op : Σₙ} →
+         ---------------------------
+         o ⊑ₒ proj₂ (op ↓ₚ (PP , o))
 
 ↓ₚ-⊑ₒ (X ! i) {o} {op} op' p =
   ↓ₑ-⊑ₒ op' p
 ↓ₚ-⊑ₒ (PP ∥ QQ) {o} {op} op' p with ↓ₚ-⊑ₒ PP {o} {op} op' p
 ... | r =
-  ⊑ₒ-inl op' r
+  ∪ₒ-inl op' r
 
 
--- THE ACTION OF INTERRUPTS ON PROCESS TYPES IS MONOTONIC
+-- ACTION OF INTERRUPTS ON PROCESS TYPES IS MONOTONIC
+
+↓ₚ-monotonicₚ : {PP QQ : PTypeShape}
+                {o o' : O}
+                {op : Σₙ} → 
+                PP ⊑ₚ QQ →
+                o ⊑ₒ o' →
+                -------------------------------------------------
+                proj₁ (op ↓ₚ (PP , o)) ⊑ₚ proj₁ (op ↓ₚ (QQ , o'))
+
+↓ₚ-monotonicₚ (sub-run p) q =
+  sub-run (↓ₑ-monotonicᵢ q p)
+↓ₚ-monotonicₚ (sub-par p q) r =
+  sub-par (↓ₚ-monotonicₚ p r) (↓ₚ-monotonicₚ q r)
+               
+
+↓ₚ-monotonicₒ : {PP QQ : PTypeShape}
+                {o o' : O}
+                {op : Σₙ} → 
+                PP ⊑ₚ QQ →
+                o ⊑ₒ o' →
+                -------------------------------------------------
+                proj₂ (op ↓ₚ (PP , o)) ⊑ₒ proj₂ (op ↓ₚ (QQ , o'))
+
+↓ₚ-monotonicₒ (sub-run p) q =
+  ↓ₑ-monotonicₒ q p
+↓ₚ-monotonicₒ {_} {_} {_} {_} {op} (sub-par p q) r =
+  ∪ₒ-copair (⊑ₒ-trans (↓ₚ-monotonicₒ p r) ∪ₒ-inl)
+            (⊑ₒ-trans (↓ₚ-monotonicₒ q r) ∪ₒ-inr)

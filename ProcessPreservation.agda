@@ -196,12 +196,23 @@ data _⇝_ : PType → PType → Set where
   id
 ⇝-↓ₚ {_} {_} {_} {_} {op} (act ops op' p q) =
   act (op ∷∷ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q)
-⇝-↓ₚ {_} {_} {_} {_} {op} (par p q) =
-  par (sub (⇝-↓ₚ {op = op} p) ⊑ₚ-refl {!!} ⊑ₒ-inl {!!})
-      (sub (⇝-↓ₚ {op = op} q) ⊑ₚ-refl {!!} ⊑ₒ-inr {!!})
-⇝-↓ₚ {_} {_} {_} {_} {op} (sub p q r s t) =
-  sub (⇝-↓ₚ {op = op} p) {!!} {!!} {!!} {!!}
-
+⇝-↓ₚ {_} {_} {_} {_} {op} (par {PP} {PP'} {QQ} {QQ'} p q) =
+  par (sub (⇝-↓ₚ {op = op} p)
+           ⊑ₚ-refl
+           (↓ₚ-monotonicₚ {PP = PP'} {op = op} ⊑ₚ-refl ∪ₒ-inl)
+           ∪ₒ-inl
+           (↓ₚ-monotonicₒ {PP = PP'} {op = op} ⊑ₚ-refl ∪ₒ-inl))
+      (sub (⇝-↓ₚ {op = op} q)
+           ⊑ₚ-refl
+           (↓ₚ-monotonicₚ {PP = QQ'} {op = op} ⊑ₚ-refl ∪ₒ-inr)
+           ∪ₒ-inr
+           (↓ₚ-monotonicₒ {PP = QQ'} {op = op} ⊑ₚ-refl ∪ₒ-inr))
+⇝-↓ₚ {_} {_} {_} {_} {op} (sub {PP} {PP'} {QQ} {QQ'} p q r s t) =
+  sub (⇝-↓ₚ {op = op} p)
+      (↓ₚ-monotonicₚ {PP = PP} {QQ = PP'} q s)
+      (↓ₚ-monotonicₚ {PP = QQ} {QQ = QQ'} r t)
+      (↓ₚ-monotonicₒ {PP = PP} {QQ = PP'} q s)
+      (↓ₚ-monotonicₒ {PP = QQ} {QQ = QQ'} r t)
 
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
@@ -321,9 +332,10 @@ _[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole
   (RR ‼ o') , r
 ⇝-f-ty (↓ op V F) p with ⇝-f-ty F p
 ... | ((RR ‼ o') , r) =
-  (proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o'))) , {!!}
-⇝-f-ty (subsume x x₁ F) p =
-  {!!}
+  (proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o'))) , ⇝-↓ₚ r
+⇝-f-ty (subsume p q F) r with ⇝-f-ty F r
+... | ((RR ‼ o') , s) =
+  (RR ‼ o') , sub s p ⊑ₚ-refl q ⊑ₒ-refl
 
 {-
 ⇝-f-ty {_} {_} {QQ} [-] p =

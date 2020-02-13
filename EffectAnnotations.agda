@@ -262,78 +262,113 @@ data _⊑ᵢ_ (i i' : I) : Set where
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
 
 
-
 -- LEFT AND RIGHT INCLUSIONS INTO UNIONS OF EFFECT ANNOTATIONS
 
-⊑ₒ-inl : {o o' : O} →
+∪ₒ-inl : {o o' : O} →
          -------------
          o ⊑ₒ (o ∪ₒ o')
 
-⊑ₒ-inl {omap o} {omap o'} op with o op | o' op
+∪ₒ-inl {omap o} {omap o'} op with o op | o' op
 ... | nothing | nothing = λ p → p
 ... | nothing | just tt = λ _ → refl
 ... | just tt | nothing = λ p → p
 ... | just tt | just tt = λ p → p
 
 
-⊑ₒ-inr : {o o' : O} →
+∪ₒ-inr : {o o' : O} →
          -------------
          o' ⊑ₒ (o ∪ₒ o')
 
-⊑ₒ-inr {omap o} {omap o'} op with o op | o' op
+∪ₒ-inr {omap o} {omap o'} op with o op | o' op
 ... | nothing | nothing = λ p → p
 ... | nothing | just tt = λ p → p
 ... | just tt | nothing = λ _ → refl
 ... | just tt | just tt = λ p → p
 
 
-⊑ᵢ-inl : {i i' : I} →
+∪ᵢ-inl : {i i' : I} →
         -------------
         i ⊑ᵢ (i ∪ᵢ i')
 
-⊑ᵢ-inl {imap i} {imap i'} =
-  rel (λ op → ⊑ᵢ-inl-aux (i op) (i' op))
+∪ᵢ-inl {imap i} {imap i'} =
+  rel (λ op → ∪ᵢ-inl-aux (i op) (i' op))
 
   where
-    ⊑ᵢ-inl-aux : (oi oi' : Maybe (O × I)) →
+    ∪ᵢ-inl-aux : (oi oi' : Maybe (O × I)) →
                  {o : O} {i'' : I} →
                  oi ≡ just (o , i'') →
                  Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
-    ⊑ᵢ-inl-aux (just .(o , i'')) nothing {o} {i''} refl =
+    ∪ᵢ-inl-aux (just .(o , i'')) nothing {o} {i''} refl =
       o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
-    ⊑ᵢ-inl-aux (just .(o , imap i'')) (just (o' , imap i''')) {o} {imap i''} refl =
-      o ∪ₒ o' , imap (∪ᵢ-aux i'' i''') , refl , ⊑ₒ-inl , ⊑ᵢ-inl
+    ∪ᵢ-inl-aux (just .(o , imap i'')) (just (o' , imap i''')) {o} {imap i''} refl =
+      o ∪ₒ o' , imap (∪ᵢ-aux i'' i''') , refl , ∪ₒ-inl , ∪ᵢ-inl
 
 
-⊑ᵢ-inr : {i i' : I} →
+∪ᵢ-inr : {i i' : I} →
         -------------
         i' ⊑ᵢ (i ∪ᵢ i')
 
-⊑ᵢ-inr {imap i} {imap i'} =
-  rel (λ op → ⊑ᵢ-inr-aux (i op) (i' op))
+∪ᵢ-inr {imap i} {imap i'} =
+  rel (λ op → ∪ᵢ-inr-aux (i op) (i' op))
 
   where
-    ⊑ᵢ-inr-aux : (oi oi' : Maybe (O × I)) →
+    ∪ᵢ-inr-aux : (oi oi' : Maybe (O × I)) →
                  {o : O} {i'' : I} →
                  oi' ≡ just (o , i'') →
                  Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
-    ⊑ᵢ-inr-aux nothing (just .(o , i'')) {o} {i''} refl =
+    ∪ᵢ-inr-aux nothing (just .(o , i'')) {o} {i''} refl =
       o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
-    ⊑ᵢ-inr-aux (just (o' , imap i''')) (just .(o , imap i'')) {o} {imap i''} refl =
-      o' ∪ₒ o , imap (∪ᵢ-aux i''' i'') , refl , ⊑ₒ-inr , ⊑ᵢ-inr
+    ∪ᵢ-inr-aux (just (o' , imap i''')) (just .(o , imap i'')) {o} {imap i''} refl =
+      o' ∪ₒ o , imap (∪ᵢ-aux i''' i'') , refl , ∪ₒ-inr , ∪ᵢ-inr
+
+
+-- COPAIRING FOR UNIONS OF EFFECT ANNOTATIONS
+
+∪ₒ-copair : {o o' o'' : O} →
+            o ⊑ₒ o'' →
+            o' ⊑ₒ o'' →
+            ----------------
+            (o ∪ₒ o') ⊑ₒ o''
+
+∪ₒ-copair {omap o} {omap o'} {omap o''} p q op =
+  ∪ₒ-copair-aux (p op) (q op)
+
+  where
+    ∪ₒ-copair-aux : (p : op ∈ₒ (omap o) → op ∈ₒ (omap o'')) →
+                    (q : op ∈ₒ (omap o') → op ∈ₒ (omap o'')) →
+                    ---------------------------------------------
+                    op ∈ₒ (omap (∪ₒ-aux o o')) → op ∈ₒ (omap o'')
+
+    ∪ₒ-copair-aux p q with o op | o' op
+    ... | nothing | nothing = q
+    ... | nothing | just tt = q
+    ... | just tt | nothing = p
+    ... | just tt | just tt = p
+
+
+-- FUNCTORIALITY OF UNION OF EFFECT ANNOTATIONS
+
+∪ₒ-fun : {o o' o'' o''' : O} →
+         o ⊑ₒ o'' → 
+         o' ⊑ₒ o''' →
+         --------------------------
+         (o ∪ₒ o') ⊑ₒ (o'' ∪ₒ o''')
+
+∪ₒ-fun p q =
+  ∪ₒ-copair (⊑ₒ-trans p ∪ₒ-inl) (⊑ₒ-trans q ∪ₒ-inr)
 
 
 -- INCLUSION INTO ACTED UPON EFFECT ANNOTATION
 
 ↓ₑ-⊑ₒ : {o : O}
-            {i : I}
-            {op : Σₙ} →
-            --------------------------
-            o ⊑ₒ proj₁ (op ↓ₑ (o , i))
+        {i : I}
+        {op : Σₙ} →
+        --------------------------
+        o ⊑ₒ proj₁ (op ↓ₑ (o , i))
                            
 ↓ₑ-⊑ₒ {omap o} {imap i} {op} op' p with i (op)
 ... | nothing = p
-... | just (o' , i') = ⊑ₒ-inl op' p
+... | just (o' , i') = ∪ₒ-inl op' p
 
 
 ↓ₑ-⊑ₒ-o' : {o o' : O}
@@ -355,11 +390,11 @@ data _⊑ᵢ_ (i i' : I) : Set where
 
 
 ↓ₑ-⊑ₒ-i' : {o o' : O}
-          {i i' : I}
-          {op : Σₙ} → 
-          lkpᵢ op i ≡ just (o' , i') → 
-          ---------------------------
-          i' ⊑ᵢ proj₂ (op ↓ₑ (o , i))
+           {i i' : I}
+           {op : Σₙ} → 
+           lkpᵢ op i ≡ just (o' , i') → 
+           ---------------------------
+           i' ⊑ᵢ proj₂ (op ↓ₑ (o , i))
 
 ↓ₑ-⊑ₒ-i' {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
 ↓ₑ-⊑ₒ-i' {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
@@ -378,7 +413,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} refl | no ¬q | nothing | just .(o'' , i'') =
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
     ↓ₑ-⊑ₒ-i'-aux op' {o''} {imap i''} refl | no ¬q | just (o''' , (imap i''')) | just .(o'' , (imap i'')) =
-      (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
+      (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (∪ₒ-inr , ∪ᵢ-inr)))
 
 
 -- EFFECT ANNOTATION OF AN INTERRUPT THAT WAS NOT ACTED WITH
@@ -402,7 +437,7 @@ lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q | just (
                                                                  | no ¬r
                                                                  | just (o''' , imap i''')
                                                                  | just (o'''' , imap i'''') | refl =
-  (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ⊑ₒ-inl , ⊑ᵢ-inl
+  (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ∪ₒ-inl , ∪ᵢ-inl
 
 
 -- NEXT DEFINED EFFECT ANNOTATION UNDER SUBTYPING EFFECT ANNOTATIONS
@@ -450,3 +485,36 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
 
+
+-- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
+
+-- TODO: FINISH THE PROOFS !!!
+
+postulate
+  ↓ₑ-monotonicₒ : {o o' : O}
+                {i i' : I}
+                {op : Σₙ} →
+                o ⊑ₒ o' →
+                i ⊑ᵢ i' →
+                ------------------------------------------------
+                proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (o' , i'))
+
+  ↓ₑ-monotonicᵢ : {o o' : O}
+                {i i' : I}
+                {op : Σₙ} →
+                o ⊑ₒ o' →
+                i ⊑ᵢ i' →
+                ------------------------------------------------
+                proj₂ (op ↓ₑ (o , i)) ⊑ᵢ proj₂ (op ↓ₑ (o' , i'))
+
+{-
+↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} {op} p (rel q) with i op | i' op
+... | nothing | nothing =
+  p
+... | nothing | just  (omap o''' , imap i''') =
+  ⊑ₒ-trans p ⊑ₒ-inl
+... | just (omap o'' , imap i'') | nothing =
+  {!!}
+... | just (omap o'' , imap i'') | just (omap o''' , imap i''') =
+  {!!}
+-}
