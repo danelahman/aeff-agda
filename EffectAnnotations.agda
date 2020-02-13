@@ -119,10 +119,8 @@ mutual
     ∪ᵢ-aux' (i op) (i' op)
 
   ∪ᵢ-aux' : (oi oi' : Maybe (O × I)) → Maybe (O × I)
-  ∪ᵢ-aux' nothing nothing =
-    nothing
-  ∪ᵢ-aux' nothing (just oi''') =
-    just oi'''
+  ∪ᵢ-aux' nothing oi' =
+    oi'
   ∪ᵢ-aux' (just oi'') nothing =
     just oi''
   ∪ᵢ-aux' (just (o'' , (imap i''))) (just (o''' , (imap i'''))) =
@@ -649,7 +647,7 @@ mutual
       ↓ₑ-monotonicᵢ-aux : (oi oi' : Maybe (O × I)) →
                           oi ≡ i op →
                           oi' ≡ i' op →
-                          --------------------------------------------------------------------
+                          -----------------------------------------
                           proj₂ (↓ₑ-aux op oi (omap o , imap i))
                           ⊑ᵢ
                           proj₂ (↓ₑ-aux op oi' (omap o' , imap i'))
@@ -657,11 +655,34 @@ mutual
       ↓ₑ-monotonicᵢ-aux nothing nothing r s =
         rel q
       ↓ₑ-monotonicᵢ-aux nothing (just (omap o''' , imap i''')) r s =
-        ⊑ᵢ-trans (rel q) {!!}
-      ↓ₑ-monotonicᵢ-aux (just oi) nothing r s =
-        rel {!!}
+        ⊑ᵢ-trans (rel (λ op' {o''''} {i''''} t → ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t))
+                 (∪ᵢ-inl {(imap i') [ op ↦ nothing ]ᵢ} {imap i'''})
+
+        where
+          ↓ₑ-monotonicᵢ-aux' : (op' : Σₙ) → 
+                               (o'''' : O) → 
+                               (i'''' : I) →
+                               i op' ≡ just (o'''' , i'''') → 
+                               --------------------------------------------------------------------
+                               Σ[ o''''' ∈ O ] Σ[ i''''' ∈ I ]
+                                 ((if op ≡ op' then nothing else i' op') ≡ just (o''''' , i''''') ×
+                                  (o'''' ⊑ₒ o''''') × (i'''' ⊑ᵢ i'''''))
+
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₙ op op'
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | yes refl with trans r t
+          ... | ()
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | no ¬u =
+            lkpᵢ-nextₒ (rel q) t ,
+            lkpᵢ-nextᵢ (rel q) t ,
+            lkpᵢ-next-eq (rel q) t ,
+            lkpᵢ-next-⊑ₒ (rel q) t ,
+            lkpᵢ-next-⊑ᵢ (rel q) t
+
+      ↓ₑ-monotonicᵢ-aux (just (omap o'' , imap i'')) nothing r s with trans s (proj₁ (proj₂ (proj₂ (q op (sym r)))))
+      ... | ()
+        
       ↓ₑ-monotonicᵢ-aux (just (omap o'' , imap i'')) (just (omap o''' , imap i''')) r s =
-        ∪ᵢ-fun {!!} {!!}
+        {!!} --∪ᵢ-fun {!!} {!!}
 
 {-
 mutual
