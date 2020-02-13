@@ -1,4 +1,4 @@
-open import Data.List hiding ([_]) renaming (_∷_ to _::_)
+open import Data.List hiding ([_]) renaming (_∷_ to _∷∷_)
 open import Data.Maybe
 open import Data.Product
 
@@ -62,7 +62,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      Γ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
                      ----------------------------------
-                     Γ ⊢E[ X :: Δ ]⦂ Y ! (o , i)
+                     Γ ⊢E[ X ∷∷ Δ ]⦂ Y ! (o , i)
 
   subsume          : {Δ : BCtx}
                      {X : VType}
@@ -81,7 +81,7 @@ infix 30 _⋈_
 
 _⋈_ : Ctx → BCtx → Ctx
 Γ ⋈ [] = Γ
-Γ ⋈ (X :: Δ) = (Γ ∷ ⟨ X ⟩) ⋈ Δ
+Γ ⋈ (X ∷∷ Δ) = (Γ ∷ ⟨ X ⟩) ⋈ Δ
 
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED EVALUATION CONTEXT
@@ -199,7 +199,7 @@ mutual
                       -------------------------------
                       ↓ op V (↑ op' p W M)
                       ↝
-                      ↑ op' (opₒ-in-↓ₑ op' p) W (↓ op V M)
+                      ↑ op' (↓ₑ-⊑ₒ op' p) W (↓ op V M)
 
     ↓-promise-op    : {X Y : VType}
                       {o o' : O}
@@ -212,7 +212,7 @@ mutual
                       ------------------------------------------------------------------------------------------
                       ↓ op V (promise op ∣ p ↦ M `in N )
                       ↝
-                      (let= (subsume (⊑ₒ-↓ₑ-o' {o} p) (⊑ᵢ-↓ₑ-i' {o} p) (M [ id-subst [ V ]s ]m)) `in
+                      (let= (subsume (↓ₑ-⊑ₒ-o' {o} p) (↓ₑ-⊑ₒ-i' {o} p) (M [ id-subst [ V ]s ]m)) `in
                         ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ⟨ ` Hd ⟩ ]s ]m))
 
     ↓-promise-op'   : {X Y : VType}

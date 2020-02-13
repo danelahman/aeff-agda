@@ -27,14 +27,14 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             -------------------
             Γ ⊢P⦂ (X ! i) ‼ o
 
-  _∥_     : {PP QQ : SkelPType}
+  _∥_     : {PP QQ : PTypeShape}
             {o : O} → 
             Γ ⊢P⦂ PP ‼ o →
             Γ ⊢P⦂ QQ ‼ o →
             --------------
             Γ ⊢P⦂ (PP ∥ QQ) ‼ o
 
-  ↑       : {PP : SkelPType}
+  ↑       : {PP : PTypeShape}
             {o : O}
             (op : Σₙ) →
             op ∈ₒ o →
@@ -43,7 +43,7 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             -------------------
             Γ ⊢P⦂ PP ‼ o
 
-  ↓       : {PP : SkelPType}
+  ↓       : {PP : PTypeShape}
             {o : O}
             (op : Σₙ) →
             Γ ⊢V⦂ ``(arₙ op) →
@@ -51,7 +51,7 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             ------------------------------------------------------
             Γ ⊢P⦂ (proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o)))
 
-  subsume : {PP PP' : SkelPType}
+  subsume : {PP PP' : PTypeShape}
             {o o' : O} → 
             PP ⊑ₚ PP' →
             o ⊑ₒ o' →

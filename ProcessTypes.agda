@@ -1,3 +1,4 @@
+open import Data.List
 open import Data.Product
 
 open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
@@ -11,19 +12,19 @@ module ProcessTypes where
 
 -- PROCESS TYPES
 
-data SkelPType : Set where
-  _!_ : VType → I → SkelPType
-  _∥_ : SkelPType → SkelPType → SkelPType
+data PTypeShape : Set where
+  _!_ : VType → I → PTypeShape
+  _∥_ : PTypeShape → PTypeShape → PTypeShape
 
 data PType : Set where
-  _‼_ : SkelPType → O → PType
+  _‼_ : PTypeShape → O → PType
 
 
 -- SUBTYPING RELATIONS ON PROCESS TYPES
 
 infix 10 _⊑ₚ_
 
-data _⊑ₚ_ : SkelPType → SkelPType → Set where
+data _⊑ₚ_ : PTypeShape → PTypeShape → Set where
 
   sub-run : {X : VType}
             {i i' : I} →
@@ -31,7 +32,7 @@ data _⊑ₚ_ : SkelPType → SkelPType → Set where
             ----------------
             X ! i ⊑ₚ X ! i'
 
-  sub-par : {PP PP' QQ QQ' : SkelPType} → 
+  sub-par : {PP PP' QQ QQ' : PTypeShape} → 
             PP ⊑ₚ PP' →
             QQ ⊑ₚ QQ' →
             --------------------
@@ -40,7 +41,7 @@ data _⊑ₚ_ : SkelPType → SkelPType → Set where
 
 -- SUBTYPING RELATION FOR PROCESS TYPES IS A PREORDER
 
-⊑ₚ-refl : {PP : SkelPType} →
+⊑ₚ-refl : {PP : PTypeShape} →
           ------------------
           PP ⊑ₚ PP
 
@@ -50,7 +51,7 @@ data _⊑ₚ_ : SkelPType → SkelPType → Set where
   sub-par ⊑ₚ-refl ⊑ₚ-refl 
 
 
-⊑ₚ-trans : {PP QQ RR : SkelPType} →
+⊑ₚ-trans : {PP QQ RR : PTypeShape} →
            PP ⊑ₚ QQ →
            QQ ⊑ₚ RR → 
            ------------------------
@@ -64,7 +65,7 @@ data _⊑ₚ_ : SkelPType → SkelPType → Set where
 
 -- ACTION OF INTERRUPTS ON PROCESS TYPES
 
-_↓ₚ_ : (op : Σₙ) → SkelPType × O → SkelPType × O
+_↓ₚ_ : (op : Σₙ) → PTypeShape × O → PTypeShape × O
 op ↓ₚ ((X ! i) , o) with op ↓ₑ (o , i)
 ... | (o' , i') =
   (X ! i') , o'
@@ -73,17 +74,19 @@ op ↓ₚ ((PP ∥ QQ) , o) with op ↓ₚ (PP , o) | op ↓ₚ (QQ , o)
   (PP' ∥ QQ') , (o' ∪ₒ o'')
 
 
--- SIGNAL ANNOTATIONS ARE PRESERVED BY THE ACTION
+-- SIGNAL ANNOTATIONS ARE PRESERVED BY THE ACTION OF INTERRUPTS ON PROCESS TYPES
 
-opₒ-in-↓ₚ :  (PP : SkelPType) →
+↓ₚ-⊑ₒ :  (PP : PTypeShape) →
              {o : O}
              {op : Σₙ} →
              ---------------------------
              o ⊑ₒ proj₂ (op ↓ₚ (PP , o))
 
-opₒ-in-↓ₚ (X ! i) {o} {op} op' p =
-  opₒ-in-↓ₑ op' p
-opₒ-in-↓ₚ (PP ∥ QQ) {o} {op} op' p with opₒ-in-↓ₚ PP {o} {op} op' p
+↓ₚ-⊑ₒ (X ! i) {o} {op} op' p =
+  ↓ₑ-⊑ₒ op' p
+↓ₚ-⊑ₒ (PP ∥ QQ) {o} {op} op' p with ↓ₚ-⊑ₒ PP {o} {op} op' p
 ... | r =
   ⊑ₒ-inl op' r
 
+
+-- THE ACTION OF INTERRUPTS ON PROCESS TYPES IS MONOTONIC

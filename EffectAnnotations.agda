@@ -1,10 +1,11 @@
 open import Data.Bool hiding (if_then_else_)
+open import Data.List
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
 open import Data.Unit
 
-open import Relation.Binary.PropositionalEquality hiding ([_] ; Extensionality)
+open import Relation.Binary.PropositionalEquality hiding (Extensionality)
 open import Relation.Nullary
 open import Relation.Nullary.Negation
 
@@ -24,14 +25,14 @@ postulate Σₙ : Set                                           -- set of messag
 
 postulate decₙ : (op op' : Σₙ) → Dec (op ≡ op')               -- message names have decidable equality
 
-if'_then_else_ : {A : Set} {op op' : Σₙ} → Dec (op ≡ op') → A → A → A
-if' yes p then x else y = x
-if' no ¬p then x else y = y
-
 if_≡_then_else_ : {A : Set} → Σₙ → Σₙ → A → A → A
 if op ≡ op' then x else y =
   if' (decₙ op op') then x else y
 
+  where
+    if'_then_else_ : {A : Set} {op op' : Σₙ} → Dec (op ≡ op') → A → A → A
+    if' yes p then x else y = x
+    if' no ¬p then x else y = y
 
 -- EFFECT ANNOTATIONS
 
@@ -169,6 +170,15 @@ infix 40 _↓ₑ_
 _↓ₑ_ : Σₙ → O × I → O × I
 op ↓ₑ (omap o , imap i) =
   ↓ₑ-aux op (i (op)) (omap o , imap i)
+
+
+-- GENERALISED ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS
+
+_↓↓ₑ_ : List Σₙ → O × I → O × I
+[] ↓↓ₑ (o , i) =
+  (o , i)
+(op ∷ ops) ↓↓ₑ (o , i) =
+  op ↓ₑ (ops ↓↓ₑ (o , i))
 
 
 -- CHECKING THE CONTENTS OF EFFECT ANNOTATIONS
@@ -315,86 +325,59 @@ data _⊑ᵢ_ (i i' : I) : Set where
 
 -- INCLUSION INTO ACTED UPON EFFECT ANNOTATION
 
-opₒ-in-∪ₒ : {o o' : O}
-            {op : Σₙ} →
-            op ∈ₒ o →
-            --------------
-            op ∈ₒ (o ∪ₒ o')
-
-opₒ-in-∪ₒ {omap o} {omap o'} {op} p with o (op)
-opₒ-in-∪ₒ {omap o} {omap o'} {op} refl | just .tt = refl
-
-
-opₒ-in-↓ₑ : {o : O}
+↓ₑ-⊑ₒ : {o : O}
             {i : I}
             {op : Σₙ} →
             --------------------------
             o ⊑ₒ proj₁ (op ↓ₑ (o , i))
                            
-opₒ-in-↓ₑ {omap o} {imap i} {op} op' p with i (op)
+↓ₑ-⊑ₒ {omap o} {imap i} {op} op' p with i (op)
 ... | nothing = p
 ... | just (o' , i') = ⊑ₒ-inl op' p
 
 
-⊑ₒ-↓ₑ-o : {o o' : O}
-          {i i' : I}
-          {op : Σₙ} → 
-          lkpᵢ op i ≡ just (o' , i') → 
-          ---------------------------
-          o ⊑ₒ proj₁ (op ↓ₑ (o , i))
-             
-⊑ₒ-↓ₑ-o {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
-⊑ₒ-↓ₑ-o {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
-  ⊑ₒ-↓ₑ-o-aux       
-
-  where
-    ⊑ₒ-↓ₑ-o-aux : (op' : Σₙ) → o op' ≡ just tt → ∪ₒ-aux o o' op' ≡ just tt
-    ⊑ₒ-↓ₑ-o-aux op' p with o op'
-    ⊑ₒ-↓ₑ-o-aux op' p | just tt = refl
-
-
-⊑ₒ-↓ₑ-o' : {o o' : O}
+↓ₑ-⊑ₒ-o' : {o o' : O}
            {i i' : I}
            {op : Σₙ} → 
            lkpᵢ op i ≡ just (o' , i') → 
            ---------------------------
            o' ⊑ₒ proj₁ (op ↓ₑ (o , i))
 
-⊑ₒ-↓ₑ-o' {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
-⊑ₒ-↓ₑ-o' {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
-  ⊑ₒ-↓ₑ-o'-aux
+↓ₑ-⊑ₒ-o' {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
+↓ₑ-⊑ₒ-o' {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
+  ↓ₑ-⊑ₒ-o'-aux
 
   where
-    ⊑ₒ-↓ₑ-o'-aux : (op' : Σₙ) → o' op' ≡ just tt → ∪ₒ-aux o o' op' ≡ just tt
-    ⊑ₒ-↓ₑ-o'-aux op' p with o op'
-    ⊑ₒ-↓ₑ-o'-aux op' p | nothing = p
-    ⊑ₒ-↓ₑ-o'-aux op' p | just tt = refl
+    ↓ₑ-⊑ₒ-o'-aux : (op' : Σₙ) → o' op' ≡ just tt → ∪ₒ-aux o o' op' ≡ just tt
+    ↓ₑ-⊑ₒ-o'-aux op' p with o op'
+    ↓ₑ-⊑ₒ-o'-aux op' p | nothing = p
+    ↓ₑ-⊑ₒ-o'-aux op' p | just tt = refl
 
 
-⊑ᵢ-↓ₑ-i' : {o o' : O}
+↓ₑ-⊑ₒ-i' : {o o' : O}
           {i i' : I}
           {op : Σₙ} → 
           lkpᵢ op i ≡ just (o' , i') → 
           ---------------------------
           i' ⊑ᵢ proj₂ (op ↓ₑ (o , i))
 
-⊑ᵢ-↓ₑ-i' {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
-⊑ᵢ-↓ₑ-i' {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
-  rel ⊑ᵢ-↓ₑ-i'-aux
+↓ₑ-⊑ₒ-i' {omap o} {omap o'} {imap i} {imap i'} {op} p with i (op)
+↓ₑ-⊑ₒ-i' {omap o} {omap o'} {imap i} {imap i'} {op} refl | just .(omap o' , imap i') =
+  rel ↓ₑ-⊑ₒ-i'-aux
 
   where
-    ⊑ᵢ-↓ₑ-i'-aux : (op' : Σₙ) {o'' : O} {i'' : I} →
+    ↓ₑ-⊑ₒ-i'-aux : (op' : Σₙ) {o'' : O} {i'' : I} →
       i' op' ≡ just (o'' , i'') →
       Σ[ o''' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux (λ op' → if op ≡ op' then nothing else i op') i' op' ≡ just (o''' , i''') ×
                                   (o'' ⊑ₒ o''') × (i'' ⊑ᵢ i'''))
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {i''} p with decₙ op op'
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {i''} p | yes refl with i' (op)
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {i''} refl | yes refl | just .(o'' , i'') =
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p with decₙ op op'
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p | yes refl with i' (op)
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} refl | yes refl | just .(o'' , i'') =
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {i''} p | no ¬q with i (op') | i' (op') 
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {i''} refl | no ¬q | nothing | just .(o'' , i'') =
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p | no ¬q with i (op') | i' (op') 
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} refl | no ¬q | nothing | just .(o'' , i'') =
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
-    ⊑ᵢ-↓ₑ-i'-aux op' {o''} {imap i''} refl | no ¬q | just (o''' , (imap i''')) | just .(o'' , (imap i'')) =
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {imap i''} refl | no ¬q | just (o''' , (imap i''')) | just .(o'' , (imap i'')) =
       (o''' ∪ₒ o'') , (imap (∪ᵢ-aux i''' i'') , (refl , (⊑ₒ-inr , ⊑ᵢ-inr)))
 
 
