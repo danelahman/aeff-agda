@@ -490,14 +490,49 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
 
 -- TODO: FINISH THE PROOFS !!!
 
-postulate
+
+mutual 
   ↓ₑ-monotonicₒ : {o o' : O}
-                {i i' : I}
-                {op : Σₙ} →
-                o ⊑ₒ o' →
-                i ⊑ᵢ i' →
-                ------------------------------------------------
-                proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (o' , i'))
+                  {i i' : I}
+                  {op : Σₙ} →
+                  o ⊑ₒ o' →
+                  i ⊑ᵢ i' →
+                  ------------------------------------------------
+                  proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (o' , i'))
+
+  ↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} {op} p (rel q) =
+    ↓ₑ-monotonicₒ-aux (i op) (i' op) refl refl
+
+    where
+      ↓ₑ-monotonicₒ-aux : (oi oi' : Maybe (O × I)) →
+                          i op ≡ oi →
+                          i' op ≡ oi' →
+                          ---------------------------
+                          proj₁ (↓ₑ-aux op oi (omap o , imap i))
+                          ⊑ₒ
+                          proj₁ (↓ₑ-aux op oi' (omap o' , imap i'))
+
+      ↓ₑ-monotonicₒ-aux nothing nothing r s =
+        p
+      ↓ₑ-monotonicₒ-aux nothing (just (omap o''' , imap i''')) r s =
+        ⊑ₒ-trans p ∪ₒ-inl
+      ↓ₑ-monotonicₒ-aux (just (omap o'' , imap i'')) nothing r s with trans (sym s) (proj₁ (proj₂ (proj₂ (q op r))))
+      ... | ()
+      ↓ₑ-monotonicₒ-aux (just (omap o'' , imap i'')) (just (omap o''' , imap i''')) r s with trans (sym s) (proj₁ (proj₂ (proj₂ (q op r))))
+      ... | t =
+        ∪ₒ-fun p (⊑ₒ-trans (proj₁ (proj₂ (proj₂ (proj₂ (q op r)))))
+                           (subst (λ o → o ⊑ₒ omap o''') (inj-pair₁ (inj-just t)) ⊑ₒ-refl))
+
+        where
+          inj-just : {X : Set} {x x' : X} → just x ≡ just x' → x ≡ x'
+          inj-just refl = refl
+
+          inj-pair₁ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → x ≡ x'
+          inj-pair₁ refl = refl
+
+          inj-pair₂ : {X Y : Set} {x x' : X} {y y' : Y} → (x , y) ≡ (x' , y') → y ≡ y'
+          inj-pair₂ refl = refl
+
 
   ↓ₑ-monotonicᵢ : {o o' : O}
                 {i i' : I}
@@ -507,14 +542,20 @@ postulate
                 ------------------------------------------------
                 proj₂ (op ↓ₑ (o , i)) ⊑ᵢ proj₂ (op ↓ₑ (o' , i'))
 
+  ↓ₑ-monotonicᵢ = {!!}
+
 {-
-↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} {op} p (rel q) with i op | i' op
-... | nothing | nothing =
-  p
-... | nothing | just  (omap o''' , imap i''') =
-  ⊑ₒ-trans p ⊑ₒ-inl
-... | just (omap o'' , imap i'') | nothing =
-  {!!}
-... | just (omap o'' , imap i'') | just (omap o''' , imap i''') =
-  {!!}
+
+infix 40 _↓ₑ_
+
+↓ₑ-aux : Σₙ → Maybe (O × I) → O × I → O × I
+↓ₑ-aux op nothing (o , i) =
+  (o , i)
+↓ₑ-aux op (just (o' , i')) (o , i) =
+  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+
+_↓ₑ_ : Σₙ → O × I → O × I
+op ↓ₑ (omap o , imap i) =
+  ↓ₑ-aux op (i (op)) (omap o , imap i)
+
 -}
