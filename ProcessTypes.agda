@@ -49,6 +49,23 @@ _↓ₚ_ : (op : Σₙ) → {o : O} →
 op ↓ₚ PP = proj₂ (op ↓ₚₚ PP)
 
 
+-- ACTION OF INTERRUPTS ON PROCESS TYPES PRESERVES SIGNAL ANNOTATIONS
+
+↓ₚ-⊑ₒ : {op : Σₙ}
+        {o : O} →
+        (PP : PType o) →
+        ----------------------
+        o ⊑ₒ proj₁ (op ↓ₚₚ PP)
+
+↓ₚ-⊑ₒ (X ‼ o , i) =
+  ↓ₑ-⊑ₒ
+↓ₚ-⊑ₒ (PP ∥ QQ) =
+  ∪ₒ-fun (↓ₚ-⊑ₒ PP) (↓ₚ-⊑ₒ QQ)
+
+
+
+
+
 
 {-
 -- SUBTYPING RELATIONS ON PROCESS TYPES

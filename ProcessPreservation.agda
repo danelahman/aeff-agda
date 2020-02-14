@@ -70,13 +70,14 @@ hole-ty-hᵢ (subsume p q H) =
 
 
 hole-ty-h-⊑ₒ : {Γ : Ctx}
-             {Δ : BCtx}
-             {X : VType}
-             {o : O}
-             {i : I} →
-             (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
-             ------------------------------
-             hole-ty-hₒ H ⊑ₒ o
+               {Δ : BCtx}
+               {X : VType}
+               {o : O}
+               {i : I} →
+               (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
+               ------------------------------
+               hole-ty-hₒ H ⊑ₒ o
+               
 hole-ty-h-⊑ₒ [-] =
   ⊑ₒ-refl
 hole-ty-h-⊑ₒ (promise op ∣ p ↦ M `in H) =
@@ -86,13 +87,14 @@ hole-ty-h-⊑ₒ (subsume p q H) =
 
 
 hole-ty-h-⊑ᵢ : {Γ : Ctx}
-             {Δ : BCtx}
-             {X : VType}
-             {o : O}
-             {i : I} →
-             (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
-             ------------------------------
-             hole-ty-hᵢ H ⊑ᵢ i
+               {Δ : BCtx}
+               {X : VType}
+               {o : O}
+               {i : I} →
+               (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
+               ------------------------------
+               hole-ty-hᵢ H ⊑ᵢ i
+               
 hole-ty-h-⊑ᵢ [-] =
   ⊑ᵢ-refl
 hole-ty-h-⊑ᵢ (promise op ∣ p ↦ M `in H) =
@@ -282,13 +284,13 @@ hole-ty-f : {Γ : Ctx} {o : O} {PP : PType o} → Γ ⊢F⦂ PP → Σ[ o' ∈ O
 hole-ty-f {_} {o} {PP} [-] =
   o , PP
 hole-ty-f (_∥ₗ_ {o} {o'} {PP} {QQ} F Q) =
-  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
+  proj₁ (hole-ty-f F) , proj₂ (hole-ty-f F)
 hole-ty-f (_∥ᵣ_ {o} {o'} {PP} {QQ} P F) =
-  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
+  proj₁ (hole-ty-f F) , proj₂ (hole-ty-f F)
 hole-ty-f (↑ op p V F) =
-  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
+  proj₁ (hole-ty-f F) , proj₂ (hole-ty-f F)
 hole-ty-f (↓ op V F) =
-  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
+  proj₁ (hole-ty-f F) , proj₂ (hole-ty-f F)
 
 
 -- FILLING A WELL-TYPED PROCESS EVALUATION CONTEXT
@@ -353,7 +355,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 ⇝-f-∈ₒ (↑ op p V F) q =
   ⇝-f-∈ₒ F q
 ⇝-f-∈ₒ (↓ op V F) q =
-  {!⇝-f-∈ₒ F q!}
+  {!!}
 
 
 ⇝-f : {Γ : Ctx}
@@ -513,7 +515,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           -----------------------------------
           ↓ op V (↑ op' p W P)
           [ ⇝-refl ]↝
-          ↑ op' {!!} W (↓ op V P)
+          ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
 
   -- HOISTING RULE
 
@@ -529,7 +531,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           ----------------------------------------------------------------------
           (run (H [ ↑ op p V M ]ₕ))
           [ id ]↝
-          ↑ op {!!} (strengthen-val {Δ = Δ} V) {!!}
+          ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]ₕ))
 
   -- CONTEXT RULE
 
