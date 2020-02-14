@@ -179,6 +179,18 @@ _↓↓ₑ_ : List Σₙ → O × I → O × I
   op ↓ₑ (ops ↓↓ₑ (o , i))
 
 
+↓↓ₑ-act : {o : O}
+          {i : I} → 
+          (ops ops' : List Σₙ) → 
+          ------------------------------------------------------
+          (ops ++ ops') ↓↓ₑ (o , i) ≡ ops ↓↓ₑ (ops' ↓↓ₑ (o , i))
+
+↓↓ₑ-act [] ops' =
+  refl
+↓↓ₑ-act (op ∷ ops) ops' =
+  cong (λ oi → op ↓ₑ oi) (↓↓ₑ-act ops ops')
+
+
 -- CHECKING THE CONTENTS OF EFFECT ANNOTATIONS
 
 _∈ₒ_ : Σₙ → O → Set
@@ -707,3 +719,52 @@ mutual
             lkpᵢ-next-eq (rel q) t ,
             lkpᵢ-next-⊑ₒ (rel q) t ,
             lkpᵢ-next-⊑ᵢ (rel q) t
+
+
+-- GENERALISED ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
+
+mutual 
+  ↓↓ₑ-monotonicₒ : {o o' : O}
+                   {i i' : I} → 
+                   (ops : List Σₙ) →
+                   o ⊑ₒ o' →
+                   i ⊑ᵢ i' →
+                   ----------------------------------------------------
+                   proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (o' , i'))
+
+  ↓↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} [] p q =
+    p
+  ↓↓ₑ-monotonicₒ (op ∷ ops) p q =
+    ↓ₑ-monotonicₒ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
+
+
+  ↓↓ₑ-monotonicᵢ : {o o' : O}
+                   {i i' : I} → 
+                   (ops : List Σₙ) →
+                   o ⊑ₒ o' →
+                   i ⊑ᵢ i' →
+                   ----------------------------------------------------
+                   proj₂ (ops ↓↓ₑ (o , i)) ⊑ᵢ proj₂ (ops ↓↓ₑ (o' , i'))
+
+  ↓↓ₑ-monotonicᵢ [] p q = q
+  ↓↓ₑ-monotonicᵢ (op ∷ ops) p q =
+    ↓ₑ-monotonicᵢ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
+
+
+-- INCLUSION INTO GENERALLY ACTED UPON EFFECT ANNOTATION
+
+postulate
+
+  ↓↓ₑ-⊑ₒ : {o : O}
+           {i : I} → 
+           (ops : List Σₙ) →
+           --------------------------
+           o ⊑ₒ proj₁ (ops ↓↓ₑ (o , i))
+
+
+  ↓↓ₑ-⊑ₒ-act : {o : O}
+               {i : I} → 
+               (ops ops' : List Σₙ) →
+               ------------------------------------------------------------
+               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+

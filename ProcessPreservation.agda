@@ -190,6 +190,32 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
   par (⇝-↓ₚ p) (⇝-↓ₚ q)
 
 
+-- PROCESS TYPE EVOLUTION INCREASES SIGNAL INDEX
+
+inj-proj₁ : {X Y : Set} {xy xy' : X × Y} → xy ≡ xy' → proj₁ xy ≡ proj₁ xy'
+inj-proj₁ refl = refl
+
+⇝-↓ₚ-⊑ₒ : {o o' : O}
+          {PP : PType o}
+          {QQ : PType o'} →
+          PP ⇝ QQ →
+          ------------------
+          o ⊑ₒ o'
+
+⇝-↓ₚ-⊑ₒ id =
+  ⊑ₒ-refl
+⇝-↓ₚ-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
+... | r | s =
+  subst (λ o → o ⊑ₒ o'')
+        (sym r)
+        (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
+               (sym s)
+               (↓↓ₑ-⊑ₒ-act ops ⟦ op ⟧))
+⇝-↓ₚ-⊑ₒ (par p q) =
+  ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
+
+
+
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
 
 strengthen-var : {Γ : Ctx} → (Δ : BCtx) → {A : BType} → `` A ∈ Γ ⋈ Δ → `` A ∈ Γ
@@ -293,78 +319,117 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
         ------------------------------------------
         Σ[ o'' ∈ O ] Σ[ RR ∈ PType o'' ] (PP ⇝ RR)
 
-⇝-f-⇝ = {!!}
-
-{-
-⇝-f-⇝ {_} {_} {QQ} [-] p =
-  QQ , p
-⇝-f-⇝ (_∥ₗ_ {_} {QQ} {o} F Q) p with ⇝-f-⇝ F p
-... | ((RR ‼ o') , r) =
-  ((RR ∥ QQ) ‼ (o' ∪ₒ o)) , par r ⇝-refl
-⇝-f-⇝ (_∥ᵣ_ {PP} {_} {o} P F) p with ⇝-f-⇝ F p
-... | ((RR ‼ o') , r) =
-  ((PP ∥ RR) ‼ (o ∪ₒ o')) , par ⇝-refl r
+⇝-f-⇝ {_} {_} {o'} {_} {QQ} [-] p =
+  o' , QQ , p
+⇝-f-⇝ (_∥ₗ_ {o} {o'} {PP} {QQ} F Q) p with ⇝-f-⇝ F p
+... | o'' , RR , q =
+  (o'' ∪ₒ o') , (RR ∥ QQ) , par q ⇝-refl
+⇝-f-⇝ (_∥ᵣ_ {o} {o'} {PP} {QQ} P F) p with ⇝-f-⇝ F p
+... | o'' , RR , q =
+  (o ∪ₒ o'') , (PP ∥ RR) , par ⇝-refl q
 ⇝-f-⇝ (↑ op p V F) q with ⇝-f-⇝ F q
-... | ((RR ‼ o') , r) =
-  (RR ‼ o') , r
+... | o'' , RR , r =
+  o'' , RR , r
 ⇝-f-⇝ (↓ op V F) p with ⇝-f-⇝ F p
-... | ((RR ‼ o') , r) =
-  (proj₁ (op ↓ₚ (RR , o')) ‼ proj₂ (op ↓ₚ (RR , o'))) , ⇝-↓ₚ r
-⇝-f-⇝ (subsume p q F) r with ⇝-f-⇝ F r
-... | ((RR ‼ o') , s) =
-  (RR ‼ o') , sub s p ⊑ₚ-refl q ⊑ₒ-refl
+... | o'' , RR , q =
+  _ , (op ↓ₚ RR) , ⇝-↓ₚ q
+
+
+⇝-f-∈ₒ : {Γ : Ctx}
+         {o o' : O}
+         {PP : PType o}
+         {QQ : PType o'}
+         (F : Γ ⊢F⦂ PP) →
+         (p : proj₂ (hole-ty-f F) ⇝ QQ) →
+         --------------------------------
+         o ⊑ₒ proj₁ (⇝-f-⇝ F p)
+
+⇝-f-∈ₒ [-] p =
+  ⇝-↓ₚ-⊑ₒ p
+⇝-f-∈ₒ (F ∥ₗ Q) p =
+  ∪ₒ-fun (⇝-f-∈ₒ F p) ⊑ₒ-refl
+⇝-f-∈ₒ (P ∥ᵣ F) p =
+  ∪ₒ-fun ⊑ₒ-refl (⇝-f-∈ₒ F p)
+⇝-f-∈ₒ (↑ op p V F) q =
+  ⇝-f-∈ₒ F q
+⇝-f-∈ₒ (↓ op V F) q =
+  {!⇝-f-∈ₒ F q!}
 
 
 ⇝-f : {Γ : Ctx}
-      {PP QQ : PType} →
+      {o o' : O} 
+      {PP : PType o}
+      {QQ : PType o'} →
       (F : Γ ⊢F⦂ PP) →
-      (p : hole-ty-f F ⇝ QQ) →
-      --------------------------
-      Γ ⊢F⦂ (proj₁ (⇝-f-⇝ F p))
-      
+      (p : proj₂ (hole-ty-f F) ⇝ QQ) →
+      ---------------------------------
+      Γ ⊢F⦂ (proj₁ (proj₂ (⇝-f-⇝ F p)))
+
 ⇝-f [-] p =
   [-]
-⇝-f (F ∥ₗ Q) p with ⇝-f-⇝ F p | ⇝-f F p
-... | ((RR ‼ o') , r) | F' =
-  subsume ⊑ₚ-refl ∪ₒ-inl F' ∥ₗ subsume ⊑ₚ-refl ∪ₒ-inr Q
-⇝-f (P ∥ᵣ F) p with ⇝-f-⇝ F p | ⇝-f F p
-... | ((RR ‼ o') , r) | F' =
-  subsume ⊑ₚ-refl ∪ₒ-inl P ∥ᵣ subsume ⊑ₚ-refl ∪ₒ-inr F'
-⇝-f (↑ op p V F) q with ⇝-f-⇝ F q | ⇝-f F q
-... | ((RR ‼ o') , r) | F' =
-    F'
-⇝-f (↓ op V F) p  with ⇝-f-⇝ F p | ⇝-f F p
-... | ((RR ‼ o') , r) | F' =
-  ↓ op V F'
-⇝-f (subsume p q F) r with ⇝-f-⇝ F r | ⇝-f F r
-... | ((RR ‼ o') , s) | F' =
-  F'
+⇝-f (F ∥ₗ Q) p with ⇝-f F p
+... | q =
+  q ∥ₗ Q
+⇝-f (Q ∥ᵣ F) p with ⇝-f F p
+... | q =
+  Q ∥ᵣ q
+⇝-f (↑ op p V F) q with ⇝-f F q
+... | r =
+  ↑ op (⇝-f-∈ₒ F q op p) V r
+⇝-f (↓ op V F) p with ⇝-f F p
+... | q =
+  ↓ op V q
+
+
+⇝-f-tyₒ : {Γ : Ctx}
+          {o o' : O}
+          {PP : PType o}
+          {QQ : PType o'} →
+          (F : Γ ⊢F⦂ PP) →
+          (p : proj₂ (hole-ty-f F) ⇝ QQ) →
+          --------------------------------
+          o' ≡ proj₁ (hole-ty-f (⇝-f F p))
+
+⇝-f-tyₒ [-] p =
+  refl
+⇝-f-tyₒ (F ∥ₗ Q) p =
+  ⇝-f-tyₒ F p
+⇝-f-tyₒ (P ∥ᵣ F) p =
+  ⇝-f-tyₒ F p
+⇝-f-tyₒ (↑ op p V F) q =
+  ⇝-f-tyₒ F q
+⇝-f-tyₒ (↓ op V F) p =
+  ⇝-f-tyₒ F p
 
 
 ⇝-f-ty : {Γ : Ctx}
-         {PP QQ : PType} →
+         {o o' : O}
+         {PP : PType o}
+         {QQ : PType o'} →
          (F : Γ ⊢F⦂ PP) →
-         (p : hole-ty-f F ⇝ QQ) →
-         --------------------------
-         QQ ≡ hole-ty-f (⇝-f F p)
+         (p : proj₂ (hole-ty-f F) ⇝ QQ) →
+         --------------------------------------
+         subst (λ o → PType o) (⇝-f-tyₒ F p) QQ
+         ≡
+         proj₂ (hole-ty-f (⇝-f F p))
 
 ⇝-f-ty [-] p =
   refl
-⇝-f-ty (F ∥ₗ Q) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
-... | ((RR ‼ o') , q) | r | s =
-  s
-⇝-f-ty (P ∥ᵣ F) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
-... | ((RR ‼ o') , q) | r | s =
-  s
-⇝-f-ty (↑ op p V F) q with ⇝-f-⇝ F q | ⇝-f F q | ⇝-f-ty F q
-... | ((RR ‼ o') , r) | s | t =
-  t
-⇝-f-ty (↓ op V F) p with ⇝-f-⇝ F p | ⇝-f F p | ⇝-f-ty F p
-... | ((RR ‼ o') , q) | r | s =
-  s
-⇝-f-ty (subsume p q F) r with ⇝-f-⇝ F r | ⇝-f F r | ⇝-f-ty F r
-... | ((RR ‼ o') , s) | t | u =
-  u
+⇝-f-ty (F ∥ₗ Q) p =
+  ⇝-f-ty F p
+⇝-f-ty (P ∥ᵣ F) p =
+  ⇝-f-ty F p
+⇝-f-ty (↑ op p V F) q =
+  ⇝-f-ty F q
+⇝-f-ty (↓ op V F) p =
+  ⇝-f-ty F p
+
+
+-- AUXILIARY TWO-LEVEL INDEXED SUBSTITUTION
+
+subst-i : {X : Set} {x x' : X} → (Y : X → Set) → {y : Y x} {y' : Y x'} →
+          (Z : (x : X) → Y x → Set) → (p : x ≡ x') → subst Y p y ≡ y' → Z x y → Z x' y'
+subst-i Y Z refl refl z = z
 
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
@@ -372,7 +437,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 
 infix 10 _[_]↝_
 
-data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → PP ⇝ QQ → Γ ⊢P⦂ QQ → Set where
+data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P⦂ PP → PP ⇝ QQ → Γ ⊢P⦂ QQ → Set where
 
   -- RUNNING INDIVIDUAL COMPUTATIONS
 
@@ -386,37 +451,31 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
 
   -- BROADCAST RULES
 
-  ↑-∥ₗ   : {PP QQ : PTypeShape}
-           {o : O}
+  ↑-∥ₗ   : {o o' : O}
+           {PP : PType o}
+           {QQ : PType o'}
            {op : Σₙ} → 
            (p : op ∈ₒ o) →
            (V : Γ ⊢V⦂ `` (arₙ op)) →
-           (P : Γ ⊢P⦂ PP ‼ o) →
-           (Q : Γ ⊢P⦂ QQ ‼ o) →
+           (P : Γ ⊢P⦂ PP) →
+           (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
-           (↑ op p V P ∥ Q)
-           [ par ⇝-refl ⇝-↓ ]↝
-           (↑ op (∪ₒ-inl op p)
-                 V
-                 (subsume ⊑ₚ-refl ∪ₒ-inl P
-                  ∥
-                  subsume ⊑ₚ-refl ∪ₒ-inr (↓ op V Q)))
+           ((↑ op p V P) ∥ Q)
+           [ par ⇝-refl (⇝-↓ {op = op}) ]↝
+           ↑ op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
 
-  ↑-∥ᵣ   : {PP QQ : PTypeShape}
-           {o : O}
+  ↑-∥ᵣ   : {o o' : O}
+           {PP : PType o}
+           {QQ : PType o'}
            {op : Σₙ} → 
-           (p : op ∈ₒ o) →
+           (p : op ∈ₒ o') →
            (V : Γ ⊢V⦂ `` (arₙ op)) →
-           (P : Γ ⊢P⦂ PP ‼ o) →
-           (Q : Γ ⊢P⦂ QQ ‼ o) →
-           ----------------------------------------
-           (P ∥ ↑ op p V Q)
-           [ par ⇝-↓ ⇝-refl ]↝
-           (↑ op (∪ₒ-inr op p)
-                 V
-                 (subsume ⊑ₚ-refl ∪ₒ-inl (↓ op V P)
-                  ∥
-                  subsume ⊑ₚ-refl ∪ₒ-inr Q))
+           (P : Γ ⊢P⦂ PP) →
+           (Q : Γ ⊢P⦂ QQ) →
+           ------------------------------------------
+           (P ∥ (↑ op p V Q))
+           [ par (⇝-↓ {op = op}) ⇝-refl ]↝
+           ↑ op (∪ₒ-inr op p) V (↓ op V P ∥ Q)
 
   -- INTERRUPT RULES
 
@@ -431,29 +490,30 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           [ id ]↝
           run (↓ op V M)
 
-  ↓-∥   : {PP QQ : PTypeShape}
-          {o : O}
+  ↓-∥   : {o o' : O}
+          {PP : PType o}
+          {QQ : PType o'}
           {op : Σₙ}
           (V : Γ ⊢V⦂ `` (arₙ op)) →
-          (P : Γ ⊢P⦂ PP ‼ o) →
-          (Q : Γ ⊢P⦂ QQ ‼ o) →
+          (P : Γ ⊢P⦂ PP) →
+          (Q : Γ ⊢P⦂ QQ) →
           ----------------------------------------------------------------------
           ↓ op V (P ∥ Q)
           [ ⇝-refl ]↝
-          (subsume ⊑ₚ-refl ∪ₒ-inl (↓ op V P) ∥ subsume ⊑ₚ-refl ∪ₒ-inr (↓ op V Q))
+          ((↓ op V P) ∥ (↓ op V Q))
 
-  ↓-↑   : {PP : PTypeShape}
-          {o : O}
+  ↓-↑   : {o : O}
+          {PP : PType o}
           {op : Σₙ}
           {op' : Σₙ} →
           (p : op' ∈ₒ o) →
           (V : Γ ⊢V⦂ ``(arₙ op)) →
           (W : Γ ⊢V⦂ ``(arₙ op')) →
-          (P : Γ ⊢P⦂ PP ‼ o) →
+          (P : Γ ⊢P⦂ PP) →
           -----------------------------------
           ↓ op V (↑ op' p W P)
           [ ⇝-refl ]↝
-          ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
+          ↑ op' {!!} W (↓ op V P)
 
   -- HOISTING RULE
 
@@ -469,67 +529,19 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
           ----------------------------------------------------------------------
           (run (H [ ↑ op p V M ]ₕ))
           [ id ]↝
-          (↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]ₕ)))
+          ↑ op {!!} (strengthen-val {Δ = Δ} V) {!!}
 
   -- CONTEXT RULE
 
-  context : {PP QQ : PType}
+  context : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'}
             {F : Γ ⊢F⦂ PP}
-            {P : Γ ⊢P⦂ hole-ty-f F}
+            {P : Γ ⊢P⦂ proj₂ (hole-ty-f F)}
             {Q : Γ ⊢P⦂ QQ}
-            {p : hole-ty-f F ⇝ QQ} → 
+            {p : proj₂ (hole-ty-f F) ⇝ QQ} → 
             P [ p ]↝ Q →
-            ---------------
-            F [ P ]f [ proj₂ (⇝-f-⇝ F p) ]↝ (⇝-f F p) [ subst (λ QQ → Γ ⊢P⦂ QQ) (⇝-f-ty F p) Q ]f
-
-  -- SUBSUMPTION RULES
-
-  subsume-run     : {X : VType}
-                    {o o' : O}
-                    {i i' : I}
-                    {p : o ⊑ₒ o'}
-                    {q : i ⊑ᵢ i'} → 
-                    (M : Γ ⊢M⦂ X ! (o , i)) →
-                    -----------------------------
-                    subsume (sub-run q) p (run M)
-                    [ id ]↝
-                    run (subsume p q M)
-
-  subume-∥        : {PP PP' QQ QQ' : PTypeShape}
-                    {o o' : O}
-                    {p : PP ⊑ₚ PP'}
-                    {q : QQ ⊑ₚ QQ'}
-                    {r : o ⊑ₒ o'} → 
-                    (P : Γ ⊢P⦂ PP ‼ o) →
-                    (Q : Γ ⊢P⦂ QQ ‼ o) → 
-                    --------------------------------
-                    subsume (sub-par p q) r (P ∥ Q)
-                    [ ⇝-refl ]↝
-                    (subsume p r P) ∥ (subsume q r Q)
-
-  subsume-↑       : {PP PP' : PTypeShape}
-                    {o o' : O}
-                    {op : Σₙ}
-                    {p : PP ⊑ₚ PP'}
-                    {q : o ⊑ₒ o'} → 
-                    (r : op ∈ₒ o) →
-                    (V : Γ ⊢V⦂ ``(arₙ op)) →
-                    (P : Γ ⊢P⦂ PP ‼ o) →
-                    -------------------------------
-                    subsume p q (↑ op r V P)
-                    [ ⇝-refl ]↝
-                    ↑ op (q op r) V (subsume p q P)
-
-  subsume-subsume : {PP PP' PP'' : PTypeShape}
-                    {o o' o'' : O}
-                    {p : PP ⊑ₚ PP'}
-                    {p' : PP' ⊑ₚ PP''}
-                    {q : o ⊑ₒ o'}
-                    {q' : o' ⊑ₒ o''}
-                    (P : Γ ⊢P⦂ PP ‼ o) →
-                    -----------------------------------------
-                    subsume p' q' (subsume p q P)
-                    [ ⇝-refl ]↝
-                    subsume (⊑ₚ-trans p p') (⊑ₒ-trans q q') P
-
--}
+            --------------------------------
+            F [ P ]f
+            [ proj₂ (proj₂ (⇝-f-⇝ F p)) ]↝
+            (⇝-f F p) [ subst-i PType (λ o QQ → Γ ⊢P⦂ QQ) (⇝-f-tyₒ F p) (⇝-f-ty F p) Q ]f
