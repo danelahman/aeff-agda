@@ -753,18 +753,31 @@ mutual
 
 -- INCLUSION INTO GENERALLY ACTED UPON EFFECT ANNOTATION
 
-postulate
+↓↓ₑ-⊑ₒ : {o : O}
+         {i : I} → 
+         (ops : List Σₙ) →
+         --------------------------
+         o ⊑ₒ proj₁ (ops ↓↓ₑ (o , i))
 
-  ↓↓ₑ-⊑ₒ : {o : O}
-           {i : I} → 
-           (ops : List Σₙ) →
-           --------------------------
-           o ⊑ₒ proj₁ (ops ↓↓ₑ (o , i))
+↓↓ₑ-⊑ₒ [] =
+  ⊑ₒ-refl
+↓↓ₑ-⊑ₒ (op ∷ ops) =
+  ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
-
+{-
+postulate 
   ↓↓ₑ-⊑ₒ-act : {o : O}
-               {i : I} → 
-               (ops ops' : List Σₙ) →
-               ------------------------------------------------------------
-               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+             {i : I} → 
+             (ops ops' : List Σₙ) →
+             ------------------------------------------------------------
+             proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+-}
 
+{-
+↓↓ₑ-⊑ₒ-act [] ops' =
+  ↓↓ₑ-⊑ₒ ops'
+↓↓ₑ-⊑ₒ-act {o} {i} (op ∷ ops) ops' =
+  {!↓↓ₑ-⊑ₒ-act ops ops'!}
+
+-- subst (λ oi → proj₁ (op ↓ₑ (ops ↓↓ₑ (o , i))) ⊑ₒ proj₁ (op ↓ₑ oi)) (↓↓ₑ-act ops ops') ?
+-}

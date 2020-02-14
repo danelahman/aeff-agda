@@ -212,11 +212,25 @@ inj-proj₁ refl = refl
         (sym r)
         (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
                (sym s)
+               {!!})
+⇝-↓ₚ-⊑ₒ (par p q) =
+  ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
+
+{-
+
+⇝-↓ₚ-⊑ₒ id =
+  ⊑ₒ-refl
+⇝-↓ₚ-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
+... | r | s =
+  subst (λ o → o ⊑ₒ o'')
+        (sym r)
+        (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
+               (sym s)
                (↓↓ₑ-⊑ₒ-act ops ⟦ op ⟧))
 ⇝-↓ₚ-⊑ₒ (par p q) =
   ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
 
-
+-}
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
 
@@ -347,7 +361,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
          o ⊑ₒ proj₁ (⇝-f-⇝ F p)
 
 ⇝-f-∈ₒ [-] p =
-  ⇝-↓ₚ-⊑ₒ p
+  {!!} -- ⇝-↓ₚ-⊑ₒ p
 ⇝-f-∈ₒ (F ∥ₗ Q) p =
   ∪ₒ-fun (⇝-f-∈ₒ F p) ⊑ₒ-refl
 ⇝-f-∈ₒ (P ∥ᵣ F) p =
@@ -365,7 +379,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 
     ⇝-f-∈ₒ-aux (o'' , RR , r) q =
       ⇝-↓ₚ-⊑ₒ (⇝-↓ₚ r)
-
+      
 
 ⇝-f : {Γ : Ctx}
       {o o' : O} 
@@ -386,7 +400,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
   Q ∥ᵣ q
 ⇝-f (↑ op p V F) q with ⇝-f F q
 ... | r =
-  ↑ op (⇝-f-∈ₒ F q op p) V r
+  ↑ op {!!} V r
 ⇝-f (↓ op V F) p with ⇝-f F p
 ... | q =
   ↓ op V q
