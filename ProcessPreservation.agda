@@ -334,7 +334,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
   o'' , RR , r
 ⇝-f-⇝ (↓ op V F) p with ⇝-f-⇝ F p
 ... | o'' , RR , q =
-  _ , (op ↓ₚ RR) , ⇝-↓ₚ q
+  proj₁ (op ↓ₚₚ RR) , (op ↓ₚ RR) , ⇝-↓ₚ q
 
 
 ⇝-f-∈ₒ : {Γ : Ctx}
@@ -354,8 +354,17 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
   ∪ₒ-fun ⊑ₒ-refl (⇝-f-∈ₒ F p)
 ⇝-f-∈ₒ (↑ op p V F) q =
   ⇝-f-∈ₒ F q
-⇝-f-∈ₒ (↓ op V F) q =
-  {!!}
+⇝-f-∈ₒ (↓ {o} {PP} op V F) p =
+  ⇝-f-∈ₒ-aux (⇝-f-⇝ F p) refl
+
+  where
+    ⇝-f-∈ₒ-aux : (orp : Σ[ o'' ∈ O ] Σ[ RR ∈ PType o'' ] (PP ⇝ RR)) → 
+                 orp ≡ ⇝-f-⇝ F p →
+                 ----------------------------------------------------
+                 proj₁ (op ↓ₚₚ PP) ⊑ₒ proj₁ (op ↓ₚₚ proj₁ (proj₂ orp))
+
+    ⇝-f-∈ₒ-aux (o'' , RR , r) q =
+      ⇝-↓ₚ-⊑ₒ (⇝-↓ₚ r)
 
 
 ⇝-f : {Γ : Ctx}
