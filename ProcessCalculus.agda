@@ -18,6 +18,48 @@ module ProcessCalculus where
 
 infix 10 _⊢P⦂_
 
+data _⊢P⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
+
+  run     : {X : VType}
+            {o : O}
+            {i : I} →
+            Γ ⊢M⦂ X ! (o , i) →
+            -------------------
+            Γ ⊢P⦂ X ‼ o , i
+
+  _∥_     : {o o' : O}
+            {PP : PType o} →
+            {QQ : PType o'} → 
+            Γ ⊢P⦂ PP →
+            Γ ⊢P⦂ QQ →
+            --------------
+            Γ ⊢P⦂ (PP ∥ QQ)
+
+  ↑       : {o : O} →
+            {PP : PType o}
+            (op : Σₙ) →
+            op ∈ₒ o →
+            Γ ⊢V⦂ ``(arₙ op) →
+            Γ ⊢P⦂ PP →
+            -------------------
+            Γ ⊢P⦂ PP
+
+  ↓       : {o : O}
+            {PP : PType o}
+            (op : Σₙ) →
+            Γ ⊢V⦂ ``(arₙ op) →
+            Γ ⊢P⦂ PP →
+            ------------------
+            Γ ⊢P⦂ op ↓ₚ PP
+
+
+
+
+{-
+-- DERIVATIONS OF WELL-TYPED PROCESSES
+
+infix 10 _⊢P⦂_
+
 data _⊢P⦂_ (Γ : Ctx) : PType → Set where
   
   run     : {X : VType}
@@ -59,5 +101,5 @@ data _⊢P⦂_ (Γ : Ctx) : PType → Set where
             -----------------
             Γ ⊢P⦂ PP' ‼ o'
 
-  
+  -}
 

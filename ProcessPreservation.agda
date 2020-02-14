@@ -120,13 +120,13 @@ subsume p q E [ M ]ₕ =
 
 infix 10 _⇝_
 
-data _⇝_ : PType → PType → Set where
+data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
   id  : {X : VType}
         {o : O}
         {i : I} → 
-        -------------------------
-        (X ! i) ‼ o ⇝ (X ! i) ‼ o
+        ----------------------
+        X ‼ o , i ⇝ X ‼ o , i
 
   act : {X : VType}
         {o o' o'' : O}
@@ -136,83 +136,58 @@ data _⇝_ : PType → PType → Set where
         (o' , i') ≡ ops ↓↓ₑ (o , i) →
         (o'' , i'') ≡ ((ops ++ ⟦ op ⟧) ↓↓ₑ (o , i)) → 
         ---------------------------------------------
-        (X ! i') ‼ o' ⇝ (X ! i'') ‼ o''
+        (X ‼ o' , i') ⇝ (X ‼ o'' , i'')
 
-  par : {PP PP' QQ QQ' : PTypeShape}
-        {o o' o'' : O} → 
-        PP ‼ o ⇝ PP' ‼ o' →
-        QQ ‼ o ⇝ QQ' ‼ o'' →
-        ----------------------------------------
-        (PP ∥ QQ) ‼ o ⇝ (PP' ∥ QQ') ‼ (o' ∪ₒ o'')
-
-  sub : {PP PP' QQ QQ' : PTypeShape}
-        {o o' o'' o''' : O} →
-        PP ‼ o ⇝ QQ ‼ o' →
-        PP ⊑ₚ PP' →
-        QQ ⊑ₚ QQ' →
-        o ⊑ₒ o'' →
-        o' ⊑ₒ o''' →
-        ----------------------------
-        PP' ‼ o'' ⇝ QQ' ‼ o'''
+  par : {o o' o'' o''' : O}
+        {PP : PType o}
+        {QQ : PType o'}
+        {PP' : PType o''}
+        {QQ' : PType o'''} → 
+        PP ⇝ PP' →
+        QQ ⇝ QQ' →
+        ----------------------
+        (PP ∥ QQ) ⇝ (PP' ∥ QQ')
 
 
 -- EVOLUTION OF PROCESS TYPES IS REFLEXIVE
 
-⇝-refl : {PP : PType} → PP ⇝ PP
-⇝-refl {(X ! i) ‼ o} =
+⇝-refl : {o : O} {PP : PType o} → PP ⇝ PP
+⇝-refl {o} {X ‼ o , i} =
   id
-⇝-refl {(PP ∥ QQ) ‼ o} =
-  subst (λ o' → ((PP ∥ QQ) ‼ o) ⇝ ((PP ∥ QQ) ‼ o'))
-        (∪ₒ-idem o)
-        (par (⇝-refl {PP ‼ o}) (⇝-refl {QQ ‼ o}))
+⇝-refl {.(_ ∪ₒ _)} {PP ∥ QQ} =
+  par ⇝-refl ⇝-refl
 
 
 -- ACTION OF INTERRUPTS ON GENERAL PROCESS TYPES IS AN EVOLUTION
 
-⇝-↓ : {PP : PTypeShape}
-      {o : O}
+⇝-↓ : {o : O}
+      {PP : PType o}
       {op : Σₙ} →
-      ----------------------------------------------------------
-      (PP ‼ o) ⇝ proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o))
-      
-⇝-↓ {X ! i} {o} {op} =
+      --------------
+      PP ⇝ op ↓ₚ PP
+
+⇝-↓ {.o} {X ‼ o , i} {op} =
   act [] op refl refl
-⇝-↓ {PP ∥ QQ} =
+⇝-↓ {.(_ ∪ₒ _)} {PP ∥ QQ} {op} =
   par ⇝-↓ ⇝-↓
 
 
 -- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE EVOLUTION
 
-⇝-↓ₚ : {PP QQ : PTypeShape}
-       {o o' : O}
+⇝-↓ₚ : {o o' : O}
+       {PP : PType o}
+       {QQ : PType o'}
        {op : Σₙ} →
-       PP ‼ o ⇝ QQ ‼ o' → 
-       ---------------------------------------------------
-       (proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o)))
-       ⇝
-       (proj₁ (op ↓ₚ (QQ , o')) ‼ proj₂ (op ↓ₚ (QQ , o')))
-      
+       PP ⇝ QQ → 
+       --------------------
+       op ↓ₚ PP ⇝ op ↓ₚ QQ
+
 ⇝-↓ₚ id =
   id
-⇝-↓ₚ {_} {_} {_} {_} {op} (act ops op' p q) =
-  act (op ∷∷ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q)
-⇝-↓ₚ {_} {_} {_} {_} {op} (par {PP} {PP'} {QQ} {QQ'} p q) =
-  par (sub (⇝-↓ₚ {op = op} p)
-           ⊑ₚ-refl
-           (↓ₚ-monotonicₚ {PP = PP'} {op = op} ⊑ₚ-refl ∪ₒ-inl)
-           ∪ₒ-inl
-           (↓ₚ-monotonicₒ {PP = PP'} {op = op} ⊑ₚ-refl ∪ₒ-inl))
-      (sub (⇝-↓ₚ {op = op} q)
-           ⊑ₚ-refl
-           (↓ₚ-monotonicₚ {PP = QQ'} {op = op} ⊑ₚ-refl ∪ₒ-inr)
-           ∪ₒ-inr
-           (↓ₚ-monotonicₒ {PP = QQ'} {op = op} ⊑ₚ-refl ∪ₒ-inr))
-⇝-↓ₚ {_} {_} {_} {_} {op} (sub {PP} {PP'} {QQ} {QQ'} p q r s t) =
-  sub (⇝-↓ₚ {op = op} p)
-      (↓ₚ-monotonicₚ {PP = PP} {QQ = PP'} q s)
-      (↓ₚ-monotonicₚ {PP = QQ} {QQ = QQ'} r t)
-      (↓ₚ-monotonicₒ {PP = PP} {QQ = PP'} q s)
-      (↓ₚ-monotonicₒ {PP = QQ} {QQ = QQ'} r t)
+⇝-↓ₚ {_} {_} {_} {_} {op} (act {_} {o} {o'} {o''} {i} {i'} {i''} ops op' p q) =
+  act {o = o} {i = i} (op ∷∷ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q) 
+⇝-↓ₚ (par p q) =
+  par (⇝-↓ₚ p) (⇝-↓ₚ q)
 
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
@@ -234,74 +209,67 @@ strengthen-val (``_ c) =
 
 infix 10 _⊢F⦂_
 
-data _⊢F⦂_ (Γ : Ctx) : PType → Set where
+data _⊢F⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
 
-  [-]     : {PP : PType} →
+  [-]     : {o : O} → 
+            {PP : PType o} →
             --------------
             Γ ⊢F⦂ PP
 
-  _∥ₗ_    : {PP QQ : PTypeShape}
-            {o : O} → 
-            Γ ⊢F⦂ PP ‼ o →
-            Γ ⊢P⦂ QQ ‼ o →
-            --------------------
-            Γ ⊢F⦂ (PP ∥ QQ) ‼ o
-
-  _∥ᵣ_    : {PP QQ : PTypeShape}
-            {o : O} → 
-            Γ ⊢P⦂ PP ‼ o →
-            Γ ⊢F⦂ QQ ‼ o →
+  _∥ₗ_    : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'} → 
+            Γ ⊢F⦂ PP →
+            Γ ⊢P⦂ QQ →
             ------------------
-            Γ ⊢F⦂ (PP ∥ QQ) ‼ o
+            Γ ⊢F⦂ (PP ∥ QQ)
 
-  ↑       : {PP : PTypeShape}
-            {o : O} →
+  _∥ᵣ_    : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'} →
+            Γ ⊢P⦂ PP →
+            Γ ⊢F⦂ QQ →
+            ------------------
+            Γ ⊢F⦂ (PP ∥ QQ)
+
+  ↑       : {o : O}
+            {PP : PType o}  →
             (op : Σₙ) →
             op ∈ₒ o →
             Γ ⊢V⦂ ``(arₙ op) →
-            Γ ⊢F⦂ PP ‼ o →
+            Γ ⊢F⦂ PP →
             ------------------
-            Γ ⊢F⦂ PP ‼ o
+            Γ ⊢F⦂ PP
 
-  ↓       : {PP : PTypeShape}
-            {o : O}
+  ↓       : {o : O}
+            {PP : PType o}
             (op : Σₙ) →
             Γ ⊢V⦂ ``(arₙ op) →
-            Γ ⊢F⦂ PP ‼ o →
-            ----------------------------------------------------
-            Γ ⊢F⦂ proj₁ (op ↓ₚ (PP , o)) ‼ proj₂ (op ↓ₚ (PP , o))
-
-  subsume : {PP PP' : PTypeShape}
-            {o o' : O} → 
-            PP ⊑ₚ PP' → 
-            o ⊑ₒ o' → 
-            Γ ⊢F⦂ PP ‼ o →
-            --------------------
-            Γ ⊢F⦂ PP' ‼ o'
-
+            Γ ⊢F⦂ PP →
+            ------------------
+            Γ ⊢F⦂ op ↓ₚ PP
+            
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED PROCESS EVALUATION CONTEXT
 
-hole-ty-f : {Γ : Ctx} {PP : PType} → Γ ⊢F⦂ PP → PType
-hole-ty-f {_} {PP} [-] =
-  PP
-hole-ty-f (F ∥ₗ Q) =
-  hole-ty-f F
-hole-ty-f (P ∥ᵣ F) =
-  hole-ty-f F
+hole-ty-f : {Γ : Ctx} {o : O} {PP : PType o} → Γ ⊢F⦂ PP → Σ[ o' ∈ O ] (PType o')
+hole-ty-f {_} {o} {PP} [-] =
+  o , PP
+hole-ty-f (_∥ₗ_ {o} {o'} {PP} {QQ} F Q) =
+  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
+hole-ty-f (_∥ᵣ_ {o} {o'} {PP} {QQ} P F) =
+  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
 hole-ty-f (↑ op p V F) =
-  hole-ty-f F
+  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
 hole-ty-f (↓ op V F) =
-  hole-ty-f F
-hole-ty-f (subsume p q F) =
-  hole-ty-f F
+  (proj₁ (hole-ty-f F)) , proj₂ (hole-ty-f F)
 
 
 -- FILLING A WELL-TYPED PROCESS EVALUATION CONTEXT
 
 infix 30 _[_]f
 
-_[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole-ty-f F) → Γ ⊢P⦂ PP
+_[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ proj₂ (hole-ty-f F)) → Γ ⊢P⦂ PP
 [-] [ P ]f =
   P
 (F ∥ₗ Q) [ P ]f =
@@ -312,19 +280,22 @@ _[_]f : {Γ : Ctx} {PP : PType} → (F : Γ ⊢F⦂ PP) → (P : Γ ⊢P⦂ hole
   ↑ op p V (F [ P ]f)
 (↓ op V F) [ P ]f =
   ↓ op V (F [ P ]f)
-(subsume p q F) [ P ]f =
-  subsume p q (F [ P ]f)
 
 
 -- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO EVOLVE
 
 ⇝-f-⇝ : {Γ : Ctx}
-        {PP QQ : PType} →
+        {o o' : O}
+        {PP : PType o}
+        {QQ : PType o'} →
         (F : Γ ⊢F⦂ PP) →
-        hole-ty-f F ⇝ QQ →
-        -------------------------
-        Σ[ RR ∈ PType ] (PP ⇝ RR)
-         
+        proj₂ (hole-ty-f F) ⇝ QQ →
+        ------------------------------------------
+        Σ[ o'' ∈ O ] Σ[ RR ∈ PType o'' ] (PP ⇝ RR)
+
+⇝-f-⇝ = {!!}
+
+{-
 ⇝-f-⇝ {_} {_} {QQ} [-] p =
   QQ , p
 ⇝-f-⇝ (_∥ₗ_ {_} {QQ} {o} F Q) p with ⇝-f-⇝ F p
@@ -560,3 +531,5 @@ data _[_]↝_ {Γ : Ctx} : {PP : PType} → Γ ⊢P⦂ PP → {QQ : PType} → P
                     subsume p' q' (subsume p q P)
                     [ ⇝-refl ]↝
                     subsume (⊑ₚ-trans p p') (⊑ₒ-trans q q') P
+
+-}

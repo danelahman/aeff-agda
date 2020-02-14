@@ -16,10 +16,41 @@ data PTypeShape : Set where
   _!_ : VType → I → PTypeShape
   _∥_ : PTypeShape → PTypeShape → PTypeShape
 
-data PType : Set where
-  _‼_ : PTypeShape → O → PType
+data PType : O → Set where
+
+  _‼_,_ : (X : VType) →
+          (o : O) →
+          (i : I) →
+          ---------------
+          PType o
+  
+  _∥_   : {o o' : O} →
+          (PP : PType o) →
+          (QQ : PType o') →
+          ---------------------------
+          PType (o ∪ₒ o')
 
 
+-- ACTION OF INTERRUPTS ON PROCESS TYPES
+
+_↓ₚₚ_ : (op : Σₙ) → {o : O} →
+        PType o → Σ[ o' ∈ O ] PType o'
+op ↓ₚₚ (X ‼ o , i) with op ↓ₑ (o , i)
+... | (o' , i') =
+  o' , (X ‼ o' , i')
+op ↓ₚₚ (PP ∥ QQ) with op ↓ₚₚ PP | op ↓ₚₚ QQ
+... | (o'' , PP') | (o''' , QQ') =
+  (o'' ∪ₒ o''') , (PP' ∥ QQ')
+
+
+_↓ₚ_ : (op : Σₙ) → {o : O} →
+       (PP : PType o) → PType (proj₁ (op ↓ₚₚ PP))
+
+op ↓ₚ PP = proj₂ (op ↓ₚₚ PP)
+
+
+
+{-
 -- SUBTYPING RELATIONS ON PROCESS TYPES
 
 infix 10 _⊑ₚ_
@@ -118,3 +149,5 @@ op ↓ₚ ((PP ∥ QQ) , o) with op ↓ₚ (PP , o) | op ↓ₚ (QQ , o)
 ↓ₚ-monotonicₒ {_} {_} {_} {_} {op} (sub-par p q) r =
   ∪ₒ-copair (⊑ₒ-trans (↓ₚ-monotonicₒ p r) ∪ₒ-inl)
             (⊑ₒ-trans (↓ₚ-monotonicₒ q r) ∪ₒ-inr)
+
+-}
