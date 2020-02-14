@@ -1,6 +1,6 @@
 open import Data.Bool hiding (if_then_else_)
 open import Data.Empty
-open import Data.List
+open import Data.List renaming (_∷_ to _∷∷_ ; [_] to ⟦_⟧)
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
@@ -175,7 +175,7 @@ op ↓ₑ (omap o , imap i) =
 _↓↓ₑ_ : List Σₙ → O × I → O × I
 [] ↓↓ₑ (o , i) =
   (o , i)
-(op ∷ ops) ↓↓ₑ (o , i) =
+(op ∷∷ ops) ↓↓ₑ (o , i) =
   op ↓ₑ (ops ↓↓ₑ (o , i))
 
 
@@ -187,7 +187,7 @@ _↓↓ₑ_ : List Σₙ → O × I → O × I
 
 ↓↓ₑ-act [] ops' =
   refl
-↓↓ₑ-act (op ∷ ops) ops' =
+↓↓ₑ-act (op ∷∷ ops) ops' =
   cong (λ oi → op ↓ₑ oi) (↓↓ₑ-act ops ops')
 
 
@@ -734,7 +734,7 @@ mutual
 
   ↓↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} [] p q =
     p
-  ↓↓ₑ-monotonicₒ (op ∷ ops) p q =
+  ↓↓ₑ-monotonicₒ (op ∷∷ ops) p q =
     ↓ₑ-monotonicₒ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
 
 
@@ -747,7 +747,7 @@ mutual
                    proj₂ (ops ↓↓ₑ (o , i)) ⊑ᵢ proj₂ (ops ↓↓ₑ (o' , i'))
 
   ↓↓ₑ-monotonicᵢ [] p q = q
-  ↓↓ₑ-monotonicᵢ (op ∷ ops) p q =
+  ↓↓ₑ-monotonicᵢ (op ∷∷ ops) p q =
     ↓ₑ-monotonicᵢ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
 
 
@@ -761,23 +761,24 @@ mutual
 
 ↓↓ₑ-⊑ₒ [] =
   ⊑ₒ-refl
-↓↓ₑ-⊑ₒ (op ∷ ops) =
+↓↓ₑ-⊑ₒ (op ∷∷ ops) =
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
-{-
-postulate 
+postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
-             {i : I} → 
-             (ops ops' : List Σₙ) →
-             ------------------------------------------------------------
-             proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
--}
+               {i : I} → 
+               (ops ops' : List Σₙ) →
+               ------------------------------------------------------------
+               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
 
-{-
-↓↓ₑ-⊑ₒ-act [] ops' =
-  ↓↓ₑ-⊑ₒ ops'
-↓↓ₑ-⊑ₒ-act {o} {i} (op ∷ ops) ops' =
-  {!↓↓ₑ-⊑ₒ-act ops ops'!}
 
--- subst (λ oi → proj₁ (op ↓ₑ (ops ↓↓ₑ (o , i))) ⊑ₒ proj₁ (op ↓ₑ oi)) (↓↓ₑ-act ops ops') ?
--}
+
+↓↓ₑ-⊑ₒ-act' : {o : O}
+              {i : I} → 
+              (ops ops' : List Σₙ) →
+              ------------------------------------------------------------
+              proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+
+↓↓ₑ-⊑ₒ-act' [] ops' = {!!}
+↓↓ₑ-⊑ₒ-act' (op ∷∷ ops) ops' = {!↓↓ₑ-⊑ₒ-act' ops ops'!}
+
