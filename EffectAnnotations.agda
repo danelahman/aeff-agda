@@ -771,14 +771,105 @@ postulate
                ------------------------------------------------------------
                proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
 
+{-
+↓ₑ-⊑ₒ-↓ₑ₁ : {o : O}
+           {i : I} → 
+           (op : Σₙ) → 
+           ------------------------------------------------------
+           proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (op ↓ₑ (o , i)))
+
+↓ₑ-⊑ₒ-↓ₑ₁ {omap o} {imap i} op =
+  ↓ₑ-⊑ₒ-↓ₑ₁-aux (i op) refl
+
+  where
+    ↓ₑ-⊑ₒ-↓ₑ₁-aux : (oi : Maybe (O × I)) →
+                    oi ≡ i op →
+                    ----------------------
+                    proj₁ (↓ₑ-aux op oi (omap o , imap i))
+                    ⊑ₒ
+                    proj₁ (op ↓ₑ ↓ₑ-aux op oi (omap o , imap i))
+
+    ↓ₑ-⊑ₒ-↓ₑ₁-aux nothing p =
+      subst (λ oi'' → omap o ⊑ₒ proj₁ (↓ₑ-aux op oi'' (omap o , imap i))) p ⊑ₒ-refl
+    ↓ₑ-⊑ₒ-↓ₑ₁-aux (just oi) p =
+      ↓ₑ-⊑ₒ
+    
+
+↓ₑ-⊑ₒ-↓ₑ₂ : {o : O}
+            {i : I} → 
+            (op op' : Σₙ) →
+            ¬ (op' ≡ op) → 
+            -------------------------------------------------------
+            proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (op' ↓ₑ (o , i)))
+
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p with i op'
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | nothing =
+  ⊑ₒ-refl
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') with i op
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing with decₙ op' op
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing | yes q =
+  ⊥-elim (p q)
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing | no ¬q =
+  ⊑ₒ-trans ∪ₒ-inl
+           (⊑ₒ-trans (↓ₑ-⊑ₒ {(omap o) ∪ₒ (omap o'')} {imap i''} {op})
+                     {!↓ₑ-monotonicₒ {(omap o) ∪ₒ (omap o'')} {(omap o) ∪ₒ (omap o'')}
+                                    {imap i''} {((imap i) [ op' ↦ nothing ]ᵢ) ∪ᵢ (imap i'')} {op} {!!} {!!}!})
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') with decₙ op' op
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') | yes q =
+  ⊥-elim (p q)
+↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') | no ¬q =
+  ∪ₒ-copair {omap o} {omap o'} {!!} {!!}
+-}
 
 
-↓↓ₑ-⊑ₒ-act' : {o : O}
-              {i : I} → 
-              (ops ops' : List Σₙ) →
-              ------------------------------------------------------------
-              proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+{-
 
-↓↓ₑ-⊑ₒ-act' [] ops' = {!!}
-↓↓ₑ-⊑ₒ-act' (op ∷∷ ops) ops' = {!↓↓ₑ-⊑ₒ-act' ops ops'!}
+_[_↦_]ᵢ : I → Σₙ → Maybe (O × I) → I
+(imap i) [ op ↦ v ]ᵢ =
+  imap λ op' → if op ≡ op' then v else i op'
 
+if_≡_then_else_ : {A : Set} → Σₙ → Σₙ → A → A → A
+if op ≡ op' then x else y =
+  if' (decₙ op op') then x else y
+
+  where
+    if'_then_else_ : {A : Set} {op op' : Σₙ} → Dec (op ≡ op') → A → A → A
+    if' yes p then x else y = x
+    if' no ¬p then x else y = y
+
+↓ₑ-aux : Σₙ → Maybe (O × I) → O × I → O × I
+↓ₑ-aux op nothing (o , i) =
+  (o , i)
+↓ₑ-aux op (just (o' , i')) (o , i) =
+  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+
+_↓ₑ_ : Σₙ → O × I → O × I
+op ↓ₑ (omap o , imap i) =
+  ↓ₑ-aux op (i (op)) (omap o , imap i)
+
+
+  imap i <= imap i'
+  ------------------------------
+  ↓ₑ-aux op (i (op)) (omap o , imap i')
+  <=
+  ↓ₑ-aux op (i' (op)) (omap o , imap i')
+
+-}
+
+
+{-
+
+  ops ↓↓ₑ (ops' ↓↓ₑ (o , i)) <= ops ↓↓ₑ (ops' ↓↓ₑ (op ↓ₑ (o , i)))
+
+-}
+
+
+{-
+
+
+
+  ops ↓↓ₑ (op ↓ₑ (o , i)) <= ops ↓↓ₑ (op ↓ₑ (op' ↓ₑ (o , i)))
+
+  (ops :: op) ↓↓ₑ (o , i) <= (ops :: op) ↓↓ₑ (op' ↓ₑ (o , i))
+
+-}

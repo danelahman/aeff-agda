@@ -207,30 +207,15 @@ inj-proj₁ refl = refl
 ⇝-↓ₚ-⊑ₒ id =
   ⊑ₒ-refl
 ⇝-↓ₚ-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
-... | r | s =
+... | r | s = 
   subst (λ o → o ⊑ₒ o'')
         (sym r)
         (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
                (sym s)
-               {!!})
+               {!↓↓ₑ-⊑ₒ-act ops ⟦ op ⟧!})
 ⇝-↓ₚ-⊑ₒ (par p q) =
   ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
 
-{-
-
-⇝-↓ₚ-⊑ₒ id =
-  ⊑ₒ-refl
-⇝-↓ₚ-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
-... | r | s =
-  subst (λ o → o ⊑ₒ o'')
-        (sym r)
-        (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
-               (sym s)
-               (↓↓ₑ-⊑ₒ-act ops ⟦ op ⟧))
-⇝-↓ₚ-⊑ₒ (par p q) =
-  ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
-
--}
 
 -- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
 
