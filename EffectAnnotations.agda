@@ -767,11 +767,12 @@ mutual
 postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
                {i : I} → 
-               (ops ops' : List Σₙ) →
-               ------------------------------------------------------------
-               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ ((ops ++ ops') ↓↓ₑ (o , i))
+               (ops : List Σₙ) →
+               (op : Σₙ) →
+               ----------------------------------------------------------
+               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
 
-{-
+
 ↓ₑ-⊑ₒ-↓ₑ₁ : {o : O}
            {i : I} → 
            (op : Σₙ) → 
@@ -819,7 +820,7 @@ postulate
   ⊥-elim (p q)
 ↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') | no ¬q =
   ∪ₒ-copair {omap o} {omap o'} {!!} {!!}
--}
+
 
 
 {-
