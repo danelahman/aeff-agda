@@ -770,53 +770,6 @@ mutual
 ↓↓ₑ-⊑ₒ (op ∷∷ ops) =
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
-{-
-↓ₑ-⊑ₒ-↓ₑ-≡ : {oi : O × I} → 
-             (op : Σₙ) → 
-             --------------------------------------------
-             proj₁ (op ↓ₑ oi) ⊑ₒ proj₁ (op ↓ₑ (op ↓ₑ oi))
-
-↓ₑ-⊑ₒ-↓ₑ-≡ {omap o , imap i} op =
-  ↓ₑ-⊑ₒ-↓ₑ-≡-aux (i op) refl
-
-  where
-    ↓ₑ-⊑ₒ-↓ₑ-≡-aux : (oi : Maybe (O × I)) →
-                    oi ≡ i op →
-                    -------------------------------------------------------------------
-                    ↓ₑ-auxₒ op oi (omap o)
-                    ⊑ₒ
-                    proj₁ (op ↓ₑ ((↓ₑ-auxₒ op oi (omap o)) , (↓ₑ-auxᵢ op oi (imap i))))
-
-    ↓ₑ-⊑ₒ-↓ₑ-≡-aux nothing p =
-      subst (λ oi'' → omap o ⊑ₒ ↓ₑ-auxₒ op oi'' (omap o)) p ⊑ₒ-refl
-    ↓ₑ-⊑ₒ-↓ₑ-≡-aux (just oi) p =
-      ↓ₑ-⊑ₒ
-
-
-↓ₑ-⊑ₒ-↓↓ₑ : {oi : O × I} → 
-            (op : Σₙ) → 
-            (ops : List Σₙ) →
-            ----------------------------------------------
-            proj₁ (op ↓ₑ oi) ⊑ₒ proj₁ (op ↓ₑ (ops ↓↓ₑ oi))
-
-↓ₑ-⊑ₒ-↓↓ₑ op [] =
-  ⊑ₒ-refl
-↓ₑ-⊑ₒ-↓↓ₑ {oi} op (op' ∷∷ ops) with decₙ op op'
-... | yes refl =
-  ⊑ₒ-trans (↓ₑ-⊑ₒ-↓↓ₑ {oi} op ops) (↓ₑ-⊑ₒ-↓ₑ-≡ {ops ↓↓ₑ oi} op)
-... | no ¬p = {!!}
-
-
-↓ₑ-⊑ₒ-↓↓ₑ' : {oi : O × I} → 
-            (op : Σₙ) → 
-            (ops ops' : List Σₙ) →
-            ----------------------------------------------
-            proj₁ (op ↓ₑ (ops ↓↓ₑ oi)) ⊑ₒ proj₁ (op ↓ₑ (ops ↓↓ₑ (ops' ↓↓ₑ oi)))
-
-↓ₑ-⊑ₒ-↓↓ₑ' op ops [] = {!!}
-↓ₑ-⊑ₒ-↓↓ₑ' op ops (op' ∷∷ ops') = {!↓ₑ-⊑ₒ-↓↓ₑ' op (ops ++ ⟦ op' ⟧) ops'!}
-
--}
 
 postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
@@ -826,99 +779,103 @@ postulate
                ----------------------------------------------------------
                proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
 
-{-
-↓↓ₑ-⊑ₒ-act [] op =
-  ↓ₑ-⊑ₒ
-↓↓ₑ-⊑ₒ-act (op' ∷∷ ops) op = {!↓↓ₑ-⊑ₒ-act ops op!}
--}
-
-{-
-↓ₑ-⊑ₒ-↓ₑ₂ : {o : O}
-            {i : I} → 
-            (op op' : Σₙ) →
-            ¬ (op' ≡ op) → 
-            -------------------------------------------------------
-            proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (op' ↓ₑ (o , i)))
-
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p with i op'
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | nothing =
-  ⊑ₒ-refl
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') with i op
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing with decₙ op' op
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing | yes q =
-  ⊥-elim (p q)
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | nothing | no ¬q =
-  ⊑ₒ-trans ∪ₒ-inl
-           (⊑ₒ-trans (↓ₑ-⊑ₒ {(omap o) ∪ₒ (omap o'')} {imap i''} {op})
-                     {!↓ₑ-monotonicₒ {(omap o) ∪ₒ (omap o'')} {(omap o) ∪ₒ (omap o'')}
-                                    {imap i''} {((imap i) [ op' ↦ nothing ]ᵢ) ∪ᵢ (imap i'')} {op} {!!} {!!}!})
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') with decₙ op' op
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') | yes q =
-  ⊥-elim (p q)
-↓ₑ-⊑ₒ-↓ₑ₂ {omap o} {imap i} op op' p | just (omap o'' , imap i'') | just (omap o' , imap i') | no ¬q =
-  ∪ₒ-copair {omap o} {omap o'} {!!} {!!}
--}
-
-{-
-↓↓ₑ-⊑ₒ-act' : {o : O}
-               {i : I} → 
-               (ops : List Σₙ) →
-               (op : Σₙ) →
-               ----------------------------------------------------------
-               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
-
-↓↓ₑ-⊑ₒ-act' [] op = {!!}
-↓↓ₑ-⊑ₒ-act' (op' ∷∷ ops) op = {!!}
--}
 
 {-
 
-_[_↦_]ᵢ : I → Σₙ → Maybe (O × I) → I
-(imap i) [ op ↦ v ]ᵢ =
-  imap λ op' → if op ≡ op' then v else i op'
+Proof sketch for ↓↓ₑ-⊑ₒ-act:
 
-if_≡_then_else_ : {A : Set} → Σₙ → Σₙ → A → A → A
-if op ≡ op' then x else y =
-  if' (decₙ op op') then x else y
+First, we observe that (without loss of generality, we'll assme that the interrupt maps are defined for all opᵢ)
 
-  where
-    if'_then_else_ : {A : Set} {op op' : Σₙ} → Dec (op ≡ op') → A → A → A
-    if' yes p then x else y = x
-    if' no ¬p then x else y = y
+  proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
+  =
+  proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (op₁ ↓ₑ (o , i)))))
+  =
+  proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (o ∪ o₁ , i[ op₁ ↦ nothing ] ∪ i₁))))             (assuming that i op₁ = (o₁ , i₁))
+  =
+  (o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ)    
 
-↓ₑ-aux : Σₙ → Maybe (O × I) → O × I → O × I
-↓ₑ-aux op nothing (o , i) =
-  (o , i)
-↓ₑ-aux op (just (o' , i')) (o , i) =
-  (o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')
+  where 
 
-_↓ₑ_ : Σₙ → O × I → O × I
-op ↓ₑ (omap o , imap i) =
-  ↓ₑ-aux op (i (op)) (omap o , imap i)
+    (oᵢ , iᵢ) = ((i[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                  ∪ 
+                  i₁[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                  ∪
+                  i₂[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                  ∪
+                  ...
+                  ∪
+                  ...
+                  ∪
+                  iᵢ₋₁) opᵢ)
 
+Next, we proceed by case analysis on i op:
 
-  imap i <= imap i'
-  ------------------------------
-  ↓ₑ-aux op (i (op)) (omap o , imap i')
-  <=
-  ↓ₑ-aux op (i' (op)) (omap o , imap i')
+1) i op = nothing 
 
--}
+   Then op ↓ₑ (o , i) = (o , i), thus inclusion holds trivially by reflexivity.
 
+2) i op = just (o' , i')
 
-{-
+   Then op ↓ₑ (o , i) = (o ∪ o' , i[ op ↦ nothing ] ∪ i'), and we need to prove
 
-  ops ↓↓ₑ (ops' ↓↓ₑ (o , i)) <= ops ↓↓ₑ (ops' ↓↓ₑ (op ↓ₑ (o , i)))
+     proj₁ (ops ↓↓ₑ (o , i)) ⊑ proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')).
 
--}
+   Next, by case analysis on whether op is in ops
 
+   2.1) op is not in ops                    
 
-{-
+        Then, proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
+              = 
+              (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
 
+        where 
 
+          (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                          ∪ 
+                          i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                          ∪
+                          i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                          ∪
+                          i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                          ∪
+                          ...
+                          ∪
+                          ...
+                          ∪
+                          iᵢ₋₁') opᵢ)
 
-  ops ↓↓ₑ (op ↓ₑ (o , i)) <= ops ↓↓ₑ (op ↓ₑ (op' ↓ₑ (o , i)))
-  -----------------------------------------------------------
-  (ops :: op) ↓↓ₑ (o , i) <= (ops :: op) ↓↓ₑ (op' ↓ₑ (o , i))
+        We proceed by induction on n, i.e., the length of the list ops. 
+
+        It suffices to show oᵢ ⊑ oᵢ' for all 1 <= i <= n.
+
+        2.1.1) If n = length ops = 0:
+
+               then we are vacuously done.
+
+        2.1.2) If n = length ops = 1:
+        
+               Then we need to prove
+
+                 o₁ ⊑ proj₁ (i[ op ↦ nothing ] ∪ᵢ i') op₁ = proj₁ ((i[ op ↦ nothing ]) op) ∪ proj₁ (i' op)
+
+               But as op₁ ≠ op, then 
+
+                 (i[ op ↦ nothing ]) op₁ = i op₁ = o₁
+
+               Thus, we are simply left showing
+
+                 o₁ ⊑ o₁ ∪ proj₁ (i' op)
+
+        2.1.3) If n = length ops = m + 1:
+
+               By induction hypothesis, we know that oᵢ ⊑ oᵢ' for all 1 <= i <= m, 
+
+               and we are left having to show oₘ ⊑ oₘ'.
+
+               ...
+
+   2.2) op is in ops
+
+        ...
 
 -}
