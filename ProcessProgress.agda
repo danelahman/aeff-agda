@@ -205,7 +205,11 @@ proc-progress (run {X} {o} {i} M) with progress M
 ... | inj₁ (N , r) =
   inj₁ (_ , _ , _ , _ , run r)
 ... | inj₂ R =
-  subst (λ M → (Σ[ o' ∈ O ] Σ[ QQ ∈ PType o' ] Σ[ r ∈ (X ‼ o , i) ⇝ QQ ] Σ[ Q ∈ [] ⊢P⦂ QQ ] ((run M) [ r ]↝ Q)
+  subst (λ M → (Σ[ o' ∈ O ]
+                  Σ[ QQ ∈ PType o' ]
+                  Σ[ r ∈ (X ‼ o , i) ⇝ QQ ]
+                  Σ[ Q ∈ [] ⊢P⦂ QQ ]
+                  ((run M) [ r ]↝ Q)
                 ⊎
                 Result⟨ run M ⟩))
         {!!}
@@ -213,10 +217,29 @@ proc-progress (run {X} {o} {i} M) with progress M
 proc-progress (P ∥ Q) with proc-progress P
 proc-progress (P ∥ Q) | inj₁ (o' , PP' , r , P' , r') =
   inj₁ (_ , _ , _ , _ , context {F = [-] ∥ₗ Q} r')
-proc-progress (P ∥ Q) | inj₂ r = {!!}
-proc-progress (↑ op p V P) = {!!}
-proc-progress (↓ op V P) = {!!}
-
+proc-progress (P ∥ Q) | inj₂ R with proc-progress Q
+proc-progress (P ∥ Q) | inj₂ R | inj₁ (o' , QQ' , r , Q' , r') =
+  inj₁ (_ , _ , _ , _ , context {F = P ∥ᵣ [-]} r')
+proc-progress (P ∥ Q) | inj₂ (proc R) | inj₂ (proc R') =
+  inj₂ (proc (par R R'))
+proc-progress (P ∥ .(↑ _ _ _ _)) | inj₂ (proc R) | inj₂ (signal {_} {_} {_} {p} {V} {Q} R') =
+  inj₁ (_ , _ , _ , _ , ↑-∥ᵣ p V P Q)
+proc-progress (.(↑ _ _ _ _) ∥ Q) | inj₂ (signal {_} {_} {_} {p} {V} {P} R) | inj₂ R' =
+  inj₁ (_ , _ , _ , _ , ↑-∥ₗ p V P Q)
+proc-progress (↑ op p V P) with proc-progress P
+proc-progress (↑ op p V P) | inj₁ (o' , PP' , r , P' , r') =
+  inj₁ (_ , _ , _ , _ , context {F = ↑ op p V [-]} r')
+proc-progress (↑ op p V P) | inj₂ R =
+  inj₂ (signal R)
+proc-progress (↓ op V P) with proc-progress P
+proc-progress (↓ op V P) | inj₁ (o' , OO' , r , P' , r') =
+  inj₁ (_ , _ , _ , _ , context {F = ↓ op V [-]} r')
+proc-progress (↓ op V .(run _)) | inj₂ (proc (run {_} {_} {_} {M} R)) =
+  inj₁ (_ , _ , _ , _ , ↓-run V M)
+proc-progress (↓ op V .(_ ∥ _)) | inj₂ (proc (par {_} {_} {_} {_} {P} {Q} R R')) =
+  inj₁ (_ , _ , _ , _ , ↓-∥ V P Q)
+proc-progress (↓ op V .(↑ _ _ _ _)) | inj₂ (signal {_} {_} {_} {p} {W} {Q} R) =
+  inj₁ (_ , _ , _ , _ , ↓-↑ p V W Q)
 
 
 
