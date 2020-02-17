@@ -36,16 +36,6 @@ data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      ----------------------------------
                      Γ ⊢H[ X ∷∷ Δ ]⦂ Y ! (o , i)
 
-  subsume          : {Δ : BCtx}
-                     {X : VType}
-                     {o o' : O}
-                     {i i' : I} →
-                     o ⊑ₒ o' →
-                     i ⊑ᵢ i' → 
-                     Γ ⊢H[ Δ ]⦂ X ! (o , i) →
-                     ------------------------
-                     Γ ⊢H[ Δ ]⦂ X ! (o' , i')
-
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED SIGNAL HOISTING CONTEXT
 
@@ -55,8 +45,6 @@ hole-ty-hₒ {_} {_} {_} {o} [-] =
   o
 hole-ty-hₒ (promise op ∣ p ↦ M `in H) =
   hole-ty-hₒ H
-hole-ty-hₒ (subsume p q H) =
-  hole-ty-hₒ H
 
 
 hole-ty-hᵢ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
@@ -64,8 +52,6 @@ hole-ty-hᵢ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
 hole-ty-hᵢ {_} {_} {_} {_} {o} [-] =
   o
 hole-ty-hᵢ (promise op ∣ p ↦ M `in H) =
-  hole-ty-hᵢ H
-hole-ty-hᵢ (subsume p q H) =
   hole-ty-hᵢ H
 
 
@@ -82,8 +68,6 @@ hole-ty-h-⊑ₒ [-] =
   ⊑ₒ-refl
 hole-ty-h-⊑ₒ (promise op ∣ p ↦ M `in H) =
   hole-ty-h-⊑ₒ H
-hole-ty-h-⊑ₒ (subsume p q H) =
-  ⊑ₒ-trans (hole-ty-h-⊑ₒ H) p
 
 
 hole-ty-h-⊑ᵢ : {Γ : Ctx}
@@ -99,8 +83,6 @@ hole-ty-h-⊑ᵢ [-] =
   ⊑ᵢ-refl
 hole-ty-h-⊑ᵢ (promise op ∣ p ↦ M `in H) =
   hole-ty-h-⊑ᵢ H
-hole-ty-h-⊑ᵢ (subsume p q H) =
-  ⊑ᵢ-trans (hole-ty-h-⊑ᵢ H) q
 
 
 -- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT
@@ -114,8 +96,6 @@ _[_]ₕ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
   M
 (promise op ∣ p ↦ N `in E) [ M ]ₕ =
   promise op ∣ p ↦ N `in (E [ M ]ₕ)
-subsume p q E [ M ]ₕ =
-  subsume p q (E [ M ]ₕ)
 
 
 -- EVOLUTION OF PROCESS TYPES
@@ -232,6 +212,17 @@ strengthen-val {_} {Δ} (` x) =
   ` strengthen-var Δ x
 strengthen-val (``_ c) =
   ``_ c
+
+strengthen-val-[] : {Γ : Ctx}
+                    {A : BType} → 
+                    (V : Γ ⋈ [] ⊢V⦂ `` A) →
+                    --------------------
+                    strengthen-val {Δ = []} V ≡ V
+
+strengthen-val-[] (` x) =
+  refl
+strengthen-val-[] (``_ c) =
+  refl
 
 
 -- EVALUATION CONTEXTS FOR PROCESSES

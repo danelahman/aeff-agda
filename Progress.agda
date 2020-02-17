@@ -26,6 +26,16 @@ module Progress where
 ⟨⟨ Γ ∷ X ⟩⟩ = ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩
 
 
+⟨⟨⟩⟩-append : (Γ Γ' : Ctx) →
+              -------------------------------------------
+              ⟨⟨ append Γ Γ' ⟩⟩ ≡ append ⟨⟨ Γ ⟩⟩ ⟨⟨ Γ' ⟩⟩
+
+⟨⟨⟩⟩-append Γ [] =
+  refl
+⟨⟨⟩⟩-append Γ (Γ' ∷ X) =
+  cong (λ Γ'' → Γ'' ∷ ⟨ X ⟩) (⟨⟨⟩⟩-append Γ Γ')
+
+
 -- RESULTS
 
 data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where

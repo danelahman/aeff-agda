@@ -13,9 +13,16 @@ open import Relation.Nullary
 
 module Preservation where
 
--- WELL-TYPED EVALUATION CONTEXTS
+-- Binding contexts
 
 BCtx = List VType
+
+bctx-to-ctx : BCtx → Ctx
+bctx-to-ctx [] = []
+bctx-to-ctx (X ∷∷ Δ) = append ([] ∷ X) (bctx-to-ctx Δ)
+
+
+-- WELL-TYPED EVALUATION CONTEXTS
 
 data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
 
