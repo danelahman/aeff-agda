@@ -17,9 +17,23 @@ module Preservation where
 
 BCtx = List VType
 
+
 bctx-to-ctx : BCtx → Ctx
 bctx-to-ctx [] = []
 bctx-to-ctx (X ∷∷ Δ) = append ([] ∷ X) (bctx-to-ctx Δ)
+
+
+bctx-to-ctx-append : {Δ Δ' : BCtx} →
+                     ---------------------------------------------------------------
+                     bctx-to-ctx (Δ ++ Δ')
+                     ≡
+                     append (bctx-to-ctx Δ) (bctx-to-ctx Δ')
+
+bctx-to-ctx-append {[]} {Δ'} =
+  append-lunit
+bctx-to-ctx-append {X ∷∷ Δ} {Δ'} =
+  trans (cong (λ Δ'' → append ([] ∷ X) Δ'') (bctx-to-ctx-append {Δ} {Δ'}))
+        (append-assoc ([] ∷ X) (bctx-to-ctx Δ) (bctx-to-ctx Δ'))
 
 
 -- WELL-TYPED EVALUATION CONTEXTS

@@ -33,15 +33,15 @@ append l [] = l
 append l (l' ∷ a) = (append l l') ∷ a
 
 
-append-trans : {A : Set} →
+append-assoc : {A : Set} →
                (l l' l'' : SnocList A) →
                ---------------------------------------------------
                append l (append l' l'') ≡ append (append l l') l''
 
-append-trans l l' [] =
+append-assoc l l' [] =
   refl
-append-trans l l' (l'' ∷ a) =
-  cong (λ l''' → l''' ∷ a) (append-trans l l' l'')
+append-assoc l l' (l'' ∷ a) =
+  cong (λ l''' → l''' ∷ a) (append-assoc l l' l'')
 
 
 append-lunit : {A : Set} →

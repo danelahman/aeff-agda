@@ -144,19 +144,19 @@ bctx-to-ctx-wrap Γ [] =
   refl
 bctx-to-ctx-wrap Γ (X ∷∷ Δ) =
   trans (cong (λ Γ'' → append Γ Γ'') (⟨⟨⟩⟩-append ([] ∷ X) (bctx-to-ctx Δ)))
-        (trans (append-trans Γ ([] ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx Δ ⟩⟩)
+        (trans (append-assoc Γ ([] ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx Δ ⟩⟩)
                (bctx-to-ctx-wrap (Γ ∷ ⟨ X ⟩) Δ))
 
 
 bctx-ctx-ren : (Δ : BCtx) → Ren ⟨⟨ bctx-to-ctx Δ ⟩⟩ ([] ⋈ Δ)
-bctx-ctx-ren Δ =
-  subst (λ Γ → Ren ⟨⟨ bctx-to-ctx Δ ⟩⟩ Γ) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) id-ren
+bctx-ctx-ren Δ {X} x =
+  subst (λ Γ → X ∈ Γ) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) x
 
 
-{-
-foo-ren : (Δ : BCtx) → (X : VType) → Ren (⟨⟨ bctx-to-ctx Δ ⟩⟩ ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx (Δ ++ X ∷∷ []) ⟩⟩
-foo-ren Δ X = {!!}
--}
+bctx-ctx-ren-var : (Δ : BCtx) → (X : VType) → Ren (⟨⟨ bctx-to-ctx Δ ⟩⟩ ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx (Δ ++ X ∷∷ []) ⟩⟩
+bctx-ctx-ren-var Δ X {Y} x =
+  subst (λ Γ → Y ∈ Γ) (cong (λ Γ → ⟨⟨ Γ ⟩⟩) (sym (bctx-to-ctx-append {Δ} {⟦ X ⟧}))) x
+
 
 run-progress : {Δ : BCtx}
                {X : VType}
@@ -180,7 +180,7 @@ run-progress {Δ} H (signal {X} {o} {i} {op} {p} {V} {M'} R) =
   inj₁ (_ , _ , id , _ , ↑ {o' = o} {i' = i} H p (V-rename (bctx-ctx-ren Δ) V) (M-rename (bctx-ctx-ren Δ) M'))
 run-progress {Δ} {X''} {o''} {i''} H (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M} {N} R)
   with run-progress (H [ promise op ∣ p ↦ (M-rename (wk₂ (bctx-ctx-ren Δ)) M) `in [-] ]ₕₕ)
-                    {{!!}}
+                    {M-rename (bctx-ctx-ren-var Δ X) {!!}}
                     {!!}
 ... | q =
   {!!}
