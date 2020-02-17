@@ -93,3 +93,24 @@ dec◄ {Γ} {X} x (subsume p q M) with dec◄ x M
 ... | no ¬r =
   no (λ { (subsume s) → contradiction s ¬r })
 
+
+-- RENAMING DOES NOT AFFECT BEING TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
+
+◄-ren : {Γ Γ' : Ctx}
+        {r : Ren Γ Γ'}
+        {C : CType}
+        {Y : VType} →
+        {y : ⟨ Y ⟩ ∈ Γ} →
+        {M : Γ ⊢M⦂ C} →
+        (y ◄ M) → 
+        ------------------
+        r y ◄ M-rename r M
+
+◄-ren await =
+  await
+◄-ren (let-in p) =
+  let-in (◄-ren p)
+◄-ren (interrupt p) =
+  interrupt (◄-ren p)
+◄-ren (subsume p) =
+  subsume (◄-ren p)

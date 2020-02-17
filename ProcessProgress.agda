@@ -175,7 +175,7 @@ run-progress : {Δ : BCtx}
                Result⟨ run (H [ M-rename (bctx-ctx-ren Δ) M ]ₕ) ⟩
 
 run-progress {Δ} H (return {X} V) =
-  inj₂ (proc (run (hoist-runresult (V-rename (bctx-ctx-ren Δ) V) H)))
+  inj₂ (proc (run (hoist-runresult (V-rensame (bctx-ctx-ren Δ) V) H)))
 run-progress {Δ} H (signal {X} {o} {i} {op} {p} {V} {M'} R) =
   inj₁ (_ , _ , id , _ , ↑ {o' = o} {i' = i} H p (V-rename (bctx-ctx-ren Δ) V) (M-rename (bctx-ctx-ren Δ) M'))
 run-progress {Δ} {X''} {o''} {i''} H (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M} {N} R)
@@ -185,7 +185,7 @@ run-progress {Δ} {X''} {o''} {i''} H (promise {X} {Y} {o} {o'} {i} {i'} {op} {p
 ... | q =
   {!!}
 run-progress {Δ} H (awaiting {C} {Y} {y} {M} p) =
-  inj₂ (proc (run (await-runresult {Γ = []} (bctx-ctx-ren Δ y) H (M-rename (bctx-ctx-ren Δ) M) {!!})))
+  inj₂ (proc (run (await-runresult (bctx-ctx-ren Δ y) H (M-rename (bctx-ctx-ren Δ) M) (◄-ren p))))
 
 
 
