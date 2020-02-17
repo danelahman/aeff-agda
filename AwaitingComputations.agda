@@ -15,9 +15,9 @@ open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Relation.Nullary
 open import Relation.Nullary.Negation
 
-module StuckComputations where
+module AwaitingComputations where
 
--- COMPUTATIONS THAT ARE STUCK ON WAITING FOR A PARTICULAR PROMISE
+-- COMPUTATIONS THAT ARE TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
     
 data _◄_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ ⊢M⦂ C → Set where
 
@@ -56,7 +56,7 @@ data _◄_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               x ◄ (subsume p q M)
 
 
--- DECIDING IF A COMPUTATION IS STUCK ON WAITING FOR A PARTICULAR PROMISE
+-- DECIDING IF A COMPUTATION IS TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
 
 dec◄ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◄ M)
 dec◄ x (return V) =

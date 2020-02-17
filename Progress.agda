@@ -10,7 +10,7 @@ open import EffectAnnotations
 open import Preservation
 open import Renamings
 open import Substitutions
-open import StuckComputations
+open import AwaitingComputations
 open import Types
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -30,42 +30,42 @@ module Progress where
 
 data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where
 
-  return  : {X : VType}
-            {o : O}
-            {i : I}
-            (V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ X) →
-            --------------------------------------
-            Result⟨ Γ ∣ return {o = o} {i = i} V ⟩
+  return   : {X : VType}
+             {o : O}
+             {i : I}
+             (V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ X) →
+             --------------------------------------
+             Result⟨ Γ ∣ return {o = o} {i = i} V ⟩
 
-  signal  : {X : VType}
-            {o : O}
-            {i : I}
-            {op : Σₙ}
-            {p : op ∈ₒ o}
-            {V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ ``(arₙ op)}
-            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
-            Result⟨ Γ ∣ M ⟩ →
-            -------------------------------
-            Result⟨ Γ ∣ ↑ op p V M ⟩
+  signal   : {X : VType}
+             {o : O}
+             {i : I}
+             {op : Σₙ}
+             {p : op ∈ₒ o}
+             {V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ ``(arₙ op)}
+             {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
+             Result⟨ Γ ∣ M ⟩ →
+             -------------------------------
+             Result⟨ Γ ∣ ↑ op p V M ⟩
 
-  promise : {X Y : VType}
-            {o o' : O}
-            {i i' : I}
-            {op : Σₙ}
-            {p : lkpᵢ op i ≡ just (o' , i')}
-            {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')}
-            {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
-            Result⟨ Γ ∷ X ∣ N ⟩ →
-            -------------------------------------------
-            Result⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
+  promise  : {X Y : VType}
+             {o o' : O}
+             {i i' : I}
+             {op : Σₙ}
+             {p : lkpᵢ op i ≡ just (o' , i')}
+             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')}
+             {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
+             Result⟨ Γ ∷ X ∣ N ⟩ →
+             -------------------------------------------
+             Result⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
 
-  stuck   : {C : CType}
-            {Y : VType}
-            {y : ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩}
-            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
-            y ◄ M →
-            --------------------------------
-            Result⟨ Γ ∣ M ⟩
+  awaiting : {C : CType}
+             {Y : VType}
+             {y : ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩}
+             {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
+             y ◄ M →
+             --------------------------------
+             Result⟨ Γ ∣ M ⟩
 
 
 -- PROGRESS THEOREM FOR PROMISE-OPEN COMPUTATIONS
@@ -93,8 +93,8 @@ progress (let= M `in N) with progress M
   inj₁ (↑ op p V (let= M' `in N) , let-↑ p V M' N)
 ... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M'} {M''} r) =
   inj₁ ((promise op ∣ p ↦ M' `in (let= M'' `in M-rename (comp-ren exchange wk₁) N)) , let-promise p M' M'' N)
-... | inj₂ (stuck r) =
-  inj₂ (stuck (let-in r))
+... | inj₂ (awaiting r) =
+  inj₂ (awaiting (let-in r))
 progress ((` x) · W) with ⇒-not-in-ctx x
 ... | ()
 progress (ƛ M · W) =
@@ -126,15 +126,15 @@ progress (↓ op V M) | inj₁ (N , r) =
                                   M')
                          (↓ op (V-rename wk₁ V) M'') ,
         ↓-promise-op' ¬r p V M' M'')
-progress (↓ op V M) | inj₂ (stuck r) =
-  inj₂ (stuck (interrupt r))
+progress (↓ op V M) | inj₂ (awaiting r) =
+  inj₂ (awaiting (interrupt r))
 progress (promise op ∣ p ↦ M `in N) with progress N
 ... | inj₁ (N' , r) =
   inj₁ (promise op ∣ p ↦ M `in N' , context (promise op ∣ p ↦ M `in [-]) r)
 ... | inj₂ r =
   inj₂ (promise r)
 progress (await ` x until M) =
-  inj₂ (stuck await)
+  inj₂ (awaiting await)
 progress (await ⟨ V ⟩ until M) =
   inj₁ (M [ `_ [ V ]s ]m , await-promise V M)
 progress (subsume p q M) with progress M
@@ -150,8 +150,8 @@ progress (subsume p q M) with progress M
       subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M' `in
       subsume p q M'')
      , subsume-promise r M' M'')
-... | inj₂ (stuck r) =
-  inj₂ (stuck (subsume r))
+... | inj₂ (awaiting r) =
+  inj₂ (awaiting (subsume r))
 
 
 -- PROGRESS THEOREM FOR CLOSED COMPUTATIONS
