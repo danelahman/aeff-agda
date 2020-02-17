@@ -16,7 +16,7 @@ Ren Γ Γ' = {X : VType} → X ∈ Γ → X ∈ Γ'
 -- IDENTITY, COMPOSITION, AND EXCHANGE RENAMINGS
 
 id-ren : {Γ : Ctx} → Ren Γ Γ 
-id-ren x = x
+id-ren {X} x = x
 
 
 comp-ren : {Γ Γ' Γ'' : Ctx} → Ren Γ' Γ'' → Ren Γ Γ' → Ren Γ Γ'' 
@@ -62,6 +62,18 @@ wk₂-comp-lem Hd = refl
 wk₂-comp-lem (Tl x) = refl
 
 
+-- RENAMINGS BETWEEN EMPTY CONTEXTS ARE VACUOUSLY EQUAL
+
+ren-[]-id : (r : Ren [] []) →
+            {X : VType} → 
+            (x : X ∈ []) → 
+            -----------------
+            id-ren x ≡ r x
+                  
+ren-[]-id = λ r {X} ()
+
+
+
 -- ACTION OF RENAMING ON WELL-TYPED TERMS
 
 mutual
@@ -91,12 +103,7 @@ mutual
     subsume p q (M-rename f M)
 
 
-{-
-
--- LEMMAS ABOUT RENAMING TERMS
-
-open import Axiom.Extensionality.Propositional
-postulate ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+-- RENAMING WITH IDENTITY RENAMING IS IDENTITY
 
 mutual
   V-rename-id-lem : {Γ : Ctx} 
@@ -110,11 +117,12 @@ mutual
   V-rename-id-lem (`` c) =
     refl
   V-rename-id-lem {Γ} {.(X ⇒ C)} (ƛ {X} {C} M) = 
-    ƛ-cong (trans {!!} (M-rename-id-lem M))
+    ƛ-cong (trans (cong (λ (r : Ren (Γ ∷ X) (Γ ∷ X)) → M-rename r M)
+                        (ifun-ext (λ {Y} → fun-ext wk₂-id-lem)))
+                  (M-rename-id-lem M))
     where ƛ-cong : ∀ {M M'} → M ≡ M' → ƛ {Γ} {X} {C} M ≡ ƛ {Γ} {X} {C} M'
           ƛ-cong refl = refl
           
---    cong (λ M → ƛ M) (trans (cong {!λ f → M-rename f M!} {wk₂ id-ren} {id-ren} (ext wk₂-id-lem)) (M-rename-id-lem M))
   V-rename-id-lem ⟨ V ⟩ =
     cong (λ V → ⟨ V ⟩) (V-rename-id-lem V)
 
@@ -126,16 +134,31 @@ mutual
                   
   M-rename-id-lem (return V) =
     cong return (V-rename-id-lem V)
-  M-rename-id-lem (let= M `in N) =
-    {!!}
+  M-rename-id-lem {Γ} (let= M `in N) =
+    cong₂ (λ M N → let= M `in N)
+          (M-rename-id-lem M)
+          (trans (cong (λ (r : Ren (Γ ∷ _) (Γ ∷ _)) → M-rename r N)
+                       (ifun-ext (λ {Y} → fun-ext wk₂-id-lem)))
+                 (M-rename-id-lem N))
   M-rename-id-lem (V · W) =
     cong₂ (λ V W → V · W) (V-rename-id-lem V) (V-rename-id-lem W)
   M-rename-id-lem (↑ op p V M) =
     cong₂ (λ V M → ↑ op p V M) (V-rename-id-lem V) (M-rename-id-lem M)
   M-rename-id-lem (↓ op V M) =
     cong₂ (λ V M → ↓ op V M) (V-rename-id-lem V) (M-rename-id-lem M)
-  M-rename-id-lem (promise op ∣ p ↦ M `in N) =
-    {!!}
-  M-rename-id-lem (await V until M) =
-    {!!}
--}
+  M-rename-id-lem {Γ} (promise op ∣ p ↦ M `in N) =
+    cong₂ (λ M N → promise op ∣ p ↦ M `in N)
+          (trans (cong (λ (r : Ren (Γ ∷ _) (Γ ∷ _)) → M-rename r M)
+                       (ifun-ext (λ {Y} → fun-ext wk₂-id-lem)))
+                 (M-rename-id-lem M))
+          (trans (cong (λ (r : Ren (Γ ∷ _) (Γ ∷ _)) → M-rename r N)
+                       (ifun-ext (λ {Y} → fun-ext wk₂-id-lem)))
+                 (M-rename-id-lem N))
+  M-rename-id-lem {Γ} (await V until M) =
+    cong₂ (λ V M → await V until M)
+          (V-rename-id-lem V)
+          (trans (cong (λ (r : Ren (Γ ∷ _) (Γ ∷ _)) → M-rename r M)
+                       (ifun-ext (λ {Y} → fun-ext wk₂-id-lem)))
+                 (M-rename-id-lem M))
+  M-rename-id-lem (subsume p q M) =
+    cong (λ M → subsume p q M) (M-rename-id-lem M) 

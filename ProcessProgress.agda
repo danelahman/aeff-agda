@@ -194,6 +194,10 @@ run-progress {Δ} H (awaiting {C} {Y} {y} {M} p) =
 
 -- PROGRESS THEOREM FOR PROCESSES
 
+cong₂ᵢ : {A B C : Set} → (f : {a : A} → B → C) → {x y : A} → {u v : B} → x ≡ y → u ≡ v → f {x} u ≡ f {y} v
+cong₂ᵢ f refl refl = refl
+
+
 proc-progress : {o : O} {PP : PType o} →
                 (P : [] ⊢P⦂ PP) →
                 -------------------------------------------------------------------------------
@@ -212,7 +216,9 @@ proc-progress (run {X} {o} {i} M) with progress M
                   ((run M) [ r ]↝ Q)
                 ⊎
                 Result⟨ run M ⟩))
-        {!!}
+        (trans (cong (λ (r : Ren [] []) → M-rename r M)
+                     (ifun-ext λ {X} → fun-ext (λ x → sym (ren-[]-id (bctx-ctx-ren []) x))))
+               (M-rename-id-lem M))
         (run-progress [-] R)
 proc-progress (P ∥ Q) with proc-progress P
 proc-progress (P ∥ Q) | inj₁ (o' , PP' , r , P' , r') =

@@ -14,7 +14,8 @@ module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
 postulate
-  fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality (for the rest of the development)
+  ifun-ext : ∀ {a b} → ExtensionalityImplicit a b       -- assuming function extensionality
+  fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality
 
 postulate
   dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)      -- functions are pointwise decidable
