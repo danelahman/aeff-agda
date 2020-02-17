@@ -194,10 +194,6 @@ run-progress {Δ} H (awaiting {C} {Y} {y} {M} p) =
 
 -- PROGRESS THEOREM FOR PROCESSES
 
-cong₂ᵢ : {A B C : Set} → (f : {a : A} → B → C) → {x y : A} → {u v : B} → x ≡ y → u ≡ v → f {x} u ≡ f {y} v
-cong₂ᵢ f refl refl = refl
-
-
 proc-progress : {o : O} {PP : PType o} →
                 (P : [] ⊢P⦂ PP) →
                 -------------------------------------------------------------------------------
