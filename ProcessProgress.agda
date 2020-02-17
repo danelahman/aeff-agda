@@ -95,59 +95,7 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            Result⟨ ↑ op p V P ⟩
 
 
-
-{-
--- PROGRESS FOR HOISTING SIGNALS
-
-bctx-to-ctx-wrap : (Γ : Ctx) →
-                   (Δ : BCtx) →
-                   ------------------------------------
-                   append Γ ⟨⟨ bctx-to-ctx Δ ⟩⟩ ≡ Γ ⋈ Δ
-
-bctx-to-ctx-wrap Γ [] =
-  refl
-bctx-to-ctx-wrap Γ (X ∷∷ Δ) =
-  trans (cong (λ Γ'' → append Γ Γ'') (⟨⟨⟩⟩-append ([] ∷ X) (bctx-to-ctx Δ)))
-        (trans (append-trans Γ ([] ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx Δ ⟩⟩)
-               (bctx-to-ctx-wrap (Γ ∷ ⟨ X ⟩) Δ))
-
-
-bctx-ctx-comp : {Γ : Ctx}
-                {Δ : BCtx}
-                {C : CType} → 
-                (append Γ ⟨⟨ bctx-to-ctx Δ ⟩⟩) ⊢M⦂ C →
-                --------------------------------------
-                Γ ⋈ Δ ⊢M⦂ C
-
-bctx-ctx-comp {Γ} {Δ} {C} M =
-  subst (λ Γ → Γ ⊢M⦂ C)
-        (bctx-to-ctx-wrap Γ Δ)
-        M
-
-
-bctx-ctx-comp-[] : {Δ : BCtx}
-                   {C : CType} → 
-                   ⟨⟨ bctx-to-ctx Δ ⟩⟩ ⊢M⦂ C →
-                   ---------------------------
-                   [] ⋈ Δ ⊢M⦂ C
-
-bctx-ctx-comp-[] {Δ} {C} M =
-  bctx-ctx-comp {Γ = []} {Δ = Δ} (subst (λ Γ → Γ ⊢M⦂ C) append-lunit M)
-
-
-bctx-ctx-comp-coherence : {X : VType}
-                          {o : O}
-                          {i : I}
-                          {Δ : BCtx}
-                          (V : ⟨⟨ bctx-to-ctx Δ ⟩⟩ ⊢V⦂ X) →
-                          ---------------------------------
-                          bctx-ctx-comp-[] {Δ = Δ} (return {o = o} {i = i} V)
-                          ≡
-                          return (subst (λ Γ → Γ ⊢V⦂ X) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) V)
-
-bctx-ctx-comp-coherence {X} {o} {i} {Δ} V with bctx-to-ctx-wrap [] Δ
-... | p = {!!}
-
+-- HOISTING A RETURN VALUE IS A RUN RESULT
 
 hoist-runresult : {Γ : Ctx}
                   {Δ : BCtx}
@@ -165,13 +113,50 @@ hoist-runresult V (promise op ∣ p ↦ M `in H) =
   promise (hoist-runresult V H)
 
 
+-- HOISTING AN AWAITING COMPUTATION IS A RUN RESULTS
+
+await-runresult : {Γ : Ctx}
+                  {Δ : BCtx}
+                  {X Y : VType}
+                  {o : O}
+                  {i : I} →
+                  (y : ⟨ Y ⟩ ∈ (⟨⟨ Γ ⟩⟩ ⋈ Δ)) →
+                  (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
+                  (M : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
+                  y ◄ M → 
+                  -----------------------------------------------------
+                  RunResult⟨ Γ ∣ H [ M ]ₕ ⟩
+
+await-runresult y [-] M p =
+  awaiting p
+await-runresult y (promise op ∣ q ↦ N `in H) M p =
+  promise (await-runresult y H M p)
 
 
+-- PROGRESS FOR HOISTING SIGNALS
 
-bctx-ctx-sub : (Δ : BCtx) → Sub ⟨⟨ bctx-to-ctx Δ ⟩⟩ ([] ⋈ Δ)
-bctx-ctx-sub Δ =
-  subst (λ Γ → Sub ⟨⟨ bctx-to-ctx Δ ⟩⟩ Γ) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) id-subst
+bctx-to-ctx-wrap : (Γ : Ctx) →
+                   (Δ : BCtx) →
+                   ------------------------------------
+                   append Γ ⟨⟨ bctx-to-ctx Δ ⟩⟩ ≡ Γ ⋈ Δ
 
+bctx-to-ctx-wrap Γ [] =
+  refl
+bctx-to-ctx-wrap Γ (X ∷∷ Δ) =
+  trans (cong (λ Γ'' → append Γ Γ'') (⟨⟨⟩⟩-append ([] ∷ X) (bctx-to-ctx Δ)))
+        (trans (append-trans Γ ([] ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx Δ ⟩⟩)
+               (bctx-to-ctx-wrap (Γ ∷ ⟨ X ⟩) Δ))
+
+
+bctx-ctx-ren : (Δ : BCtx) → Ren ⟨⟨ bctx-to-ctx Δ ⟩⟩ ([] ⋈ Δ)
+bctx-ctx-ren Δ =
+  subst (λ Γ → Ren ⟨⟨ bctx-to-ctx Δ ⟩⟩ Γ) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) id-ren
+
+
+{-
+foo-ren : (Δ : BCtx) → (X : VType) → Ren (⟨⟨ bctx-to-ctx Δ ⟩⟩ ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx (Δ ++ X ∷∷ []) ⟩⟩
+foo-ren Δ X = {!!}
+-}
 
 run-progress : {Δ : BCtx}
                {X : VType}
@@ -180,24 +165,27 @@ run-progress : {Δ : BCtx}
                (H : [] ⊢H[ Δ ]⦂ X ! (o , i)) → 
                {M : ⟨⟨ bctx-to-ctx Δ ⟩⟩ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)} →
                Result⟨ bctx-to-ctx Δ ∣ M ⟩ →
-               ---------------------------------------------------------------------------------------------------------------------------
-               Σ[ o' ∈ O ] Σ[ QQ ∈ PType o' ] Σ[ r ∈ X ‼ o , i ⇝ QQ ] Σ[ Q ∈ [] ⊢P⦂ QQ ] (run (H [ M [ bctx-ctx-sub Δ ]m ]ₕ) [ r ]↝ Q)
+               -----------------------------------------------------------------
+               Σ[ o' ∈ O ]
+                 Σ[ QQ ∈ PType o' ]
+                 Σ[ r ∈ X ‼ o , i ⇝ QQ ]
+                 Σ[ Q ∈ [] ⊢P⦂ QQ ]
+                 (run (H [ M-rename (bctx-ctx-ren Δ) M ]ₕ) [ r ]↝ Q)
                ⊎
-               Result⟨ run (H [ M [ bctx-ctx-sub Δ ]m ]ₕ) ⟩
+               Result⟨ run (H [ M-rename (bctx-ctx-ren Δ) M ]ₕ) ⟩
 
 run-progress {Δ} H (return {X} V) =
-  inj₂ (run {!!})
-run-progress H (signal {X} {o} {i} {op} {p} {V} {M'} R) =
-  inj₁ ({!!} , {!!} , {!!} , {!!} , {!!})
-run-progress H (promise R) =
+  inj₂ (proc (run (hoist-runresult (V-rename (bctx-ctx-ren Δ) V) H)))
+run-progress {Δ} H (signal {X} {o} {i} {op} {p} {V} {M'} R) =
+  inj₁ (_ , _ , id , _ , ↑ {o' = o} {i' = i} H p (V-rename (bctx-ctx-ren Δ) V) (M-rename (bctx-ctx-ren Δ) M'))
+run-progress {Δ} {X''} {o''} {i''} H (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M} {N} R)
+  with run-progress (H [ promise op ∣ p ↦ (M-rename (wk₂ (bctx-ctx-ren Δ)) M) `in [-] ]ₕₕ)
+                    {{!!}}
+                    {!!}
+... | q =
   {!!}
-run-progress H (awaiting p) =
-  inj₂ (run {!!})
-
-
--- [ bctx-ctx-comp-[] {Δ = Δ} M ]
-
-
+run-progress {Δ} H (awaiting {C} {Y} {y} {M} p) =
+  inj₂ (proc (run (await-runresult {Γ = []} (bctx-ctx-ren Δ y) H (M-rename (bctx-ctx-ren Δ) M) {!!})))
 
 
 
@@ -208,28 +196,35 @@ run-progress H (awaiting p) =
 
 proc-progress : {o : O} {PP : PType o} →
                 (P : [] ⊢P⦂ PP) →
-                -------------------------------
+                -------------------------------------------------------------------------------
                 (Σ[ o' ∈ O ] Σ[ QQ ∈ PType o' ] Σ[ r ∈ PP ⇝ QQ ] Σ[ Q ∈ [] ⊢P⦂ QQ ] (P [ r ]↝ Q)
                  ⊎
                  Result⟨ P ⟩)
 
-proc-progress (run M) with progress M
-proc-progress (run M) | inj₁ (N , p) =
-  inj₁ (_ , _ , id , run N , run p)
-... | inj₂ (return V) =
-  inj₂ (run (return V))
-... | inj₂ (signal {X} {o} {i} {op} {p} {V} {M'} R) =
-  inj₁ (_ , _ , id , ↑ op p (strengthen-val {Δ = []} V) (run ([-] [ M' ]ₕ)) , ↑ {o' = o} {i' = i} [-] p V M')
-... | inj₂ (promise R) =
-  {!!}
-proc-progress (P ∥ Q) = {!!}
+proc-progress (run {X} {o} {i} M) with progress M
+... | inj₁ (N , r) =
+  inj₁ (_ , _ , _ , _ , run r)
+... | inj₂ R =
+  subst (λ M → (Σ[ o' ∈ O ] Σ[ QQ ∈ PType o' ] Σ[ r ∈ (X ‼ o , i) ⇝ QQ ] Σ[ Q ∈ [] ⊢P⦂ QQ ] ((run M) [ r ]↝ Q)
+                ⊎
+                Result⟨ run M ⟩))
+        {!!}
+        (run-progress [-] R)
+proc-progress (P ∥ Q) with proc-progress P
+proc-progress (P ∥ Q) | inj₁ (o' , PP' , r , P' , r') =
+  inj₁ (_ , _ , _ , _ , context {F = [-] ∥ₗ Q} r')
+proc-progress (P ∥ Q) | inj₂ r = {!!}
 proc-progress (↑ op p V P) = {!!}
 proc-progress (↓ op V P) = {!!}
 
 
 
 
--}
+
+
+
+
+
 
 
 

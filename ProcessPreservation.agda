@@ -85,7 +85,7 @@ hole-ty-h-⊑ᵢ (promise op ∣ p ↦ M `in H) =
   hole-ty-h-⊑ᵢ H
 
 
--- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT
+-- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT WITH A COMPUTATION
 
 infix 30 _[_]ₕ
 
@@ -97,6 +97,18 @@ _[_]ₕ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
 (promise op ∣ p ↦ N `in E) [ M ]ₕ =
   promise op ∣ p ↦ N `in (E [ M ]ₕ)
 
+
+-- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT WITH ANOTHER HOISTING CONTEXT
+
+_[_]ₕₕ : {Γ : Ctx} {Δ Δ' : BCtx} {X : VType} {o : O} {i : I} →
+         (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → Γ ⋈ Δ ⊢H[ Δ' ]⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
+         Γ ⊢H[ Δ ++ Δ' ]⦂ X ! (o , i)
+
+[-] [ H' ]ₕₕ =
+  H'
+(promise op ∣ p ↦ M `in H) [ H' ]ₕₕ =
+  promise op ∣ p ↦ M `in (H [ H' ]ₕₕ)
+  
 
 -- EVOLUTION OF PROCESS TYPES
 
