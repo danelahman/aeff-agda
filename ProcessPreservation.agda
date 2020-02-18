@@ -96,18 +96,6 @@ _[_]ₕ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
   M
 (promise op ∣ p ↦ N `in E) [ M ]ₕ =
   promise op ∣ p ↦ N `in (E [ M ]ₕ)
-
-
--- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT WITH ANOTHER HOISTING CONTEXT
-
-_[_]ₕₕ : {Γ : Ctx} {Δ Δ' : BCtx} {X : VType} {o : O} {i : I} →
-         (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → Γ ⋈ Δ ⊢H[ Δ' ]⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
-         Γ ⊢H[ Δ ++ Δ' ]⦂ X ! (o , i)
-
-[-] [ H' ]ₕₕ =
-  H'
-(promise op ∣ p ↦ M `in H) [ H' ]ₕₕ =
-  promise op ∣ p ↦ M `in (H [ H' ]ₕₕ)
   
 
 -- EVOLUTION OF PROCESS TYPES
@@ -542,7 +530,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           (V : Γ ⋈ Δ ⊢V⦂ `` (arₙ op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
           ----------------------------------------------------------------------
-          (run (H [ ↑ op p V M ]ₕ))
+          run (H [ ↑ op p V M ]ₕ)
           [ id ]↝
           ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]ₕ))
 

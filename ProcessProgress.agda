@@ -97,99 +97,76 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
 
 -- HOISTING A RETURN VALUE IS A RUN RESULT
 
-hoist-runresult : {Γ : Ctx}
-                  {Δ : BCtx}
+return-h-runresult : {Γ : Ctx}
+                     {Δ : BCtx}
+                     {X : VType}
+                     {o : O}
+                     {i : I}
+                     (V : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢V⦂ X) →
+                     (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
+                     ------------------------------------
+                     RunResult⟨ Γ ∣ H [ return V ]ₕ ⟩
+
+return-h-runresult V [-] =
+  return V
+return-h-runresult V (promise op ∣ p ↦ M `in H) =
+  promise (return-h-runresult V H)
+
+
+-- HOISTING AN AWAITING COMPUTATION IS A RUN RESULT
+
+await-h-runresult : {Γ : Ctx}
+                    {Δ : BCtx}
+                    {X Y : VType}
+                    {o : O}
+                    {i : I} →
+                    {y : ⟨ Y ⟩ ∈ (⟨⟨ Γ ⟩⟩ ⋈ Δ)} →
+                    (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
+                    {M : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)} →
+                    y ◄ M → 
+                    -----------------------------------------------------------
+                    RunResult⟨ Γ ∣ H [ M ]ₕ ⟩
+
+await-h-runresult [-] p =
+  awaiting p
+await-h-runresult (promise op ∣ q ↦ N `in H) p =
+  promise (await-h-runresult H p)
+
+
+-- COMPUTATION RESULT CAN BE TURNED INTO A HOISTING CONTEXT
+
+result-to-hoist : {Γ : Ctx}
                   {X : VType}
                   {o : O}
-                  {i : I}
-                  (V : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢V⦂ X) →
-                  (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
-                  ------------------------------------
-                  RunResult⟨ Γ ∣ H [ return V ]ₕ ⟩
+                  {i : I} → 
+                  {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
+                  Result⟨ Γ ∣ M ⟩ →
+                  -------------------------------
+                  Σ[ Δ ∈ BCtx ] Σ[ H ∈ ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i) ]
+                    ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]ₕ))
+                      ⊎
+                      (Σ[ op ∈ Σₙ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ] Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(arₙ op) ]
+                        Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ] (M ≡ H [ ↑ op p V N ]ₕ))
+                      ⊎
+                      Σ[ Y ∈ VType ] Σ[ y ∈ ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ] Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) ]
+                        Σ[ p ∈ y ◄ N ] (M ≡ H [ N ]ₕ))
 
-hoist-runresult V [-] =
-  return V
-hoist-runresult V (promise op ∣ p ↦ M `in H) =
-  promise (hoist-runresult V H)
-
-
--- HOISTING AN AWAITING COMPUTATION IS A RUN RESULTS
-
-await-runresult : {Γ : Ctx}
-                  {Δ : BCtx}
-                  {X Y : VType}
-                  {o : O}
-                  {i : I} →
-                  (y : ⟨ Y ⟩ ∈ (⟨⟨ Γ ⟩⟩ ⋈ Δ)) →
-                  (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
-                  (M : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
-                  y ◄ M → 
-                  -----------------------------------------------------
-                  RunResult⟨ Γ ∣ H [ M ]ₕ ⟩
-
-await-runresult y [-] M p =
-  awaiting p
-await-runresult y (promise op ∣ q ↦ N `in H) M p =
-  promise (await-runresult y H M p)
-
-
--- PROGRESS FOR HOISTING SIGNALS
-
-bctx-to-ctx-wrap : (Γ : Ctx) →
-                   (Δ : BCtx) →
-                   ------------------------------------
-                   append Γ ⟨⟨ bctx-to-ctx Δ ⟩⟩ ≡ Γ ⋈ Δ
-
-bctx-to-ctx-wrap Γ [] =
-  refl
-bctx-to-ctx-wrap Γ (X ∷∷ Δ) =
-  trans (cong (λ Γ'' → append Γ Γ'') (⟨⟨⟩⟩-append ([] ∷ X) (bctx-to-ctx Δ)))
-        (trans (append-assoc Γ ([] ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx Δ ⟩⟩)
-               (bctx-to-ctx-wrap (Γ ∷ ⟨ X ⟩) Δ))
-
-
-bctx-ctx-ren : (Δ : BCtx) → Ren ⟨⟨ bctx-to-ctx Δ ⟩⟩ ([] ⋈ Δ)
-bctx-ctx-ren Δ {X} x =
-  subst (λ Γ → X ∈ Γ) (trans append-lunit (bctx-to-ctx-wrap [] Δ)) x
-
-
-bctx-ctx-ren-var : (Δ : BCtx) → (X : VType) → Ren (⟨⟨ bctx-to-ctx Δ ⟩⟩ ∷ ⟨ X ⟩) ⟨⟨ bctx-to-ctx (Δ ++ X ∷∷ []) ⟩⟩
-bctx-ctx-ren-var Δ X {Y} x =
-  subst (λ Γ → Y ∈ Γ) (cong (λ Γ → ⟨⟨ Γ ⟩⟩) (sym (bctx-to-ctx-append {Δ} {⟦ X ⟧}))) x
-
-
-run-progress : {Δ : BCtx}
-               {X : VType}
-               {o : O}
-               {i : I}
-               (H : [] ⊢H[ Δ ]⦂ X ! (o , i)) → 
-               {M : ⟨⟨ bctx-to-ctx Δ ⟩⟩ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)} →
-               Result⟨ bctx-to-ctx Δ ∣ M ⟩ →
-               -----------------------------------------------------------------
-               Σ[ o' ∈ O ]
-                 Σ[ QQ ∈ PType o' ]
-                 Σ[ r ∈ X ‼ o , i ⇝ QQ ]
-                 Σ[ Q ∈ [] ⊢P⦂ QQ ]
-                 (run (H [ M-rename (bctx-ctx-ren Δ) M ]ₕ) [ r ]↝ Q)
-               ⊎
-               Result⟨ run (H [ M-rename (bctx-ctx-ren Δ) M ]ₕ) ⟩
-
-run-progress {Δ} H (return {X} V) =
-  inj₂ (proc (run (hoist-runresult (V-rename (bctx-ctx-ren Δ) V) H)))
-run-progress {Δ} H (signal {X} {o} {i} {op} {p} {V} {M'} R) =
-  inj₁ (_ , _ , id , _ , ↑ {o' = o} {i' = i} H p (V-rename (bctx-ctx-ren Δ) V) (M-rename (bctx-ctx-ren Δ) M'))
-run-progress {Δ} {X''} {o''} {i''} H (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M} {N} R)
-  with run-progress (H [ promise op ∣ p ↦ (M-rename (wk₂ (bctx-ctx-ren Δ)) M) `in [-] ]ₕₕ)
-                    {M-rename (bctx-ctx-ren-var Δ X) {!!}}
-                    {!!}
-... | q =
-  {!!}
-run-progress {Δ} H (awaiting {C} {Y} {y} {M} p) =
-  inj₂ (proc (run (await-runresult (bctx-ctx-ren Δ y) H (M-rename (bctx-ctx-ren Δ) M) (◄-ren p))))
-
-
-
-
+result-to-hoist (return {X} {o} {i} V) =
+   [] , [-] , inj₁ (V , refl) 
+result-to-hoist (signal {_} {o} {i} {op} {p} {V} {N} R) =
+  [] , [-] , inj₂ (inj₁ (op , p , V , N , refl))
+result-to-hoist (promise {Y} {_} {_} {o'} {_} {i'} {op} {p} {N} R) with result-to-hoist R
+... | Δ , H , inj₁ (V , q) =
+  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+    inj₁ (V , cong (λ N' → promise op ∣ p ↦ N `in N') q)
+... | Δ , H , inj₂ (inj₁ (op' , q , V , N'' , r)) =
+  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+    inj₂ (inj₁ (op' , q , V , N'' , cong (λ N' → promise op ∣ p ↦ N `in N') r))
+... | Δ , H , inj₂ (inj₂ (Z , y , N'' , q , r)) =
+  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+    inj₂ (inj₂ (Z , y , N'' , q , cong (λ N' → promise op ∣ p ↦ N `in N') r))
+result-to-hoist (awaiting {_} {Y} {y} {N} p) =
+  [] , [-] , inj₂ (inj₂ (Y , y , N , p , refl))
 
 
 -- PROGRESS THEOREM FOR PROCESSES
@@ -201,21 +178,18 @@ proc-progress : {o : O} {PP : PType o} →
                  ⊎
                  Result⟨ P ⟩)
 
-proc-progress (run {X} {o} {i} M) with progress M
+proc-progress {o'} (run {X} {o} {i} M) with progress M
 ... | inj₁ (N , r) =
   inj₁ (_ , _ , _ , _ , run r)
-... | inj₂ R =
-  subst (λ M → (Σ[ o' ∈ O ]
-                  Σ[ QQ ∈ PType o' ]
-                  Σ[ r ∈ (X ‼ o , i) ⇝ QQ ]
-                  Σ[ Q ∈ [] ⊢P⦂ QQ ]
-                  ((run M) [ r ]↝ Q)
-                ⊎
-                Result⟨ run M ⟩))
-        (trans (cong (λ (r : Ren [] []) → M-rename r M)
-                     (ifun-ext λ {X} → fun-ext (λ x → sym (ren-[]-id (bctx-ctx-ren []) x))))
-               (M-rename-id-lem M))
-        (run-progress [-] R)
+... | inj₂ R with result-to-hoist R
+... | Δ , H , inj₁ (V , p) =
+  inj₂ (proc (run (subst (λ M → RunResult⟨ [] ∣ M ⟩) (sym p) (return-h-runresult V H))))
+... | Δ , H , inj₂ (inj₁ (op , p , V , N , q)) =
+  inj₁ (_ , _ , id ,
+        ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ N ]ₕ)) ,
+        subst (λ M → run M [ id ]↝ _) (sym q) (↑ {o' = o'} {i' = i} H p V N))
+... | Δ , H , inj₂ (inj₂ (Y , y , N , p , q)) =
+  inj₂ (proc (run (subst (λ M → RunResult⟨ [] ∣ M ⟩) (sym q) (await-h-runresult H p))))
 proc-progress (P ∥ Q) with proc-progress P
 proc-progress (P ∥ Q) | inj₁ (o' , PP' , r , P' , r') =
   inj₁ (_ , _ , _ , _ , context {F = [-] ∥ₗ Q} r')
@@ -243,108 +217,3 @@ proc-progress (↓ op V .(_ ∥ _)) | inj₂ (proc (par {_} {_} {_} {_} {P} {Q} 
 proc-progress (↓ op V .(↑ _ _ _ _)) | inj₂ (signal {_} {_} {_} {p} {W} {Q} R) =
   inj₁ (_ , _ , _ , _ , ↓-↑ p V W Q)
 
-
-
-
-
-
-
-
-
-
-
-{-
-  
-
-progress : {Γ : Ctx} {C : CType} →
-           (M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C) →
-           -------------------------------
-           (Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⊢M⦂ C ] (M ↝ N)
-            ⊎
-            Result⟨ Γ ∣ M ⟩)
-
-progress (return V) =
-  inj₂ (return V)
-progress (let= M `in N) with progress M
-... | inj₁ (M' , r) =
-  inj₁ (let= M' `in N , context (let= [-] `in N) r)
-... | inj₂ (return V) =
-  inj₁ (N [ `_ [ V ]s ]m , let-return V N)
-... | inj₂ (signal {X} {o} {i} {op} {p} {V} {M'} r) =
-  inj₁ (↑ op p V (let= M' `in N) , let-↑ p V M' N)
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M'} {M''} r) =
-  inj₁ ((promise op ∣ p ↦ M' `in (let= M'' `in M-rename (comp-ren exchange wk₁) N)) , let-promise p M' M'' N)
-... | inj₂ (awaiting r) =
-  inj₂ (awaiting (let-in r))
-progress ((` x) · W) with ⇒-not-in-ctx x
-... | ()
-progress (ƛ M · W) =
-  inj₁ (M [ id-subst [ W ]s ]m , apply M W)
-progress (↑ op p V M) with progress M
-... | inj₁ (N , r) =
-  inj₁ (↑ op p V N , (context (↑ op p V [-]) r))
-... | inj₂ r =
-  inj₂ (signal r)
-progress (↓ op V M) with progress M
-progress (↓ op V M) | inj₁ (N , r) =
-  inj₁ (↓ op V N , context (↓ op V [-]) r)
-... | inj₂ (return W) =
-  inj₁ (return W , ↓-return V W)
-... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
-  inj₁ (↑ op' (↓ₑ-⊑ₒ op' p) W' (↓ op V M') , ↓-↑ p V W' M')
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decₙ op op'
-... | yes refl =
-  inj₁ (let= (subsume (↓ₑ-⊑ₒ-o' {o} p) (↓ₑ-⊑ₒ-i' {o} p) (M' [ id-subst [ V ]s ]m)) `in
-             ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) M'') [ id-subst [ ⟨ ` Hd ⟩ ]s ]m) ,
-        ↓-promise-op p V M' M'')
-... | no ¬r =
-  inj₁ (promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)}
-                         {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))}
-                         op'
-                         (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))))
-                         (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
-                                  (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
-                                  M')
-                         (↓ op (V-rename wk₁ V) M'') ,
-        ↓-promise-op' ¬r p V M' M'')
-progress (↓ op V M) | inj₂ (awaiting r) =
-  inj₂ (awaiting (interrupt r))
-progress (promise op ∣ p ↦ M `in N) with progress N
-... | inj₁ (N' , r) =
-  inj₁ (promise op ∣ p ↦ M `in N' , context (promise op ∣ p ↦ M `in [-]) r)
-... | inj₂ r =
-  inj₂ (promise r)
-progress (await ` x until M) =
-  inj₂ (awaiting await)
-progress (await ⟨ V ⟩ until M) =
-  inj₁ (M [ `_ [ V ]s ]m , await-promise V M)
-progress (subsume p q M) with progress M
-... | inj₁ (N , r) =
-  inj₁ (subsume p q N , context (subsume p q [-]) r)
-... | inj₂ (return V) =
-  inj₁ (return V , subsume-return V)
-... | inj₂ (signal {X} {o} {i} {op} {r} {V} {M'} s) =
-  inj₁ (↑ op (p op r) V (subsume p q M') , subsume-↑ r V M')
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {r} {M'} {M''} s) =
-  inj₁
-    ((promise op ∣ lkpᵢ-next-eq q r ↦
-      subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M' `in
-      subsume p q M'')
-     , subsume-promise r M' M'')
-... | inj₂ (awaiting r) =
-  inj₂ (awaiting (subsume r))
-
-
--- PROGRESS THEOREM FOR CLOSED COMPUTATIONS
-
-closed-progress : {C : CType} →
-                  (M : [] ⊢M⦂ C) →
-                  --------------------------
-                  (Σ[ N ∈ [] ⊢M⦂ C ] (M ↝ N)
-                   ⊎
-                   Result⟨ [] ∣ M ⟩)
-
-closed-progress M =
-  progress M
-
--}
