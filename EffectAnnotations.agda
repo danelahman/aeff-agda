@@ -14,7 +14,6 @@ module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
 postulate
-  ifun-ext : ∀ {a b} → ExtensionalityImplicit a b       -- assuming function extensionality
   fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality
 
 postulate
