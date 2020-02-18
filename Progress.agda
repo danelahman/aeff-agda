@@ -93,8 +93,8 @@ progress (let= M `in N) with progress M
   inj₁ (_ , let-↑ p V M' N)
 ... | inj₂ (promise {_} {_} {_} {_} {_} {_} {_} {p} {M'} {M''} r) =
   inj₁ (_ , let-promise p M' M'' N)
-... | inj₂ (awaiting r) =
-  inj₂ (awaiting (let-in r))
+... | inj₂ (awaiting R) =
+  inj₂ (awaiting (let-in R))
 progress (letrec M `in N) =
   inj₁ (_ , letrec-unfold M N)
 progress ((` x) · W) with ⇒-not-in-ctx x
@@ -138,8 +138,8 @@ progress (subsume p q M) with progress M
   inj₁ (_ , subsume-↑ r V M')
 ... | inj₂ (promise {_} {_} {_} {_} {_} {_} {_} {r} {M'} {M''} s) =
   inj₁ (_ , subsume-promise r M' M'')
-... | inj₂ (awaiting r) =
-  inj₂ (awaiting (subsume r))
+... | inj₂ (awaiting R) =
+  inj₂ (awaiting (subsume R))
 
 
 -- PROGRESS THEOREM FOR CLOSED COMPUTATIONS
