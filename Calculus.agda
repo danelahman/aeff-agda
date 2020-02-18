@@ -28,33 +28,6 @@ data SnocList (A : Set) : Set where
   _∷_ : SnocList A → A → SnocList A
 
 
-append : {A : Set} → SnocList A → SnocList A → SnocList A
-append l [] = l
-append l (l' ∷ a) = (append l l') ∷ a
-
-
-append-assoc : {A : Set} →
-               (l l' l'' : SnocList A) →
-               ---------------------------------------------------
-               append l (append l' l'') ≡ append (append l l') l''
-
-append-assoc l l' [] =
-  refl
-append-assoc l l' (l'' ∷ a) =
-  cong (λ l''' → l''' ∷ a) (append-assoc l l' l'')
-
-
-append-lunit : {A : Set} →
-               {l : SnocList A} →
-               ------------------
-               l ≡ append [] l 
-
-append-lunit {_} {[]} =
-  refl
-append-lunit {_} {(l ∷ a)} =
-  cong (λ l' → l' ∷ a) append-lunit
-
-
 -- CONTEXTS AND VARIABLES IN THEM (I.E., DE BRUIJN INDICES)
 
 Ctx = SnocList VType
