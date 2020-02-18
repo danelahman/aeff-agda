@@ -784,7 +784,8 @@ postulate
 
 Proof sketch for ↓↓ₑ-⊑ₒ-act:
 
-First, we observe that (without loss of generality, we'll assme that the interrupt maps are defined for all opᵢ)
+First, we observe that (without loss of generality, we'll consider i op = nothing 
+to be the same as i op = (o' , i') where o' and i' are empty maps)
 
   proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
   =
@@ -820,62 +821,211 @@ Next, we proceed by case analysis on i op:
 
      proj₁ (ops ↓↓ₑ (o , i)) ⊑ proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')).
 
-   Next, by case analysis on whether op is in ops
+   Next, we note that
 
-   2.1) op is not in ops                    
+     proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
+     = 
+     (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
 
-        Then, proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
-              = 
-              (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
+   where 
 
-        where 
+     (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                     ∪ 
+                     i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                     ∪
+                     i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                     ∪
+                     i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                     ∪
+                     ...
+                     ∪
+                     ...
+                     ∪
+                     iᵢ₋₁') opᵢ)
 
-          (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                          ∪ 
-                          i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                          ∪
-                          i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                          ∪
-                          i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                          ∪
-                          ...
-                          ∪
-                          ...
-                          ∪
-                          iᵢ₋₁') opᵢ)
+   Thus we need to show
 
-        We proceed by induction on n, i.e., the length of the list ops. 
+     o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₙ'
 
-        It suffices to show oᵢ ⊑ oᵢ' for all 1 <= i <= n.
+   For which it suffices to show (by using the idempotency of ∪ on RHS with o' repeatedly)
 
-        2.1.1) If n = length ops = 0:
+     oᵢ ⊑ o' ∪ oᵢ'
 
-               then we are vacuously done.
+   We proceed by induction on n, i.e., the length of the list ops.
 
-        2.1.2) If n = length ops = 1:
+   2.1) If n = length ops = 0:
+
+        Then we are done vacuously (and the overall inclusion is just o ⊑ o ∪ o').
+
+   2.2) If n = length ops = 1:
+
+        Then we proceed by case analysis whether op ≡ op₁.
+
+        2.2.1) If op ≡ op₁:
+
+               Then we have to show
+
+                 o₁ = proj₁ (i op) = o'
+                 ⊑ 
+                 o' ∪ o₁' = o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op) = o' ∪ proj₁ (i[ op ↦ nothing ] op) ∪ proj₁ (i' op)
+
+               which holds straightforwardly.
+
+        2.2.2) If op ≢ op₁:
+
+               Then we have to show
+               
+                 o₁ = proj₁ (i op₁)
+                 ⊑
+                 o' ∪ o₁' = o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op₁) = o' ∪ proj₁ (i op₁) ∪ proj₁ (i' op₁)
+
+               which holds straigthforwardly.
+
+   2.3) If n = length ops = m + 1
+
+        By induction hypothesis, we know that forall 1 <= i <= m, we have
         
-               Then we need to prove
+          oᵢ ⊑ o' ∪ oᵢ'
 
-                 o₁ ⊑ proj₁ (i[ op ↦ nothing ] ∪ᵢ i') op₁ = proj₁ ((i[ op ↦ nothing ]) op) ∪ proj₁ (i' op)
+        and we need to show
 
-               But as op₁ ≠ op, then 
+          oₘ₊₁ ⊑ o' ∪ oₘ₊₁'
 
-                 (i[ op ↦ nothing ]) op₁ = i op₁ = o₁
+        Which, when we unfold the definitions, amounts to having to show
 
-               Thus, we are simply left showing
+          oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                          ∪ 
+                          i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          ...
+                          ∪
+                          ...
+                          ∪
+                          iₘ) opₘ₊₁)
+          ⊑ 
+          o' ∪ oₘ₊₁' = o' ∪ proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                                    ∪ 
+                                    i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                                    ∪
+                                    i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                                    ∪
+                                    i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                                    ∪
+                                    ...
+                                    ∪
+                                    ...
+                                    ∪
+                                    iₘ') opₘ₊₁)
 
-                 o₁ ⊑ o₁ ∪ proj₁ (i' op)
+        that is
 
-        2.1.3) If n = length ops = m + 1:
+          oₘ₊₁  = proj₁ (i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                  ∪ 
+                  proj₁ (i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                  ∪
+                  proj₁ (i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                  ∪
+                  ...
+                  ∪
+                  ...
+                  ∪
+                  proj₁ (iₘ opₘ₊₁)
+          ⊑ 
+          o' ∪ oₘ₊₁' = o' ∪ proj₁ (i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                            ∪ 
+                            proj₁ (i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                            ∪
+                            proj₁ (i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                            ∪
+                            proj₁ (i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                            ∪
+                            ...
+                            ∪
+                            ...
+                            ∪
+                            proj₁ (iₘ' opₘ₊₁)
 
-               By induction hypothesis, we know that oᵢ ⊑ oᵢ' for all 1 <= i <= m, 
 
-               and we are left having to show oₘ ⊑ oₘ'.
 
-               ...
 
-   2.2) op is in ops
 
-        ...
+
+...
+
+
+   We proceed by induction on n, i.e., the length of the list ops. 
+
+   2.1) If n = length ops = 0:
+
+        Then we simply have to show o ⊑ o ∪ o'.
+
+   2.2) If n = length ops = 1:
+
+        Then we proceed by case analysis whether op ≡ op₁.
+
+        2.2.1) If op ≡ op₁:
+
+               Then we have to show
+
+                 o ∪ o₁ = o ∪ proj₁ (i op) = o ∪ o'
+                 ⊑ 
+                 o ∪ o' ∪ o₁' = o ∪ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op) = o ∪ o' ∪ proj₁ (i[ op ↦ nothing ] op) ∪ proj₁ (i' op)
+
+               which holds straigthforwardly.
+
+        2.2.2) If op ≢ op₁:
+
+               Then we have to show
+               
+                 o ∪ o₁ = o ∪ proj₁ (i op₁)
+                 ⊑
+                 o ∪ o' ∪ o₁' = o ∪ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op₁) = o ∪ o' ∪ proj₁ (i op₁) ∪ proj₁ (i' op₁)
+
+               which holds straigthforwardly.
+
+   2.3) If n = length ops = m + 1
+
+        By induction hypothesis, we know that
+        
+          o ∪ o₁ ∪ o₂ ∪ ... ∪ oₘ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₘ'
+
+        and we need to show that
+
+          o ∪ o₁ ∪ o₂ ∪ ... ∪ oₘ ∪ oₘ₊₁ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₘ' ∪ oₘ₊₁'
+
+        thus it suffices to show 
+
+          oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                          ∪ 
+                          i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          ...
+                          ∪
+                          ...
+                          ∪
+                          iₘ) opₘ₊₁)
+          ⊑ 
+          oₘ₊₁' = proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                          ∪ 
+                          i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                          ∪
+                          i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                          ∪
+                          ...
+                          ∪
+                          ...
+                          ∪
+                          iₘ') opₘ₊₁)
+
+
+
+...
+
 
 -}
