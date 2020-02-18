@@ -141,14 +141,17 @@ result-to-hoist : {Γ : Ctx}
                   {i : I} → 
                   {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
                   Result⟨ Γ ∣ M ⟩ →
-                  -------------------------------
+                  ------------------------------------------------------------------
                   Σ[ Δ ∈ BCtx ] Σ[ H ∈ ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i) ]
                     ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]ₕ))
                       ⊎
-                      (Σ[ op ∈ Σₙ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ] Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(arₙ op) ]
-                        Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ] (M ≡ H [ ↑ op p V N ]ₕ))
+                      (Σ[ op ∈ Σₙ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ]
+                        Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(arₙ op) ]
+                        Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ]
+                        (M ≡ H [ ↑ op p V N ]ₕ))
                       ⊎
-                      Σ[ Y ∈ VType ] Σ[ y ∈ ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ] Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) ]
+                      Σ[ Y ∈ VType ] Σ[ y ∈ ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ]
+                        Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) ]
                         Σ[ p ∈ y ◄ N ] (M ≡ H [ N ]ₕ))
 
 result-to-hoist (return {X} {o} {i} V) =
