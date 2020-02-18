@@ -31,7 +31,7 @@ data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ 
              {o : O}
              {i : I}
              (V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ X) →
-             --------------------------------------
+             -----------------------------------------
              RunResult⟨ Γ ∣ return {o = o} {i = i} V ⟩
 
   promise  : {X Y : VType}
@@ -49,8 +49,8 @@ data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ 
              {Y : VType}
              {y : ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩}
              {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
-             y ◄ M →
-             --------------------------------
+             y ⧗ M →
+             ---------------------
              RunResult⟨ Γ ∣ M ⟩
 
 
@@ -71,7 +71,7 @@ data ParResult⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            {Q : [] ⊢P⦂ QQ} →
            ParResult⟨ P ⟩ →
            ParResult⟨ Q ⟩ →
-           --------------------------
+           ------------------
            ParResult⟨ P ∥ Q ⟩
 
 
@@ -81,7 +81,7 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            {PP : PType o}
            {P : [] ⊢P⦂ PP} →
            ParResult⟨ P ⟩ →
-           --------------------------
+           -----------------
            Result⟨ P ⟩
 
   signal : {o : O}
@@ -123,7 +123,7 @@ await-h-runresult : {Γ : Ctx}
                     {y : ⟨ Y ⟩ ∈ (⟨⟨ Γ ⟩⟩ ⋈ Δ)} →
                     (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
                     {M : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)} →
-                    y ◄ M → 
+                    y ⧗ M → 
                     -----------------------------------------------------------
                     RunResult⟨ Γ ∣ H [ M ]ₕ ⟩
 
@@ -152,7 +152,7 @@ result-to-hoist : {Γ : Ctx}
                       ⊎
                       Σ[ Y ∈ VType ] Σ[ y ∈ ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ]
                         Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) ]
-                        Σ[ p ∈ y ◄ N ] (M ≡ H [ N ]ₕ))
+                        Σ[ p ∈ y ⧗ N ] (M ≡ H [ N ]ₕ))
 
 result-to-hoist (return {X} {o} {i} V) =
    [] , [-] , inj₁ (V , refl) 

@@ -19,21 +19,21 @@ module AwaitingComputations where
 
 -- COMPUTATIONS THAT ARE TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
     
-data _◄_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ ⊢M⦂ C → Set where
+data _⧗_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ ⊢M⦂ C → Set where
 
   await     : {C : CType}
               {M : Γ ∷ X ⊢M⦂ C} →
               -------------------------
-              x ◄ (await (` x) until M)
+              x ⧗ (await (` x) until M)
 
   let-in    : {X Y : VType}
               {o : O}
               {i : I}
               {M : Γ ⊢M⦂ X ! (o , i)}
               {N : Γ ∷ X ⊢M⦂ Y ! (o , i)} →
-              x ◄ M →
+              x ⧗ M →
               -----------------------------
-              x ◄ (let= M `in N)
+              x ⧗ (let= M `in N)
 
   interrupt : {X : VType}
               {o : O}
@@ -41,9 +41,9 @@ data _◄_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               {op : Σₙ}
               {V : Γ ⊢V⦂ ``(arₙ op)}
               {M : Γ ⊢M⦂ X ! (o , i)} →
-              x ◄ M →
+              x ⧗ M →
               -------------------------
-              x ◄ (↓ op V M)
+              x ⧗ (↓ op V M)
 
   subsume   : {X : VType}
               {o o' : O}
@@ -51,45 +51,45 @@ data _◄_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               {p : o ⊑ₒ o'}
               {q : i ⊑ᵢ i'}
               {M : Γ ⊢M⦂ X ! (o , i)} →
-              x ◄ M →
+              x ⧗ M →
               -------------------------
-              x ◄ (subsume p q M)
+              x ⧗ (subsume p q M)
 
 
 -- DECIDING IF A COMPUTATION IS TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
 
-dec◄ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ◄ M)
-dec◄ x (return V) =
+dec-⧗ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ⧗ M)
+dec-⧗ x (return V) =
   no (λ ())
-dec◄ {Γ} {X} x (let= M `in N) with dec◄ x M
+dec-⧗ {Γ} {X} x (let= M `in N) with dec-⧗ x M
 ... | yes p =
   yes (let-in p)
 ... | no ¬p =
   no (λ { (let-in q) → contradiction q ¬p })
-dec◄ x (letrec M `in N) =
+dec-⧗ x (letrec M `in N) =
   no (λ ())
-dec◄ x (V · W) =
+dec-⧗ x (V · W) =
   no (λ ())
-dec◄ x (↑ op p V M) =
+dec-⧗ x (↑ op p V M) =
   no (λ ())
-dec◄ {Γ} {X} x (↓ op V M) with dec◄ x M
+dec-⧗ {Γ} {X} x (↓ op V M) with dec-⧗ x M
 ... | yes p =
   yes (interrupt p)
 ... | no ¬p =
   no (λ { (interrupt q) → contradiction q ¬p })
-dec◄ x (promise op ∣ p ↦ M `in N) =
+dec-⧗ x (promise op ∣ p ↦ M `in N) =
   no (λ ())
-dec◄ {Γ} {X} x (await_until_ {Y} (` y) M) with dec-vty X Y
-dec◄ {Γ} {.Y} x (await_until_ {Y} (` y) M) | yes refl with dec-var x y
+dec-⧗ {Γ} {X} x (await_until_ {Y} (` y) M) with dec-vty X Y
+dec-⧗ {Γ} {.Y} x (await_until_ {Y} (` y) M) | yes refl with dec-var x y
 ... | yes refl =
   yes await
 ... | no ¬p =
   no (λ { await → contradiction refl ¬p })
-dec◄ {Γ} {X} x (await_until_ {Y} (` y) M) | no ¬p =
+dec-⧗ {Γ} {X} x (await_until_ {Y} (` y) M) | no ¬p =
   no (λ { await → contradiction refl ¬p })  
-dec◄ x (await ⟨ V ⟩ until M) =
+dec-⧗ x (await ⟨ V ⟩ until M) =
   no (λ ())
-dec◄ {Γ} {X} x (subsume p q M) with dec◄ x M
+dec-⧗ {Γ} {X} x (subsume p q M) with dec-⧗ x M
 ... | yes r =
   yes (subsume r)
 ... | no ¬r =
