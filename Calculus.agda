@@ -98,6 +98,13 @@ mutual
                        -----------------------
                        Γ ⊢M⦂ Y ! (o , i)
 
+    letrec_`in_      : {X : VType}
+                       {C D : CType} →
+                       Γ ∷ (X ⇒ C) ∷ X ⊢M⦂ C →
+                       Γ ∷ (X ⇒ C) ⊢M⦂ D →
+                       -----------------------
+                       Γ ⊢M⦂ D
+
     _·_              : {X : VType}
                        {C : CType} → 
                        Γ ⊢V⦂ X ⇒ C →

@@ -66,6 +66,8 @@ dec◄ {Γ} {X} x (let= M `in N) with dec◄ x M
   yes (let-in p)
 ... | no ¬p =
   no (λ { (let-in q) → contradiction q ¬p })
+dec◄ x (letrec M `in N) =
+  no (λ ())
 dec◄ x (V · W) =
   no (λ ())
 dec◄ x (↑ op p V M) =

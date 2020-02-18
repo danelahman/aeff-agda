@@ -52,6 +52,8 @@ mutual
     return (V [ s ]v)
   (let= M `in N) [ s ]m =
     let= (M [ s ]m) `in (N [ lift s ]m)
+  (letrec M `in N) [ s ]m =
+    letrec M [ lift (lift s) ]m `in (N [ lift s ]m)
   (V · W) [ s ]m =
     (V [ s ]v) · (W [ s ]v)
   (↑ op p V M) [ s ]m =

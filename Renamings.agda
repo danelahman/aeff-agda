@@ -40,38 +40,10 @@ wk₂ f Hd = Hd
 wk₂ f (Tl v) = Tl (f v)
 
 
-wk₂-id-lem : {Γ : Ctx}
-             {X Y : VType} →
-             (x : Y ∈ (Γ ∷ X)) →
-             ---------------------------
-             (wk₂ id-ren x) ≡ (id-ren x)
-             
-wk₂-id-lem Hd = refl
-wk₂-id-lem (Tl x) = refl
-
-
-wk₂-comp-lem : {Γ Γ' Γ'' : Ctx}
-               {X Y : VType}
-               {g : Ren Γ' Γ''}
-               {f : Ren Γ Γ'} →
-               (x : Y ∈ (Γ ∷ X)) →
-               ------------------------------------------------
-               comp-ren (wk₂ g) (wk₂ f) x ≡ wk₂ (comp-ren g f) x
-               
-wk₂-comp-lem Hd = refl
-wk₂-comp-lem (Tl x) = refl
-
-
--- RENAMINGS BETWEEN EMPTY CONTEXTS ARE VACUOUSLY EQUAL
-
-ren-[]-id : (r : Ren [] []) →
-            {X : VType} → 
-            (x : X ∈ []) → 
-            -----------------
-            id-ren x ≡ r x
-                  
-ren-[]-id = λ r {X} ()
-
+wk₃ : {Γ : Ctx} {X Y Z : VType} → Ren (Γ ∷ Y ∷ Z) (Γ ∷ X ∷ Y ∷ Z)
+wk₃ Hd = Hd
+wk₃ (Tl Hd) = Tl Hd
+wk₃ (Tl (Tl x)) = Tl (Tl (Tl x))
 
 
 -- ACTION OF RENAMING ON WELL-TYPED TERMS
@@ -89,6 +61,8 @@ mutual
     return (V-rename f V)
   M-rename f (let= M `in N) =
     let= M-rename f M `in M-rename (wk₂ f) N
+  M-rename f (letrec M `in N) =
+    letrec M-rename (wk₂ (wk₂ f)) M `in M-rename (wk₂ f) N
   M-rename f (V · W) =
     V-rename f V · V-rename f W
   M-rename f (↑ op p V M) =

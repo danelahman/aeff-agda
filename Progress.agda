@@ -86,70 +86,58 @@ progress (return V) =
   inj₂ (return V)
 progress (let= M `in N) with progress M
 ... | inj₁ (M' , r) =
-  inj₁ (let= M' `in N , context (let= [-] `in N) r)
+  inj₁ (_ , context (let= [-] `in N) r)
 ... | inj₂ (return V) =
-  inj₁ (N [ `_ [ V ]s ]m , let-return V N)
-... | inj₂ (signal {X} {o} {i} {op} {p} {V} {M'} r) =
-  inj₁ (↑ op p V (let= M' `in N) , let-↑ p V M' N)
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {p} {M'} {M''} r) =
-  inj₁ ((promise op ∣ p ↦ M' `in (let= M'' `in M-rename (comp-ren exchange wk₁) N)) , let-promise p M' M'' N)
+  inj₁ (_ , let-return V N)
+... | inj₂ (signal {_} {_} {_} {_} {p} {V} {M'} r) =
+  inj₁ (_ , let-↑ p V M' N)
+... | inj₂ (promise {_} {_} {_} {_} {_} {_} {_} {p} {M'} {M''} r) =
+  inj₁ (_ , let-promise p M' M'' N)
 ... | inj₂ (awaiting r) =
   inj₂ (awaiting (let-in r))
+progress (letrec M `in N) =
+  inj₁ (_ , letrec-unfold M N)
 progress ((` x) · W) with ⇒-not-in-ctx x
 ... | ()
 progress (ƛ M · W) =
   inj₁ (M [ id-subst [ W ]s ]m , apply M W)
 progress (↑ op p V M) with progress M
 ... | inj₁ (N , r) =
-  inj₁ (↑ op p V N , (context (↑ op p V [-]) r))
+  inj₁ (_ , (context (↑ op p V [-]) r))
 ... | inj₂ r =
   inj₂ (signal r)
 progress (↓ op V M) with progress M
 progress (↓ op V M) | inj₁ (N , r) =
-  inj₁ (↓ op V N , context (↓ op V [-]) r)
+  inj₁ (_ , context (↓ op V [-]) r)
 ... | inj₂ (return W) =
-  inj₁ (return W , ↓-return V W)
+  inj₁ (_ , ↓-return V W)
 ... | inj₂ (signal {X} {o} {i} {op'} {p} {W'} {M'} q) =
-  inj₁ (↑ op' (↓ₑ-⊑ₒ op' p) W' (↓ op V M') , ↓-↑ p V W' M')
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op'} {p} {M'} {M''} q) with decₙ op op'
+  inj₁ (_ , ↓-↑ p V W' M')
+... | inj₂ (promise {_} {_} {_} {_} {_} {_} {op'} {p} {M'} {M''} q) with decₙ op op'
 ... | yes refl =
-  inj₁ (let= (subsume (↓ₑ-⊑ₒ-o' {o} p) (↓ₑ-⊑ₒ-i' {o} p) (M' [ id-subst [ V ]s ]m)) `in
-             ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) M'') [ id-subst [ ⟨ ` Hd ⟩ ]s ]m) ,
-        ↓-promise-op p V M' M'')
+  inj₁ (_ , ↓-promise-op p V M' M'')
 ... | no ¬r =
-  inj₁ (promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)}
-                         {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))}
-                         op'
-                         (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p))))
-                         (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
-                                  (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} ¬r p)))))
-                                  M')
-                         (↓ op (V-rename wk₁ V) M'') ,
-        ↓-promise-op' ¬r p V M' M'')
+  inj₁ (_ , ↓-promise-op' ¬r p V M' M'')
 progress (↓ op V M) | inj₂ (awaiting r) =
   inj₂ (awaiting (interrupt r))
 progress (promise op ∣ p ↦ M `in N) with progress N
 ... | inj₁ (N' , r) =
-  inj₁ (promise op ∣ p ↦ M `in N' , context (promise op ∣ p ↦ M `in [-]) r)
+  inj₁ (_ , context (promise op ∣ p ↦ M `in [-]) r)
 ... | inj₂ r =
   inj₂ (promise r)
 progress (await ` x until M) =
   inj₂ (awaiting await)
 progress (await ⟨ V ⟩ until M) =
-  inj₁ (M [ `_ [ V ]s ]m , await-promise V M)
+  inj₁ (_ , await-promise V M)
 progress (subsume p q M) with progress M
 ... | inj₁ (N , r) =
-  inj₁ (subsume p q N , context (subsume p q [-]) r)
+  inj₁ (_ , context (subsume p q [-]) r)
 ... | inj₂ (return V) =
-  inj₁ (return V , subsume-return V)
+  inj₁ (_ , subsume-return V)
 ... | inj₂ (signal {X} {o} {i} {op} {r} {V} {M'} s) =
-  inj₁ (↑ op (p op r) V (subsume p q M') , subsume-↑ r V M')
-... | inj₂ (promise {X} {Y} {o} {o'} {i} {i'} {op} {r} {M'} {M''} s) =
-  inj₁
-    ((promise op ∣ lkpᵢ-next-eq q r ↦
-      subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M' `in
-      subsume p q M'')
-     , subsume-promise r M' M'')
+  inj₁ (_ , subsume-↑ r V M')
+... | inj₂ (promise {_} {_} {_} {_} {_} {_} {_} {r} {M'} {M''} s) =
+  inj₁ (_ , subsume-promise r M' M'')
 ... | inj₂ (awaiting r) =
   inj₂ (awaiting (subsume r))
 

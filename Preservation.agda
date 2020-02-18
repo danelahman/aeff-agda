@@ -179,6 +179,15 @@ mutual
                       ↝
                       (promise op ∣ p ↦ M₁ `in (let= M₂ `in (M-rename (comp-ren exchange wk₁) N)))
 
+    letrec-unfold   : {X : VType}
+                      {C D : CType}
+                      (M : Γ ∷ (X ⇒ C) ∷ X ⊢M⦂ C) →
+                      (N : Γ ∷ (X ⇒ C) ⊢M⦂ D) →
+                      ----------------------------------------
+                      (letrec M `in N)
+                      ↝
+                      N [ id-subst [ ƛ (letrec M-rename wk₃ M `in M-rename exchange M) ]s ]m
+
     ↓-return        : {X : VType}
                       {o : O}
                       {i : I}
