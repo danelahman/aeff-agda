@@ -39,10 +39,10 @@ data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ 
              {i i' : I}
              {op : Σₙ}
              {p : lkpᵢ op i ≡ just (o' , i')}
-             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ X ! (o' , i')}
+             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ ⟨ X ⟩ ! (o' , i')}
              {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
              RunResult⟨ Γ ∷ X ∣ N ⟩ →
-             -------------------------------------------
+             ------------------------------------------------
              RunResult⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
 
   awaiting : {C : CType}
