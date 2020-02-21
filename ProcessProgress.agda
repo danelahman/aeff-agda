@@ -39,10 +39,10 @@ data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ 
              {i i' : I}
              {op : Σₛ}
              {p : lkpᵢ op i ≡ just (o' , i')}
-             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(ar op) ⊢M⦂ X ! (o' , i')}
+             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(payload op) ⊢M⦂ X ! (o' , i')}
              {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
              RunResult⟨ Γ ∷ X ∣ N ⟩ →
-             -------------------------------------------
+             ------------------------------------------------
              RunResult⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
 
   awaiting : {C : CType}
@@ -88,10 +88,10 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            {PP : PType o}
            {op : Σₛ}
            {p : op ∈ₒ o}
-           {V : [] ⊢V⦂ ``(ar op)}
+           {V : [] ⊢V⦂ ``(payload op)}
            {P : [] ⊢P⦂ PP} →
            Result⟨ P ⟩ →
-           -----------------------
+           ---------------------------
            Result⟨ ↑ op p V P ⟩
 
 
@@ -146,7 +146,7 @@ result-to-hoist : {Γ : Ctx}
                     ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]ₕ))
                       ⊎
                       (Σ[ op ∈ Σₛ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ]
-                        Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(ar op) ]
+                        Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(payload op) ]
                         Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ]
                         (M ≡ H [ ↑ op p V N ]ₕ))
                       ⊎

@@ -31,9 +31,9 @@ data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {i i' : I} → 
                      (op : Σₛ) →
                      lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(ar op) ⊢M⦂ X ! (o' , i') →
+                     Γ ∷ ``(payload op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢H[ Δ ]⦂ Y ! (o , i) →
-                     ---------------------------------
+                     --------------------------------------
                      Γ ⊢H[ X ∷∷ Δ ]⦂ Y ! (o , i)
 
 
@@ -256,17 +256,17 @@ data _⊢F⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
             {PP : PType o}  →
             (op : Σₛ) →
             op ∈ₒ o →
-            Γ ⊢V⦂ ``(ar op) →
+            Γ ⊢V⦂ ``(payload op) →
             Γ ⊢F⦂ PP →
-            ------------------
+            ----------------------
             Γ ⊢F⦂ PP
 
   ↓       : {o : O}
             {PP : PType o}
             (op : Σₛ) →
-            Γ ⊢V⦂ ``(ar op) →
+            Γ ⊢V⦂ ``(payload op) →
             Γ ⊢F⦂ PP →
-            ------------------
+            ----------------------
             Γ ⊢F⦂ op ↓ₚ PP
             
 
@@ -459,7 +459,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
            {QQ : PType o'}
            {op : Σₛ} → 
            (p : op ∈ₒ o) →
-           (V : Γ ⊢V⦂ `` (ar op)) →
+           (V : Γ ⊢V⦂ `` (payload op)) →
            (P : Γ ⊢P⦂ PP) →
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
@@ -472,7 +472,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
            {QQ : PType o'}
            {op : Σₛ} → 
            (p : op ∈ₒ o') →
-           (V : Γ ⊢V⦂ `` (ar op)) →
+           (V : Γ ⊢V⦂ `` (payload op)) →
            (P : Γ ⊢P⦂ PP) →
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
@@ -486,9 +486,9 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           {o : O}
           {i : I}
           {op : Σₛ} → 
-          (V : Γ ⊢V⦂ `` (ar op)) → 
+          (V : Γ ⊢V⦂ `` (payload op)) → 
           (M : Γ ⊢M⦂ X ! (o , i)) →
-          -------------------------
+          -----------------------------
           ↓ op V (run M)
           [ id ]↝
           run (↓ op V M)
@@ -497,10 +497,10 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           {PP : PType o}
           {QQ : PType o'}
           {op : Σₛ}
-          (V : Γ ⊢V⦂ `` (ar op)) →
+          (V : Γ ⊢V⦂ `` (payload op)) →
           (P : Γ ⊢P⦂ PP) →
           (Q : Γ ⊢P⦂ QQ) →
-          ----------------------------------------------------------------------
+          -----------------------------
           ↓ op V (P ∥ Q)
           [ ⇝-refl ]↝
           ((↓ op V P) ∥ (↓ op V Q))
@@ -510,8 +510,8 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           {op : Σₛ}
           {op' : Σₛ} →
           (p : op' ∈ₒ o) →
-          (V : Γ ⊢V⦂ ``(ar op)) →
-          (W : Γ ⊢V⦂ ``(ar op')) →
+          (V : Γ ⊢V⦂ ``(payload op)) →
+          (W : Γ ⊢V⦂ ``(payload op')) →
           (P : Γ ⊢P⦂ PP) →
           -----------------------------------
           ↓ op V (↑ op' p W P)
@@ -527,7 +527,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → 
           {op : Σₛ} → 
           (p : op ∈ₒ hole-ty-hₒ H) →
-          (V : Γ ⋈ Δ ⊢V⦂ `` (ar op)) →
+          (V : Γ ⋈ Δ ⊢V⦂ `` (payload op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
           ----------------------------------------------------------------------
           run (H [ ↑ op p V M ]ₕ)

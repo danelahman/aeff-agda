@@ -41,7 +41,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {i : I} →
                      (op : Σₛ) →
                      op ∈ₒ o →
-                     Γ ⊢V⦂ ``(ar op) →
+                     Γ ⊢V⦂ ``(payload op) →
                      Γ ⊢E[ Δ ]⦂ X ! (o , i) →
                      ------------------------
                      Γ ⊢E[ Δ ]⦂ X ! (o , i)
@@ -51,7 +51,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {o : O}
                      {i : I}
                      (op : Σₛ) →
-                     Γ ⊢V⦂ ``(ar op) →
+                     Γ ⊢V⦂ ``(payload op) →
                      Γ ⊢E[ Δ ]⦂ X ! (o , i) →
                      ---------------------------
                      Γ ⊢E[ Δ ]⦂ X ! op ↓ₑ (o , i)
@@ -62,7 +62,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {i i' : I} → 
                      (op : Σₛ) →
                      lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(ar op) ⊢M⦂ X ! (o' , i') →
+                     Γ ∷ ``(payload op) ⊢M⦂ X ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
                      ---------------------------------
                      Γ ⊢E[ X ∷∷ Δ ]⦂ Y ! (o , i)
@@ -158,7 +158,7 @@ mutual
                       {i : I}
                       {op : Σₛ} →
                       (p : op ∈ₒ o) →
-                      (V : Γ ⊢V⦂ ``(ar op)) →
+                      (V : Γ ⊢V⦂ ``(payload op)) →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
                       -----------------------------
@@ -171,7 +171,7 @@ mutual
                       {i i' : I}
                       {op : Σₛ} →
                       (p : lkpᵢ op i ≡ just (o' , i')) →
-                      (M₁ : Γ ∷ ``(ar op) ⊢M⦂ X ! (o' , i')) →
+                      (M₁ : Γ ∷ ``(payload op) ⊢M⦂ X ! (o' , i')) →
                       (M₂ : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       (N : Γ ∷ Y ⊢M⦂ Z ! (o , i)) →
                       ---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ mutual
                       {o : O}
                       {i : I}
                       {op : Σₛ} →
-                      (V : Γ ⊢V⦂ ``(ar op)) →
+                      (V : Γ ⊢V⦂ ``(payload op)) →
                       (W : Γ ⊢V⦂ X) →
                       ---------------------------------------------------------------
                       ↓ {o = o} {i = i} op V (return W)
@@ -205,8 +205,8 @@ mutual
                       {op : Σₛ}
                       {op' : Σₛ} →
                       (p : op' ∈ₒ o) →
-                      (V : Γ ⊢V⦂ ``(ar op)) →
-                      (W : Γ ⊢V⦂ ``(ar op')) →
+                      (V : Γ ⊢V⦂ ``(payload op)) →
+                      (W : Γ ⊢V⦂ ``(payload op')) →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       -------------------------------
                       ↓ op V (↑ op' p W M)
@@ -218,8 +218,8 @@ mutual
                       {i i' : I}
                       {op : Σₛ} →
                       (p : lkpᵢ op i ≡ just (o' , i')) →
-                      (V : Γ ⊢V⦂ ``(ar op)) → 
-                      (M : Γ ∷ ``(ar op) ⊢M⦂ X ! (o' , i')) →
+                      (V : Γ ⊢V⦂ ``(payload op)) → 
+                      (M : Γ ∷ ``(payload op) ⊢M⦂ X ! (o' , i')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       ---------------------------------------------------------------------------------------
                       ↓ op V (promise op ∣ p ↦ M `in N )
@@ -233,8 +233,8 @@ mutual
                       {op op' : Σₛ} →
                       (p : ¬ op ≡ op') →
                       (q : lkpᵢ op' i ≡ just (o' , i')) →
-                      (V : Γ ⊢V⦂ ``(ar op)) → 
-                      (M : Γ ∷ ``(ar op') ⊢M⦂ X ! (o' , i')) →
+                      (V : Γ ⊢V⦂ ``(payload op)) → 
+                      (M : Γ ∷ ``(payload op') ⊢M⦂ X ! (o' , i')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       ---------------------------------------------------------------------------------------
                       ↓ op V (promise op' ∣ q ↦ M `in N )
@@ -298,7 +298,7 @@ mutual
                       {q : i ⊑ᵢ i'}
                       {op : Σₛ} → 
                       (r : op ∈ₒ o) →
-                      (V : Γ ⊢V⦂ ``(ar op)) →
+                      (V : Γ ⊢V⦂ ``(payload op)) →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       -------------------------------
                       subsume p q (↑ op r V M)
@@ -312,7 +312,7 @@ mutual
                       {q : i ⊑ᵢ i'}
                       {op : Σₛ} →
                       (r : lkpᵢ op i ≡ just (o'' , i''))
-                      (M : Γ ∷ ``(ar op) ⊢M⦂ X ! (o'' , i'')) →
+                      (M : Γ ∷ ``(payload op) ⊢M⦂ X ! (o'' , i'')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       ------------------------------------------------------------------
                       subsume p q (promise op ∣ r ↦ M `in N)

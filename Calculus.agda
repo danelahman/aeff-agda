@@ -13,7 +13,7 @@ module Calculus where
 
 -- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND BASE CONSTANTS
 
-postulate ar : Σₛ → GType          -- arity assignment for signal and interrupt names
+postulate payload : Σₛ → GType          -- payload type assignment for signal and interrupt names
 
 postulate Σ-base : Set             -- set of base constants
 postulate ar-base : Σ-base → BType -- arity assignment to base constants
@@ -117,16 +117,16 @@ mutual
                        {i : I} →
                        (op : Σₛ) →
                        op ∈ₒ o →
-                       Γ ⊢V⦂ ``(ar op) →
+                       Γ ⊢V⦂ ``(payload op) →
                        Γ ⊢M⦂ X ! (o , i) →
-                       -------------------
+                       ----------------------
                        Γ ⊢M⦂ X ! (o , i)
 
     ↓                : {X : VType}
                        {o : O}
                        {i : I}
                        (op : Σₛ) →
-                       Γ ⊢V⦂ ``(ar op) →
+                       Γ ⊢V⦂ ``(payload op) →
                        Γ ⊢M⦂ X ! (o , i) →
                        ----------------------
                        Γ ⊢M⦂ X ! op ↓ₑ (o , i)
@@ -136,9 +136,9 @@ mutual
                        {i i' : I} → 
                        (op : Σₛ) →
                        lkpᵢ op i ≡ just (o' , i') →
-                       Γ ∷ ``(ar op) ⊢M⦂ X ! (o' , i') →
+                       Γ ∷ ``(payload op) ⊢M⦂ X ! (o' , i') →
                        Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i) →
-                       ---------------------------------
+                       --------------------------------------
                        Γ ⊢M⦂ Y ! (o , i)
 
     await_until_     : {X : VType}

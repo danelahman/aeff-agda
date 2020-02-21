@@ -39,15 +39,15 @@ data _⊢P⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
             {PP : PType o}
             (op : Σₛ) →
             op ∈ₒ o →
-            Γ ⊢V⦂ ``(ar op) →
+            Γ ⊢V⦂ ``(payload op) →
             Γ ⊢P⦂ PP →
-            -------------------
+            ----------------------
             Γ ⊢P⦂ PP
 
   ↓       : {o : O}
             {PP : PType o}
             (op : Σₛ) →
-            Γ ⊢V⦂ ``(ar op) →
+            Γ ⊢V⦂ ``(payload op) →
             Γ ⊢P⦂ PP →
-            ------------------
+            ----------------------
             Γ ⊢P⦂ op ↓ₚ PP
