@@ -37,22 +37,6 @@ data _∈_ (X : VType) : Ctx → Set where
   Tl : {Γ : Ctx} {Y : VType} → X ∈ Γ → X ∈ (Γ ∷ Y)
 
 
--- DECIDING EQUALITY OF VARIABLES
-
-dec-var : {X : VType} {Γ : Ctx} → (x y : X ∈ Γ) → Dec (x ≡ y)
-dec-var Hd Hd =
-  yes refl
-dec-var Hd (Tl y) =
-  no (λ ())
-dec-var (Tl x) Hd =
-  no (λ ())
-dec-var (Tl x) (Tl y) with dec-var x y
-dec-var (Tl x) (Tl .x) | yes refl =
-  yes refl
-dec-var {X} (Tl x) (Tl y) | no ¬p =
-  no (λ { refl → contradiction refl ¬p })
-
-
 -- DERIVATIONS OF WELL-TYPED TERMS
 
 mutual
