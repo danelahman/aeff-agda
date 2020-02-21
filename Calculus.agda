@@ -13,7 +13,7 @@ module Calculus where
 
 -- ARITY ASSIGNMENT TO SIGNATURES OF SIGNALS, INTERRUPTS, AND BASE CONSTANTS
 
-postulate payload : Σₛ → GType          -- payload type assignment for signal and interrupt names
+postulate payload : Σₛ → GType     -- payload type assignment for signal and interrupt names
 
 postulate Σ-base : Set             -- set of base constants
 postulate ar-base : Σ-base → BType -- arity assignment to base constants
