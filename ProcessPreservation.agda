@@ -29,9 +29,9 @@ data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      {X Y : VType}
                      {o o' : O}
                      {i i' : I} → 
-                     (op : Σₙ) →
+                     (op : Σₛ) →
                      lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(arₙ op) ⊢M⦂ ⟨ X ⟩ ! (o' , i') →
+                     Γ ∷ ``(ar op) ⊢M⦂ ⟨ X ⟩ ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢H[ Δ ]⦂ Y ! (o , i) →
                      --------------------------------------
                      Γ ⊢H[ X ∷∷ Δ ]⦂ Y ! (o , i)
@@ -113,8 +113,8 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
   act : {X : VType}
         {o o' o'' : O}
         {i i' i'' : I} →
-        (ops : List Σₙ) →
-        (op : Σₙ) →   
+        (ops : List Σₛ) →
+        (op : Σₛ) →   
         (o' , i') ≡ ops ↓↓ₑ (o , i) →
         (o'' , i'') ≡ ((ops ++ ⟦ op ⟧) ↓↓ₑ (o , i)) → 
         ---------------------------------------------
@@ -144,7 +144,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 ⇝-↓ : {o : O}
       {PP : PType o}
-      {op : Σₙ} →
+      {op : Σₛ} →
       --------------
       PP ⇝ op ↓ₚ PP
 
@@ -159,7 +159,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 ⇝-↓ₚ : {o o' : O}
        {PP : PType o}
        {QQ : PType o'}
-       {op : Σₙ} →
+       {op : Σₛ} →
        PP ⇝ QQ → 
        --------------------
        op ↓ₚ PP ⇝ op ↓ₚ QQ
@@ -254,17 +254,17 @@ data _⊢F⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
 
   ↑       : {o : O}
             {PP : PType o}  →
-            (op : Σₙ) →
+            (op : Σₛ) →
             op ∈ₒ o →
-            Γ ⊢V⦂ ``(arₙ op) →
+            Γ ⊢V⦂ ``(ar op) →
             Γ ⊢F⦂ PP →
             ------------------
             Γ ⊢F⦂ PP
 
   ↓       : {o : O}
             {PP : PType o}
-            (op : Σₙ) →
-            Γ ⊢V⦂ ``(arₙ op) →
+            (op : Σₛ) →
+            Γ ⊢V⦂ ``(ar op) →
             Γ ⊢F⦂ PP →
             ------------------
             Γ ⊢F⦂ op ↓ₚ PP
@@ -457,9 +457,9 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
   ↑-∥ₗ   : {o o' : O}
            {PP : PType o}
            {QQ : PType o'}
-           {op : Σₙ} → 
+           {op : Σₛ} → 
            (p : op ∈ₒ o) →
-           (V : Γ ⊢V⦂ `` (arₙ op)) →
+           (V : Γ ⊢V⦂ `` (ar op)) →
            (P : Γ ⊢P⦂ PP) →
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
@@ -470,9 +470,9 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
   ↑-∥ᵣ   : {o o' : O}
            {PP : PType o}
            {QQ : PType o'}
-           {op : Σₙ} → 
+           {op : Σₛ} → 
            (p : op ∈ₒ o') →
-           (V : Γ ⊢V⦂ `` (arₙ op)) →
+           (V : Γ ⊢V⦂ `` (ar op)) →
            (P : Γ ⊢P⦂ PP) →
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
@@ -485,8 +485,8 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
   ↓-run : {X : VType}
           {o : O}
           {i : I}
-          {op : Σₙ} → 
-          (V : Γ ⊢V⦂ `` (arₙ op)) → 
+          {op : Σₛ} → 
+          (V : Γ ⊢V⦂ `` (ar op)) → 
           (M : Γ ⊢M⦂ X ! (o , i)) →
           -------------------------
           ↓ op V (run M)
@@ -496,8 +496,8 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
   ↓-∥   : {o o' : O}
           {PP : PType o}
           {QQ : PType o'}
-          {op : Σₙ}
-          (V : Γ ⊢V⦂ `` (arₙ op)) →
+          {op : Σₛ}
+          (V : Γ ⊢V⦂ `` (ar op)) →
           (P : Γ ⊢P⦂ PP) →
           (Q : Γ ⊢P⦂ QQ) →
           ----------------------------------------------------------------------
@@ -507,11 +507,11 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
 
   ↓-↑   : {o : O}
           {PP : PType o}
-          {op : Σₙ}
-          {op' : Σₙ} →
+          {op : Σₛ}
+          {op' : Σₛ} →
           (p : op' ∈ₒ o) →
-          (V : Γ ⊢V⦂ ``(arₙ op)) →
-          (W : Γ ⊢V⦂ ``(arₙ op')) →
+          (V : Γ ⊢V⦂ ``(ar op)) →
+          (W : Γ ⊢V⦂ ``(ar op')) →
           (P : Γ ⊢P⦂ PP) →
           -----------------------------------
           ↓ op V (↑ op' p W P)
@@ -525,9 +525,9 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           {o o' : O}
           {i i' : I} → 
           (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → 
-          {op : Σₙ} → 
+          {op : Σₛ} → 
           (p : op ∈ₒ hole-ty-hₒ H) →
-          (V : Γ ⋈ Δ ⊢V⦂ `` (arₙ op)) →
+          (V : Γ ⋈ Δ ⊢V⦂ `` (ar op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
           ----------------------------------------------------------------------
           run (H [ ↑ op p V M ]ₕ)

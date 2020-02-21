@@ -22,16 +22,16 @@ postulate
 
 -- SIGNAL AND INTERRUPT NAMES
 
-postulate Σₙ : Set                                           -- set of message names
+postulate Σₛ : Set                                            -- set of signal and interrupt names
 
-postulate decₙ : (op op' : Σₙ) → Dec (op ≡ op')               -- message names have decidable equality
+postulate decₛ : (op op' : Σₛ) → Dec (op ≡ op')               -- signal and interrupt names have decidable equality
 
-if_≡_then_else_ : {A : Set} → Σₙ → Σₙ → A → A → A
+if_≡_then_else_ : {A : Set} → Σₛ → Σₛ → A → A → A
 if op ≡ op' then x else y =
-  if' (decₙ op op') then x else y
+  if' (decₛ op op') then x else y
 
   where
-    if'_then_else_ : {A : Set} {op op' : Σₙ} → Dec (op ≡ op') → A → A → A
+    if'_then_else_ : {A : Set} {op op' : Σₛ} → Dec (op ≡ op') → A → A → A
     if' yes p then x else y = x
     if' no ¬p then x else y = y
 
@@ -39,10 +39,10 @@ if op ≡ op' then x else y =
 
 mutual
   data O : Set where                                         -- set of effect annotations of outgoing signals
-    omap : (Σₙ → Maybe ⊤) → O
+    omap : (Σₛ → Maybe ⊤) → O
 
   data I : Set where                                         -- set of effect annotations of incoming interrupts
-    imap : (Σₙ → Maybe (O × I)) → I
+    imap : (Σₛ → Maybe (O × I)) → I
 
 
 -- DECIDABLE EQUALITY OF SIGNAL EFFECT ANNOTATIONS
@@ -104,7 +104,7 @@ mutual
 ∪ₒ-aux' nothing o' = o'
 ∪ₒ-aux' (just tt) o' = just tt
   
-∪ₒ-aux : (o o' : Σₙ → Maybe ⊤) → Σₙ → Maybe ⊤
+∪ₒ-aux : (o o' : Σₛ → Maybe ⊤) → Σₛ → Maybe ⊤
 ∪ₒ-aux o o' op =
   ∪ₒ-aux' (o op) (o' op)
 
@@ -114,7 +114,7 @@ _∪ₒ_ : O → O → O
 
 
 mutual
-  ∪ᵢ-aux : (i i' : Σₙ → Maybe (O × I)) → Σₙ → Maybe (O × I)
+  ∪ᵢ-aux : (i i' : Σₛ → Maybe (O × I)) → Σₛ → Maybe (O × I)
   ∪ᵢ-aux i i' op =
     ∪ᵢ-aux' (i op) (i' op)
 
@@ -150,7 +150,7 @@ _∪ᵢ_ : I → I → I
 
 -- SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
 
-_[_↦_]ᵢ : I → Σₙ → Maybe (O × I) → I
+_[_↦_]ᵢ : I → Σₛ → Maybe (O × I) → I
 (imap i) [ op ↦ v ]ᵢ =
   imap λ op' → if op ≡ op' then v else i op'
 
@@ -159,26 +159,26 @@ _[_↦_]ᵢ : I → Σₙ → Maybe (O × I) → I
 
 infix 40 _↓ₑ_
 
-↓ₑ-auxₒ : Σₙ → Maybe (O × I) → O → O
+↓ₑ-auxₒ : Σₛ → Maybe (O × I) → O → O
 ↓ₑ-auxₒ op nothing o =
   o
 ↓ₑ-auxₒ op (just (o' , i')) o =
   o ∪ₒ o'
 
-↓ₑ-auxᵢ : Σₙ → Maybe (O × I) → I → I
+↓ₑ-auxᵢ : Σₛ → Maybe (O × I) → I → I
 ↓ₑ-auxᵢ op nothing i =
   i
 ↓ₑ-auxᵢ op (just (o' , i')) i =
   (i [ op ↦ nothing ]ᵢ) ∪ᵢ i'
 
-_↓ₑ_ : Σₙ → O × I → O × I
+_↓ₑ_ : Σₛ → O × I → O × I
 op ↓ₑ (omap o , imap i) =
   (↓ₑ-auxₒ op (i op) (omap o) , ↓ₑ-auxᵢ op (i op) (imap i))
 
 
 -- GENERALISED ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS
 
-_↓↓ₑ_ : List Σₙ → O × I → O × I
+_↓↓ₑ_ : List Σₛ → O × I → O × I
 [] ↓↓ₑ (o , i) =
   (o , i)
 (op ∷∷ ops) ↓↓ₑ (o , i) =
@@ -187,7 +187,7 @@ _↓↓ₑ_ : List Σₙ → O × I → O × I
 
 ↓↓ₑ-act : {o : O}
           {i : I} → 
-          (ops ops' : List Σₙ) → 
+          (ops ops' : List Σₛ) → 
           ------------------------------------------------------
           (ops ++ ops') ↓↓ₑ (o , i) ≡ ops ↓↓ₑ (ops' ↓↓ₑ (o , i))
 
@@ -199,22 +199,22 @@ _↓↓ₑ_ : List Σₙ → O × I → O × I
 
 -- CHECKING THE CONTENTS OF EFFECT ANNOTATIONS
 
-_∈ₒ_ : Σₙ → O → Set
+_∈ₒ_ : Σₛ → O → Set
 op ∈ₒ (omap o) =
   o op ≡ just tt
 
 
-lkpᵢ : Σₙ → I → Maybe (O × I)
+lkpᵢ : Σₛ → I → Maybe (O × I)
 lkpᵢ op (imap i) = i op
 
 
 -- SUBTYPING RELATIONS FOR EFFECT ANNOTATIONS
 
 _⊑ₒ_ : O → O → Set
-o ⊑ₒ o' = (op : Σₙ) → op ∈ₒ o → op ∈ₒ o'
+o ⊑ₒ o' = (op : Σₛ) → op ∈ₒ o → op ∈ₒ o'
 
 data _⊑ᵢ_ (i i' : I) : Set where
-  rel : ((op : Σₙ) → {o : O} → {i'' : I} → lkpᵢ op i ≡ just (o , i'') →
+  rel : ((op : Σₛ) → {o : O} → {i'' : I} → lkpᵢ op i ≡ just (o , i'') →
           Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (lkpᵢ op i' ≡ just (o' , i''') × o ⊑ₒ o' × i'' ⊑ᵢ i''')) →
         i ⊑ᵢ i'
         
@@ -247,7 +247,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
   where
     ⊑ᵢ-refl-aux : (oi : Maybe (O × I)) →
                   -----------------------------------------------------------------------------------
-                  {o' : O} {i' : Σₙ → Maybe (O × I)} →
+                  {o' : O} {i' : Σₛ → Maybe (O × I)} →
                   oi ≡ just (o' , imap i') →
                   Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (oi ≡ just (o'' , i'') × (o' ⊑ₒ o'') × (imap i' ⊑ᵢ i''))
     ⊑ᵢ-refl-aux (just .(o' , imap i')) {o'} {i'} refl =
@@ -264,14 +264,14 @@ data _⊑ᵢ_ (i i' : I) : Set where
   rel λ op {o} {j} r → ⊑ᵢ-trans-aux o j op (p op r)
 
   where
-    ⊑ᵢ-trans-aux' : (o : O) → (j : I) → (op : Σₙ) →
+    ⊑ᵢ-trans-aux' : (o : O) → (j : I) → (op : Σₛ) →
                     (o' : O) → (j' : I) → lkpᵢ op i' ≡ just (o' , j') → (o ⊑ₒ o') → (j ⊑ᵢ j') →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o' ⊑ₒ o'') × (j' ⊑ᵢ j'')) →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
     ⊑ᵢ-trans-aux' o j op o' j' r' s t (o'' , j'' , r'' , s' , t') =
       o'' , j'' , r'' , ⊑ₒ-trans s s' , ⊑ᵢ-trans t t'
 
-    ⊑ᵢ-trans-aux : (o : O) → (j : I) → (op : Σₙ) →
+    ⊑ᵢ-trans-aux : (o : O) → (j : I) → (op : Σₛ) →
                     Σ[ o' ∈ O ] Σ[ j' ∈ I ] (lkpᵢ op i' ≡ just (o' , j') × (o ⊑ₒ o') × (j ⊑ᵢ j')) →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
     ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
@@ -382,7 +382,7 @@ inj-pair₂ refl = refl
   rel (λ op {o'''} {i'''} r → ∪ᵢ-copair-aux op o''' i''' (i op) (i' op) (i'' op) refl refl refl r)
 
   where
-    ∪ᵢ-copair-aux : (op : Σₙ) →
+    ∪ᵢ-copair-aux : (op : Σₛ) →
                     (o''' : O) →
                     (i''' : I)
                     (oi oi' oi'' : Maybe (O × I)) →
@@ -466,7 +466,7 @@ inj-pair₂ refl = refl
 
 ↓ₑ-⊑ₒ : {o : O}
         {i : I}
-        {op : Σₙ} →
+        {op : Σₛ} →
         --------------------------
         o ⊑ₒ proj₁ (op ↓ₑ (o , i))
                            
@@ -477,7 +477,7 @@ inj-pair₂ refl = refl
 
 ↓ₑ-⊑ₒ-o' : {o o' : O}
            {i i' : I}
-           {op : Σₙ} → 
+           {op : Σₛ} → 
            lkpᵢ op i ≡ just (o' , i') → 
            ---------------------------
            o' ⊑ₒ proj₁ (op ↓ₑ (o , i))
@@ -487,7 +487,7 @@ inj-pair₂ refl = refl
   ↓ₑ-⊑ₒ-o'-aux
 
   where
-    ↓ₑ-⊑ₒ-o'-aux : (op' : Σₙ) → o' op' ≡ just tt → ∪ₒ-aux o o' op' ≡ just tt
+    ↓ₑ-⊑ₒ-o'-aux : (op' : Σₛ) → o' op' ≡ just tt → ∪ₒ-aux o o' op' ≡ just tt
     ↓ₑ-⊑ₒ-o'-aux op' p with o op'
     ↓ₑ-⊑ₒ-o'-aux op' p | nothing = p
     ↓ₑ-⊑ₒ-o'-aux op' p | just tt = refl
@@ -495,7 +495,7 @@ inj-pair₂ refl = refl
 
 ↓ₑ-⊑ₒ-i' : {o o' : O}
            {i i' : I}
-           {op : Σₙ} → 
+           {op : Σₛ} → 
            lkpᵢ op i ≡ just (o' , i') → 
            ---------------------------
            i' ⊑ᵢ proj₂ (op ↓ₑ (o , i))
@@ -505,11 +505,11 @@ inj-pair₂ refl = refl
   rel ↓ₑ-⊑ₒ-i'-aux
 
   where
-    ↓ₑ-⊑ₒ-i'-aux : (op' : Σₙ) {o'' : O} {i'' : I} →
+    ↓ₑ-⊑ₒ-i'-aux : (op' : Σₛ) {o'' : O} {i'' : I} →
       i' op' ≡ just (o'' , i'') →
       Σ[ o''' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux (λ op' → if op ≡ op' then nothing else i op') i' op' ≡ just (o''' , i''') ×
                                   (o'' ⊑ₒ o''') × (i'' ⊑ᵢ i'''))
-    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p with decₙ op op'
+    ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p with decₛ op op'
     ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} p | yes refl with i' (op)
     ↓ₑ-⊑ₒ-i'-aux op' {o''} {i''} refl | yes refl | just .(o'' , i'') =
       o'' , (i'' , refl , (⊑ₒ-refl , ⊑ᵢ-refl))
@@ -522,12 +522,12 @@ inj-pair₂ refl = refl
 
 -- EFFECT ANNOTATION OF AN INTERRUPT THAT WAS NOT ACTED WITH
 
-lkpᵢ-↓ₑ-neq : {o o' : O} {i i' : I} {op op' : Σₙ} → ¬ op ≡ op' → lkpᵢ op' i ≡ just (o' , i') →
+lkpᵢ-↓ₑ-neq : {o o' : O} {i i' : I} {op op' : Σₛ} → ¬ op ≡ op' → lkpᵢ op' i ≡ just (o' , i') →
              Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i'') × o' ⊑ₒ o'' × i' ⊑ᵢ i'')
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q with i (op)
 ... | nothing =
   o' , imap i' , q , ⊑ₒ-refl , ⊑ᵢ-refl
-lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') with decₙ op op'
+lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') with decₛ op op'
 ... | yes r with p r
 ... | ()
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') | no ¬r with i (op') | i'' (op')
@@ -546,21 +546,21 @@ lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q | just (
 
 -- NEXT DEFINED EFFECT ANNOTATION UNDER SUBTYPING EFFECT ANNOTATIONS
 
-lkpᵢ-nextₒ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
+lkpᵢ-nextₒ : {o'' : O} {i i' i'' : I} {op : Σₛ} →
             i ⊑ᵢ i' → lkpᵢ op i ≡ just (o'' , i'') → O
             
 lkpᵢ-nextₒ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₁ (p op q)
 
 
-lkpᵢ-nextᵢ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
+lkpᵢ-nextᵢ : {o'' : O} {i i' i'' : I} {op : Σₛ} →
             i ⊑ᵢ i' → lkpᵢ op i ≡ just (o'' , i'') → I
 
 lkpᵢ-nextᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₁ (proj₂ (p op q))
 
 
-lkpᵢ-next-eq : {o'' : O} {i i' i'' : I} {op : Σₙ} →
+lkpᵢ-next-eq : {o'' : O} {i i' i'' : I} {op : Σₛ} →
               (p : i ⊑ᵢ i') →
               (q : lkpᵢ op i ≡ just (o'' , i'')) →
               ------------------------------------------------
@@ -570,7 +570,7 @@ lkpᵢ-next-eq {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₁ (proj₂ (proj₂ (p op q)))
 
 
-lkpᵢ-next-⊑ₒ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
+lkpᵢ-next-⊑ₒ : {o'' : O} {i i' i'' : I} {op : Σₛ} →
               (p : i ⊑ᵢ i') →
               (q : lkpᵢ op i ≡ just (o'' , i'')) →
               -----------------------------------
@@ -580,7 +580,7 @@ lkpᵢ-next-⊑ₒ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₁ (proj₂ (proj₂ (proj₂ (p op q))))
 
 
-lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₙ} →
+lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₛ} →
               (p : i ⊑ᵢ i') →
               (q : lkpᵢ op i ≡ just (o'' , i'')) →
               -----------------------------------
@@ -593,7 +593,7 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
 -- ETA LAW FOR SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
 
 ↓ₑ-↦-eta : (i : I) → 
-           (op : Σₙ) →
+           (op : Σₛ) →
            (oi : Maybe (O × I)) → 
            lkpᵢ op i ≡ oi →
            ------------------------
@@ -603,11 +603,11 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   cong (λ i → imap i) (fun-ext (λ op' → ↓ₑ-↦-eta-aux op'))
 
   where
-    ↓ₑ-↦-eta-aux : (op' : Σₙ) →
+    ↓ₑ-↦-eta-aux : (op' : Σₛ) →
                    ----------------------------------------
                    i op' ≡ (if op ≡ op' then oi else i op')
 
-    ↓ₑ-↦-eta-aux op' with decₙ op op'
+    ↓ₑ-↦-eta-aux op' with decₛ op op'
     ... | yes refl = p
     ... | no ¬q = refl
 
@@ -617,7 +617,7 @@ lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
 mutual 
   ↓ₑ-monotonicₒ : {o o' : O}
                   {i i' : I}
-                  {op : Σₙ} →
+                  {op : Σₛ} →
                   o ⊑ₒ o' →
                   i ⊑ᵢ i' →
                   ------------------------------------------------
@@ -649,7 +649,7 @@ mutual
 
   ↓ₑ-monotonicᵢ : {o o' : O}
                 {i i' : I}
-                {op : Σₙ} →
+                {op : Σₛ} →
                 o ⊑ₒ o' →
                 i ⊑ᵢ i' →
                 ------------------------------------------------
@@ -674,7 +674,7 @@ mutual
                  (∪ᵢ-inl {(imap i') [ op ↦ nothing ]ᵢ} {imap i'''})
 
         where
-          ↓ₑ-monotonicᵢ-aux' : (op' : Σₙ) → 
+          ↓ₑ-monotonicᵢ-aux' : (op' : Σₛ) → 
                                (o'''' : O) → 
                                (i'''' : I) →
                                i op' ≡ just (o'''' , i'''') → 
@@ -683,7 +683,7 @@ mutual
                                  ((if op ≡ op' then nothing else i' op') ≡ just (o''''' , i''''') ×
                                   (o'''' ⊑ₒ o''''') × (i'''' ⊑ᵢ i'''''))
 
-          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₙ op op'
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₛ op op'
           ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | yes refl with trans r t
           ... | ()
           ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | no ¬u =
@@ -708,7 +708,7 @@ mutual
 
 
         where
-          ↓ₑ-monotonicᵢ-aux' : (op' : Σₙ) →
+          ↓ₑ-monotonicᵢ-aux' : (op' : Σₛ) →
                                (o'''' : O) →
                                (i'''' : I) →
                                lkpᵢ op' (imap i [ op ↦ nothing ]ᵢ)  ≡ just (o'''' , i'''') →
@@ -718,7 +718,7 @@ mutual
                                   ≡ just (o''''' , i''''') ×
                                   (o'''' ⊑ₒ o''''') × (i'''' ⊑ᵢ i'''''))
 
-          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₙ op op'
+          ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t with decₛ op op'
           ↓ₑ-monotonicᵢ-aux' op' o'''' i'''' t | no ¬u =
             lkpᵢ-nextₒ (rel q) t ,
             lkpᵢ-nextᵢ (rel q) t ,
@@ -732,7 +732,7 @@ mutual
 mutual 
   ↓↓ₑ-monotonicₒ : {o o' : O}
                    {i i' : I} → 
-                   (ops : List Σₙ) →
+                   (ops : List Σₛ) →
                    o ⊑ₒ o' →
                    i ⊑ᵢ i' →
                    ----------------------------------------------------
@@ -746,7 +746,7 @@ mutual
 
   ↓↓ₑ-monotonicᵢ : {o o' : O}
                    {i i' : I} → 
-                   (ops : List Σₙ) →
+                   (ops : List Σₛ) →
                    o ⊑ₒ o' →
                    i ⊑ᵢ i' →
                    ----------------------------------------------------
@@ -761,7 +761,7 @@ mutual
 
 ↓↓ₑ-⊑ₒ : {o : O}
          {i : I} → 
-         (ops : List Σₙ) →
+         (ops : List Σₛ) →
          --------------------------
          o ⊑ₒ proj₁ (ops ↓↓ₑ (o , i))
 
@@ -774,8 +774,8 @@ mutual
 postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
                {i : I} → 
-               (ops : List Σₙ) →
-               (op : Σₙ) →
+               (ops : List Σₛ) →
+               (op : Σₛ) →
                ----------------------------------------------------------
                proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
 

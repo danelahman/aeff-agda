@@ -37,17 +37,17 @@ data _⊢P⦂_ (Γ : Ctx) : {o : O} → PType o → Set where
 
   ↑       : {o : O} →
             {PP : PType o}
-            (op : Σₙ) →
+            (op : Σₛ) →
             op ∈ₒ o →
-            Γ ⊢V⦂ ``(arₙ op) →
+            Γ ⊢V⦂ ``(ar op) →
             Γ ⊢P⦂ PP →
             -------------------
             Γ ⊢P⦂ PP
 
   ↓       : {o : O}
             {PP : PType o}
-            (op : Σₙ) →
-            Γ ⊢V⦂ ``(arₙ op) →
+            (op : Σₛ) →
+            Γ ⊢V⦂ ``(ar op) →
             Γ ⊢P⦂ PP →
             ------------------
             Γ ⊢P⦂ op ↓ₚ PP

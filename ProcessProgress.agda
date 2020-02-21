@@ -37,9 +37,9 @@ data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ 
   promise  : {X Y : VType}
              {o o' : O}
              {i i' : I}
-             {op : Σₙ}
+             {op : Σₛ}
              {p : lkpᵢ op i ≡ just (o' , i')}
-             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(arₙ op) ⊢M⦂ ⟨ X ⟩ ! (o' , i')}
+             {M : ⟨⟨ Γ ⟩⟩ ∷ ``(ar op) ⊢M⦂ ⟨ X ⟩ ! (o' , i')}
              {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
              RunResult⟨ Γ ∷ X ∣ N ⟩ →
              ------------------------------------------------
@@ -86,9 +86,9 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
 
   signal : {o : O}
            {PP : PType o}
-           {op : Σₙ}
+           {op : Σₛ}
            {p : op ∈ₒ o}
-           {V : [] ⊢V⦂ ``(arₙ op)}
+           {V : [] ⊢V⦂ ``(ar op)}
            {P : [] ⊢P⦂ PP} →
            Result⟨ P ⟩ →
            -----------------------
@@ -145,8 +145,8 @@ result-to-hoist : {Γ : Ctx}
                   Σ[ Δ ∈ BCtx ] Σ[ H ∈ ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i) ]
                     ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]ₕ))
                       ⊎
-                      (Σ[ op ∈ Σₙ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ]
-                        Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(arₙ op) ]
+                      (Σ[ op ∈ Σₛ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ]
+                        Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(ar op) ]
                         Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ]
                         (M ≡ H [ ↑ op p V N ]ₕ))
                       ⊎
