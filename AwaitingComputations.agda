@@ -54,3 +54,43 @@ data _⧗_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               x ⧗ M →
               -------------------------
               x ⧗ (subsume p q M)
+
+
+-- DECIDING IF A COMPUTATION IS TEMPORARILY STUCK DUE TO AWAITING FOR A PARTICULAR PROMISE
+
+dec-⧗ : {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) → {C : CType} → (M : Γ ⊢M⦂ C) → Dec (x ⧗ M)
+dec-⧗ x (return V) =
+  no (λ ())
+dec-⧗ {Γ} {X} x (let= M `in N) with dec-⧗ x M
+... | yes p =
+  yes (let-in p)
+... | no ¬p =
+  no (λ { (let-in q) → contradiction q ¬p })
+dec-⧗ x (letrec M `in N) =
+  no (λ ())
+dec-⧗ x (V · W) =
+  no (λ ())
+dec-⧗ x (↑ op p V M) =
+  no (λ ())
+dec-⧗ {Γ} {X} x (↓ op V M) with dec-⧗ x M
+... | yes p =
+  yes (interrupt p)
+... | no ¬p =
+  no (λ { (interrupt q) → contradiction q ¬p })
+dec-⧗ x (promise op ∣ p ↦ M `in N) =
+  no (λ ())
+dec-⧗ {Γ} {X} x (await_until_ {Y} (` y) M) with dec-vty X Y
+dec-⧗ {Γ} {.Y} x (await_until_ {Y} (` y) M) | yes refl with dec-var x y
+... | yes refl =
+  yes await
+... | no ¬p =
+  no (λ { await → contradiction refl ¬p })
+dec-⧗ {Γ} {X} x (await_until_ {Y} (` y) M) | no ¬p =
+  no (λ { await → contradiction refl ¬p })  
+dec-⧗ x (await ⟨ V ⟩ until M) =
+  no (λ ())
+dec-⧗ {Γ} {X} x (subsume p q M) with dec-⧗ x M
+... | yes r =
+  yes (subsume r)
+... | no ¬r =
+  no (λ { (subsume s) → contradiction s ¬r })

@@ -16,8 +16,8 @@ open import Axiom.Extensionality.Propositional
 postulate
   fun-ext : ∀ {a b} → Extensionality a b                -- assuming function extensionality
 
---postulate
---  dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)      -- functions are pointwise decidable
+postulate
+  dec-ext : {X Y : Set} → (f g : X → Y) → ((x : X) → Dec (f x ≡ g x)) → Dec (f ≡ g)      -- functions are pointwise decidable
 
 
 -- SIGNAL AND INTERRUPT NAMES
@@ -43,6 +43,59 @@ mutual
 
   data I : Set where                                         -- set of effect annotations of incoming interrupts
     imap : (Σₛ → Maybe (O × I)) → I
+
+
+-- DECIDABLE EQUALITY OF SIGNAL EFFECT ANNOTATIONS
+
+dec-⊤ : (t u : ⊤) → Dec (t ≡ u)
+dec-⊤ tt tt = yes refl
+
+dec-maybe : {X : Set} → ((x y : X) → Dec (x ≡ y)) → (m m' : Maybe X) → Dec (m ≡ m')
+dec-maybe p nothing nothing =
+  yes refl
+dec-maybe p nothing (just x) =
+  no (λ ())
+dec-maybe p (just x) nothing =
+  no (λ ())
+dec-maybe p (just x) (just y) with p x y
+... | yes refl =
+  yes refl
+... | no ¬q =
+  no (λ { refl → contradiction refl ¬q })
+
+
+dec-effₒ : (o o' : O) → Dec (o ≡ o')
+dec-effₒ (omap o) (omap o') with dec-ext o o' (λ op → dec-maybe dec-⊤ (o op) (o' op))
+... | yes refl =
+  yes refl
+... | no ¬p =
+  no (λ { refl → contradiction refl ¬p })
+
+
+-- DECIDABLE EQUALITY OF INTERRUPT EFFECT ANNOTATIONS
+
+mutual 
+  dec-effᵢ-aux : (m m' : Maybe (O × I)) → Dec (m ≡ m')
+  dec-effᵢ-aux nothing nothing =
+    yes refl
+  dec-effᵢ-aux nothing (just (o' , i')) =
+    no (λ ())
+  dec-effᵢ-aux (just (o , i)) nothing =
+    no (λ ())
+  dec-effᵢ-aux (just (o , i)) (just (o' , i')) with dec-effₒ o o' | dec-effᵢ i i'
+  ... | yes refl | yes refl =
+    yes refl
+  ... | yes refl | no ¬q =
+    no (λ { refl → contradiction refl ¬q })
+  ... | no ¬p | _ =
+    no (λ { refl → contradiction refl ¬p })
+
+  dec-effᵢ : (i i' : I) → Dec (i ≡ i')
+  dec-effᵢ (imap i) (imap i') with dec-ext i i' (λ op → dec-effᵢ-aux (i op) (i' op))
+  ... | yes refl =
+    yes refl
+  ... | no ¬p =
+    no (λ { refl → contradiction refl ¬p })
 
 
 -- UNION OF EFFECT ANNOTATIONS
