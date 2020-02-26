@@ -465,7 +465,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
            ------------------------------------------
            ((↑ op p V P) ∥ Q)
            [ par ⇝-refl (⇝-↓ {op = op}) ]↝
-           ↑ op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
+           op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
 
   ↑-∥ᵣ   : {o o' : O}
            {PP : PType o}

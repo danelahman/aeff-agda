@@ -729,8 +729,8 @@ postulate
 
 Proof sketch for ↓↓ₑ-⊑ₒ-act:
 
-First, we observe that (without loss of generality, we'll consider i op = nothing 
-to be the same as i op = (o' , i') where o' and i' are empty maps)
+First, we observe that (without loss of generality, we consider i op = nothing 
+to be the same as i op = (o' , i') where o' and i' are empty maps):
 
   proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
   =
@@ -828,7 +828,7 @@ Next, we proceed by case analysis on i op:
 
    2.3) If n = length ops = m + 1
 
-        By induction hypothesis, we know that forall 1 <= i <= m, we have
+        By induction hypothesis, we know that for all 1 <= i <= m, we have
         
           oᵢ ⊑ o' ∪ oᵢ'
 
@@ -892,85 +892,10 @@ Next, we proceed by case analysis on i op:
                             ∪
                             proj₁ (iₘ' opₘ₊₁)
 
-
-
-
-
-
-...
-
-
-   We proceed by induction on n, i.e., the length of the list ops. 
-
-   2.1) If n = length ops = 0:
-
-        Then we simply have to show o ⊑ o ∪ o'.
-
-   2.2) If n = length ops = 1:
-
-        Then we proceed by case analysis whether op ≡ op₁.
-
-        2.2.1) If op ≡ op₁:
-
-               Then we have to show
-
-                 o ∪ o₁ = o ∪ proj₁ (i op) = o ∪ o'
-                 ⊑ 
-                 o ∪ o' ∪ o₁' = o ∪ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op) = o ∪ o' ∪ proj₁ (i[ op ↦ nothing ] op) ∪ proj₁ (i' op)
-
-               which holds straigthforwardly.
-
-        2.2.2) If op ≢ op₁:
-
-               Then we have to show
-               
-                 o ∪ o₁ = o ∪ proj₁ (i op₁)
-                 ⊑
-                 o ∪ o' ∪ o₁' = o ∪ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op₁) = o ∪ o' ∪ proj₁ (i op₁) ∪ proj₁ (i' op₁)
-
-               which holds straigthforwardly.
-
-   2.3) If n = length ops = m + 1
-
-        By induction hypothesis, we know that
-        
-          o ∪ o₁ ∪ o₂ ∪ ... ∪ oₘ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₘ'
-
-        and we need to show that
-
-          o ∪ o₁ ∪ o₂ ∪ ... ∪ oₘ ∪ oₘ₊₁ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₘ' ∪ oₘ₊₁'
-
-        thus it suffices to show 
-
-          oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                          ∪ 
-                          i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          ...
-                          ∪
-                          ...
-                          ∪
-                          iₘ) opₘ₊₁)
-          ⊑ 
-          oₘ₊₁' = proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                          ∪ 
-                          i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                          ∪
-                          i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          ...
-                          ∪
-                          ...
-                          ∪
-                          iₘ') opₘ₊₁)
-
-
-
-...
-
+        which we can prove by repeatedly using the idempotency of ∪, the relations oᵢ ⊑ o' ∪ oᵢ' 
+        that we get from the induction hypothesis for for all 1 <= i <= m, and unfolding the 
+        definitions of oᵢ, oᵢ', iᵢ, and iᵢ'. We also use the monotonicity of (-)[ op' ↦ nothing ].
+    
+qed.
 
 -}
