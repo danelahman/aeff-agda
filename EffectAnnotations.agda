@@ -727,7 +727,7 @@ postulate
 
 {-
 
-Proof sketch for ↓↓ₑ-⊑ₒ-act:
+Paper proof for ↓↓ₑ-⊑ₒ-act:
 
 First, we observe that (without loss of generality, we consider i op = nothing 
 to be the same as i op = (o' , i') where o' and i' are empty maps):
