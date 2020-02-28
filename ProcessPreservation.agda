@@ -6,7 +6,6 @@ open import Data.Sum
 open import AEff
 open import EffectAnnotations
 open import Preservation
-open import ProcessTypes
 open import Renamings
 open import Substitutions
 open import Types

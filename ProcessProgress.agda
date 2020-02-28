@@ -9,7 +9,6 @@ open import AEff
 open import EffectAnnotations
 open import Preservation
 open import ProcessPreservation
-open import ProcessTypes
 open import Progress
 open import Renamings
 open import Substitutions

@@ -7,7 +7,6 @@ open import Relation.Nullary
 open import Relation.Nullary.Negation
 
 open import EffectAnnotations
-open import ProcessTypes
 open import Types
 
 module AEff where
