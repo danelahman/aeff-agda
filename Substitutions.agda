@@ -30,7 +30,7 @@ lift s Hd = ` Hd
 lift s (Tl x) = V-rename Tl (s x)
 
 
--- ACTION OF SUBSTITUTIONS ON WELL-TYPED TERMS
+-- ACTION OF SUBSTITUTION ON WELL-TYPED VALUES AND COMPUTATIONS
 
 mutual
 
@@ -66,3 +66,18 @@ mutual
     await (V [ s ]v) until (M [ lift s ]m)
   (coerce p q M) [ s ]m =
     coerce p q (M [ s ]m)
+
+
+-- ACTION OF SUBSTITUTION ON WELL-TYPED TERMS
+
+infix 40 _[_]p
+
+_[_]p : {Γ Γ' : Ctx} {o : O} {PP : PType o} → Γ ⊢P⦂ PP → Sub Γ Γ' → Γ' ⊢P⦂ PP
+(run M) [ s ]p =
+  run (M [ s ]m)
+(P ∥ Q) [ s ]p =
+  (P [ s ]p) ∥ (Q [ s ]p)
+(↑ op p V P) [ s ]p =
+  ↑ op p (V [ s ]v) (P [ s ]p)
+(↓ op V P) [ s ]p =
+  ↓ op (V [ s ]v) (P [ s ]p)

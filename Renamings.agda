@@ -46,7 +46,7 @@ wk₃ (Tl Hd) = Tl Hd
 wk₃ (Tl (Tl x)) = Tl (Tl (Tl x))
 
 
--- ACTION OF RENAMING ON WELL-TYPED TERMS
+-- ACTION OF RENAMING ON WELL-TYPED VALUES AND COMPUTATIONS
 
 mutual
 
@@ -75,3 +75,16 @@ mutual
     await (V-rename f V) until (M-rename (wk₂ f) M)
   M-rename f (coerce p q M) =
     coerce p q (M-rename f M)
+
+
+-- ACTION OF RENAMING ON WELL-TYPED PROCESSES
+
+P-rename : {o : O} {PP : PType o} {Γ Γ' : Ctx} → Ren Γ Γ' → Γ ⊢P⦂ PP → Γ' ⊢P⦂ PP
+P-rename f (run M) =
+  run (M-rename f M)
+P-rename f (P ∥ Q) =
+  P-rename f P ∥ P-rename f Q
+P-rename f (↑ op p V P) =
+  ↑ op p (V-rename f V) (P-rename f P)
+P-rename f (↓ op V P) =
+  ↓ op (V-rename f V) (P-rename f P)
