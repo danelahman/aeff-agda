@@ -4,7 +4,7 @@ open import Data.Maybe
 open import Data.Product
 open import Data.Sum
 
-open import Calculus
+open import AEff
 open import EffectAnnotations
 open import Types
 

@@ -3,10 +3,9 @@ open import Data.Maybe
 open import Data.Product
 open import Data.Sum
 
-open import Calculus
+open import AEff
 open import EffectAnnotations
 open import Preservation
-open import ProcessCalculus
 open import ProcessTypes
 open import Renamings
 open import Substitutions
