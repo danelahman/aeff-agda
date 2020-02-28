@@ -103,7 +103,7 @@ return-h-runresult : {Γ : Ctx}
                      (V : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢V⦂ X) →
                      (H : ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i)) →
                      ------------------------------------
-                     RunResult⟨ Γ ∣ H [ return V ]ₕ ⟩
+                     RunResult⟨ Γ ∣ H [ return V ]h ⟩
 
 return-h-runresult V [-] =
   return V
@@ -123,7 +123,7 @@ await-h-runresult : {Γ : Ctx}
                     {M : (⟨⟨ Γ ⟩⟩ ⋈ Δ) ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)} →
                     y ⧗ M → 
                     -----------------------------------------------------------
-                    RunResult⟨ Γ ∣ H [ M ]ₕ ⟩
+                    RunResult⟨ Γ ∣ H [ M ]h ⟩
 
 await-h-runresult [-] p =
   awaiting p
@@ -141,16 +141,16 @@ result-to-hoist : {Γ : Ctx}
                   Result⟨ Γ ∣ M ⟩ →
                   ------------------------------------------------------------------
                   Σ[ Δ ∈ BCtx ] Σ[ H ∈ ⟨⟨ Γ ⟩⟩ ⊢H[ Δ ]⦂ X ! (o , i) ]
-                    ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]ₕ))
+                    ((Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ X ] (M ≡ H [ return V ]h))
                       ⊎
                       (Σ[ op ∈ Σₛ ] Σ[ p ∈ op ∈ₒ hole-ty-hₒ H ]
                         Σ[ V ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢V⦂ ``(payload op) ]
                         Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H) ]
-                        (M ≡ H [ ↑ op p V N ]ₕ))
+                        (M ≡ H [ ↑ op p V N ]h))
                       ⊎
                       Σ[ Y ∈ VType ] Σ[ y ∈ ⟨ Y ⟩ ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ]
                         Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) ]
-                        Σ[ p ∈ y ⧗ N ] (M ≡ H [ N ]ₕ))
+                        Σ[ p ∈ y ⧗ N ] (M ≡ H [ N ]h))
 
 result-to-hoist (return {X} {o} {i} V) =
    [] , [-] , inj₁ (V , refl) 
@@ -187,7 +187,7 @@ proc-progress {o'} (run {X} {o} {i} M) with progress M
   inj₂ (proc (run (subst (λ M → RunResult⟨ [] ∣ M ⟩) (sym p) (return-h-runresult V H))))
 ... | Δ , H , inj₂ (inj₁ (op , p , V , N , q)) =
   inj₁ (_ , _ , id ,
-        ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ N ]ₕ)) ,
+        ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ N ]h)) ,
         subst (λ M → run M [ id ]↝ _) (sym q) (↑ {o' = o'} {i' = i} H p V N))
 ... | Δ , H , inj₂ (inj₂ (Y , y , N , p , q)) =
   inj₂ (proc (run (subst (λ M → RunResult⟨ [] ∣ M ⟩) (sym q) (await-h-runresult H p))))

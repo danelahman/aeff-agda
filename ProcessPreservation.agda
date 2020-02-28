@@ -85,15 +85,15 @@ hole-ty-h-⊑ᵢ (promise op ∣ p ↦ M `in H) =
 
 -- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT WITH A COMPUTATION
 
-infix 30 _[_]ₕ
+infix 30 _[_]h
 
-_[_]ₕ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
+_[_]h : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
         (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → Γ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
         Γ ⊢M⦂ X ! (o , i)
-[-] [ M ]ₕ =
+[-] [ M ]h =
   M
-(promise op ∣ p ↦ N `in E) [ M ]ₕ =
-  promise op ∣ p ↦ N `in (E [ M ]ₕ)
+(promise op ∣ p ↦ N `in E) [ M ]h =
+  promise op ∣ p ↦ N `in (E [ M ]h)
   
 
 -- EVOLUTION OF PROCESS TYPES
@@ -528,9 +528,9 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           (V : Γ ⋈ Δ ⊢V⦂ `` (payload op)) →
           (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
           ----------------------------------------------------------------------
-          run (H [ ↑ op p V M ]ₕ)
+          run (H [ ↑ op p V M ]h)
           [ id ]↝
-          ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]ₕ))
+          ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]h))
 
   -- CONTEXT RULE
 
