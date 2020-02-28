@@ -6,9 +6,6 @@ open import Data.Sum
 
 open import Calculus
 open import EffectAnnotations
-open import Preservation
-open import Renamings
-open import Substitutions
 open import Types
 
 open import Relation.Binary.PropositionalEquality hiding ([_])
@@ -45,7 +42,7 @@ data _⧗_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               -------------------------
               x ⧗ (↓ op V M)
 
-  subsume   : {X : VType}
+  coerce    : {X : VType}
               {o o' : O}
               {i i' : I}
               {p : o ⊑ₒ o'}
@@ -53,4 +50,4 @@ data _⧗_ {Γ : Ctx} {X : VType} (x : ⟨ X ⟩ ∈ Γ) : {C : CType} → Γ �
               {M : Γ ⊢M⦂ X ! (o , i)} →
               x ⧗ M →
               -------------------------
-              x ⧗ (subsume p q M)
+              x ⧗ (coerce p q M)

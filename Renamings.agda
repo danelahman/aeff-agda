@@ -73,5 +73,5 @@ mutual
     promise op ∣ p ↦ M-rename (wk₂ f) M `in M-rename (wk₂ f) N
   M-rename f (await V until M) =
     await (V-rename f V) until (M-rename (wk₂ f) M)
-  M-rename f (subsume p q M) =
-    subsume p q (M-rename f M)
+  M-rename f (coerce p q M) =
+    coerce p q (M-rename f M)

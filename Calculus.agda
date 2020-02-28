@@ -132,7 +132,7 @@ mutual
                        --------------
                        Γ ⊢M⦂ C
 
-    subsume          : {X : VType}
+    coerce           : {X : VType}
                        {o o' : O}
                        {i i' : I} →
                        o ⊑ₒ o' →

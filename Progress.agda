@@ -129,17 +129,17 @@ progress (await ` x until M) =
   inj₂ (awaiting await)
 progress (await ⟨ V ⟩ until M) =
   inj₁ (_ , await-promise V M)
-progress (subsume p q M) with progress M
+progress (coerce p q M) with progress M
 ... | inj₁ (N , r) =
-  inj₁ (_ , context (subsume p q [-]) r)
+  inj₁ (_ , context (coerce p q [-]) r)
 ... | inj₂ (return V) =
-  inj₁ (_ , subsume-return V)
+  inj₁ (_ , coerce-return V)
 ... | inj₂ (signal {X} {o} {i} {op} {r} {V} {M'} s) =
-  inj₁ (_ , subsume-↑ r V M')
+  inj₁ (_ , coerce-↑ r V M')
 ... | inj₂ (promise {_} {_} {_} {_} {_} {_} {_} {r} {M'} {M''} s) =
-  inj₁ (_ , subsume-promise r M' M'')
+  inj₁ (_ , coerce-promise r M' M'')
 ... | inj₂ (awaiting R) =
-  inj₂ (awaiting (subsume R))
+  inj₂ (awaiting (coerce R))
 
 
 -- PROGRESS THEOREM FOR CLOSED COMPUTATIONS

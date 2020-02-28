@@ -67,7 +67,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      ------------------------------------------
                      Γ ⊢E[ X ∷∷ Δ ]⦂ Y ! (o , i)
 
-  subsume          : {Δ : BCtx}
+  coerce           : {Δ : BCtx}
                      {X : VType}
                      {o o' : O}
                      {i i' : I} →
@@ -100,7 +100,7 @@ hole-ty-e (↓ op V E) =
   hole-ty-e E
 hole-ty-e (promise op ∣ p ↦ M `in E) =
   hole-ty-e E
-hole-ty-e (subsume p q E) =
+hole-ty-e (coerce p q E) =
   hole-ty-e E
 
 
@@ -119,8 +119,8 @@ _[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ �
   ↓ op V (E [ M ])
 (promise op ∣ p ↦ N `in E) [ M ] =
   promise op ∣ p ↦ N `in (E [ M ])
-subsume p q E [ M ] =
-  subsume p q (E [ M ])
+coerce p q E [ M ] =
+  coerce p q (E [ M ])
 
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
@@ -224,7 +224,7 @@ mutual
                       ---------------------------------------------------------------------------------------
                       ↓ op V (promise op ∣ p ↦ M `in N )
                       ↝
-                      (let= (subsume (↓ₑ-⊑ₒ-o' {o} p) (↓ₑ-⊑ₒ-i' {o} p) (M [ id-subst [ V ]s ]m)) `in
+                      (let= (coerce (↓ₑ-⊑ₒ-o' {o} p) (↓ₑ-⊑ₒ-i' {o} p) (M [ id-subst [ V ]s ]m)) `in
                         ↓ op (V-rename wk₁ V) ((M-rename (comp-ren exchange wk₁) N) [ id-subst [ ` Hd ]s ]m))
 
     ↓-promise-op'   : {X Y : VType}
@@ -236,16 +236,16 @@ mutual
                       (V : Γ ⊢V⦂ ``(payload op)) → 
                       (M : Γ ∷ ``(payload op') ⊢M⦂ ⟨ X ⟩ ! (o' , i')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
-                      ---------------------------------------------------------------------------------------
+                      ------------------------------------------------------------------------------------------
                       ↓ op V (promise op' ∣ q ↦ M `in N )
                       ↝
                       promise_∣_↦_`in_ {o' = proj₁ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)}
                                        {i' = proj₁ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))}
                                        op'
                                        (proj₁ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q))))
-                                       (subsume (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                                (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
-                                                M)
+                                       (coerce (proj₁ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                               (proj₂ (proj₂ (proj₂ (proj₂ (lkpᵢ-↓ₑ-neq {o = o} {i = i} p q)))))
+                                               M)
                                        (↓ op (V-rename wk₁ V) N)
 
     await-promise   : {X : VType}
@@ -257,7 +257,7 @@ mutual
                       ↝
                       M [ id-subst [ V ]s ]m
 
-    -- EVALUATION CONTEXT RULE (ALSO CAPTURES THE SUBSUMPTION CONGRUENCE)
+    -- EVALUATION CONTEXT RULE
 
     context         : {Δ : BCtx}
                       {C : CType} → 
@@ -267,19 +267,19 @@ mutual
                       -------------------------------
                       E [ M ] ↝ E [ N ]
 
-    -- SUBSUMPTION RULES
-    -- (ADMINISTRATIVE, NEEDED FOR PROGRESS, RESULT OF WORKING WITH WELL-TYPED SYNTAX)
+    -- COERCION RULES
+    -- (THE RESULT OF WORKING WITH WELL-TYPED SYNTAX AND MAKING SUBSUMPTION INTO AN EXPLICIT COERCION)
 
-    subsume-return  : {X : VType}
+    coerce-return   : {X : VType}
                       {o o' : O}
                       {i i' : I}
                       {p : o ⊑ₒ o'}
                       {q : i ⊑ᵢ i'} → 
                       (V : Γ ⊢V⦂ X) →
-                      ---------------------------------
-                      subsume p q (return V) ↝ return V
+                      --------------------------------
+                      coerce p q (return V) ↝ return V
 
-    subsume-let     : {X Y : VType}
+    coerce-let      : {X Y : VType}
                       {o o' : O}
                       {i i' : I}
                       {p : o ⊑ₒ o'}
@@ -287,11 +287,11 @@ mutual
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
                       ----------------------------------------
-                      subsume p q (let= M `in N)
+                      coerce p q (let= M `in N)
                       ↝
-                      let= (subsume p q M) `in (subsume p q N)
+                      let= (coerce p q M) `in (coerce p q N)
 
-    subsume-↑       : {X : VType}
+    coerce-↑        : {X : VType}
                       {o o' : O}
                       {i i' : I}
                       {p : o ⊑ₒ o'}
@@ -301,11 +301,11 @@ mutual
                       (V : Γ ⊢V⦂ ``(payload op)) →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       -------------------------------
-                      subsume p q (↑ op r V M)
+                      coerce p q (↑ op r V M)
                       ↝
-                      ↑ op (p op r) V (subsume p q M)                      
+                      ↑ op (p op r) V (coerce p q M)
 
-    subsume-promise : {X Y : VType}
+    coerce-promise  : {X Y : VType}
                       {o o' o'' : O}
                       {i i' i'' : I}
                       {p : o ⊑ₒ o'}
@@ -315,16 +315,16 @@ mutual
                       (M : Γ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o'' , i'')) →
                       (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
                       ------------------------------------------------------------------
-                      subsume p q (promise op ∣ r ↦ M `in N)
+                      coerce p q (promise op ∣ r ↦ M `in N)
                       ↝
                       promise_∣_↦_`in_ {o' = lkpᵢ-nextₒ q r}
                                        {i' = lkpᵢ-nextᵢ q r}
                                        op
                                        (lkpᵢ-next-eq q r)
-                                       (subsume (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M)
-                                       (subsume p q N)
+                                       (coerce (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M)
+                                       (coerce p q N)
 
-    subsume-subsume : {X : VType}
+    coerce-coerce   : {X : VType}
                       {o o' o'' : O}
                       {i i' i'' : I}
                       {p : o ⊑ₒ o'}
@@ -333,6 +333,6 @@ mutual
                       {q' : i' ⊑ᵢ i''} →
                       (M : Γ ⊢M⦂ X ! (o , i)) →
                       ----------------------------------------
-                      subsume p' q' (subsume p q M)
+                      coerce p' q' (coerce p q M)
                       ↝
-                      subsume (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
+                      coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
