@@ -1,13 +1,21 @@
-# asynchronous-operations
+# Agda formalisation of the AEff calculus
 
-- `EffectAnnotations.agda` - effect annotations for signals and interrupts
+- `EffectAnnotations.agda` - effect annotations for signals and interrupt handlers
 
-- `Types.agda` - value and computation types
+- `Types.agda` - value, computation, and process types
 
-- `Calculus.agda` - well-typed judgements of values and computations
+- `AEff.agda` - well-typed syntax of values, computations, and processes
 
-- `Renamings.agda` - renamings
+- `Renamings.agda` - renamings of values, computations, and processes
 
-- `Substitutions.agda` - substitutions
+- `Substitutions.agda` - substitutions of values, computations, and processes
 
-- `Preservation.agda` - small-step operational semantics for well-typed computations, which also serves as a proof of preservation
+- `Preservation.agda` - small-step operational semantics for well-typed computations (also serves as a preservation proof)
+
+- `AwaitingComputations.agda` - characterisation of computations that are temporarily blocked awaiting a promise
+
+- `Progress.agda` - proof of progress for the small-step operational semantics of computations
+
+- `ProcessPreservation.agda` - small-step operational semantics for well-typed processes (also serves as a preservation proof)
+
+- `ProcessProgress.agda` - proof of progress for the small-step operational semantics of processes
