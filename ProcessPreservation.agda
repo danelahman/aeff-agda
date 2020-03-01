@@ -96,7 +96,7 @@ _[_]h : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
   promise op ∣ p ↦ N `in (E [ M ]h)
   
 
--- EVOLUTION OF PROCESS TYPES
+-- REDUCTION OF PROCESS TYPES
 
 infix 10 _⇝_
 
@@ -129,7 +129,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
         (PP ∥ QQ) ⇝ (PP' ∥ QQ')
 
 
--- EVOLUTION OF PROCESS TYPES IS REFLEXIVE
+-- REDUCTION OF PROCESS TYPES IS REFLEXIVE
 
 ⇝-refl : {o : O} {PP : PType o} → PP ⇝ PP
 ⇝-refl {o} {X ‼ o , i} =
@@ -138,7 +138,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
   par ⇝-refl ⇝-refl
 
 
--- ACTION OF INTERRUPTS ON GENERAL PROCESS TYPES IS AN EVOLUTION
+-- ACTION OF INTERRUPTS ON GENERAL PROCESS TYPES IS A REDUCTION
 
 ⇝-↓ : {o : O}
       {PP : PType o}
@@ -152,7 +152,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
   par ⇝-↓ ⇝-↓
 
 
--- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE EVOLUTION
+-- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE REDUCTION
 
 ⇝-↓ₚ : {o o' : O}
        {PP : PType o}
@@ -170,7 +170,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
   par (⇝-↓ₚ p) (⇝-↓ₚ q)
 
 
--- PROCESS TYPE EVOLUTION INCREASES SIGNAL INDEX
+-- PROCESS TYPE REDUCTION INCREASES SIGNAL INDEX
 
 inj-proj₁ : {X Y : Set} {xy xy' : X × Y} → xy ≡ xy' → proj₁ xy ≡ proj₁ xy'
 inj-proj₁ refl = refl
@@ -300,7 +300,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
   ↓ op V (F [ P ]f)
 
 
--- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO EVOLVE
+-- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO REDUCE
 
 ⇝-f-⇝ : {Γ : Ctx}
         {o o' : O}
