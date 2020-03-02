@@ -1,4 +1,4 @@
-# Agda formalisation of the AEff calculus
+# Agda formalisation of the AEff language
 
 - `EffectAnnotations.agda` - effect annotations for signals and interrupt handlers
 
