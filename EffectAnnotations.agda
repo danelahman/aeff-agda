@@ -716,6 +716,10 @@ mutual
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
 
+{- 
+   The next lemma is postulated for time being, with a paper proof given below. 
+   Also given below is an Agda proof of the singleton list case of this lemma.
+-}
 postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
                {i : I} → 
@@ -901,7 +905,7 @@ qed.
 -}
 
 
--- A SINGLE OPERATION VARIANT/CASE OF THE ABOVE PAPER PROOF
+-- A SINGLETON LIST CASE OF THE POSTULATED ↓↓ₑ-⊑ₒ-act LEMMA
 
 ↓↓ₑ-⊑ₒ-act-≡ : {o o' : O}
                {i i' : I} →
