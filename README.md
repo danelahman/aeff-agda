@@ -2,7 +2,7 @@
 
 - The formalisation has been tested with Agda version 2.6.0.1 and standard library version 1.2.
 
-- The unicode symbols used in the source code have tested to display correctly with DejaVu Sans Mono font.
+- The unicode symbols used in the source code have tested to display correctly with the DejaVu Sans Mono font.
 
 - `EffectAnnotations.agda` - effect annotations for signals and interrupt handlers
 
