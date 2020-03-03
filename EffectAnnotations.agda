@@ -899,3 +899,81 @@ Next, we proceed by case analysis on i op:
 qed.
 
 -}
+
+
+-- A SINGLE OPERATION VARIANT/CASE OF THE ABOVE PAPER PROOF
+
+↓↓ₑ-⊑ₒ-act-≡ : {o o' : O}
+               {i i' : I} →
+               (op : Σₛ) →
+               lkpᵢ op i ≡ just (o' , i') → 
+               ----------------------------------------------------------------------------------
+               proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ ((o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')))
+
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op p with i op
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) with decₛ op op
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl with i' op
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl | nothing =
+  ⊑ₒ-refl
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl | just _ =
+  ∪ₒ-inl
+↓↓ₑ-⊑ₒ-act-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | no ¬p =
+  ⊥-elim (¬p refl)
+
+
+↓↓ₑ-⊑ₒ-act-≢ : {o o' : O}
+               {i i' : I} →
+               (op op' : Σₛ) →
+               op ≢ op' → 
+               lkpᵢ op' i ≡ just (o' , i') → 
+               -----------------------------------------------------------------------------------
+               proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ ((o ∪ₒ o') , ((i [ op' ↦ nothing ]ᵢ) ∪ᵢ i')))
+
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q with i op
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing with decₛ op' op
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | yes r =
+  ⊥-elim (p (sym r))
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r with i' op
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r | nothing =
+  ∪ₒ-inl
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r | just _ =
+  ⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl 
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') with decₛ op' op
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | yes r =
+  ⊥-elim (p (sym r))
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | no ¬r with i' op
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | no ¬r | nothing =
+  ∪ₒ-copair (⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl) ∪ₒ-inr
+↓↓ₑ-⊑ₒ-act-≢ {omap o} {omap o'} op op' p q | just (omap o'' , imap i'') | no ¬r | just (omap o''' , imap i''') =
+  ∪ₒ-copair {omap o} {omap o''} {((omap o) ∪ₒ (omap o')) ∪ₒ ((omap o'') ∪ₒ (omap o'''))}
+            (⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl)
+            (⊑ₒ-trans (∪ₒ-inl {omap o''} {omap o'''} ) (∪ₒ-inr {(omap o) ∪ₒ (omap o')} {(omap o'') ∪ₒ (omap o''')}))
+
+
+↓↓ₑ-⊑ₒ-act₁ : {o : O}
+              {i : I}
+              (op op' : Σₛ) →
+              -------------------------------------------------------
+              proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (op' ↓ₑ (o , i)))
+
+↓↓ₑ-⊑ₒ-act₁ {omap o} {imap i} op op' =
+  ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (i op') refl
+
+  where
+    ↓↓ₑ-⊑ₒ-act₁-aux : {o : Σₛ → Maybe ⊤}
+                      {i : Σₛ → Maybe (O × I)}
+                      (op op' : Σₛ) → 
+                      (oi : Maybe (O × I)) → 
+                      i op' ≡ oi →
+                      -----------------------------------------------------------------
+                      proj₁ (op ↓ₑ (omap o , imap i))
+                      ⊑ₒ
+                      proj₁ (op ↓ₑ (↓ₑ-auxₒ op' oi (omap o) , ↓ₑ-auxᵢ op' oi (imap i)))
+
+    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' nothing p =
+      ⊑ₒ-refl
+    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p with decₛ op op'
+    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op .op (just (o' , i')) p | yes refl =
+      ↓↓ₑ-⊑ₒ-act-≡ op p
+    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p | no ¬q =
+      ↓↓ₑ-⊑ₒ-act-≢ op op' ¬q p 
