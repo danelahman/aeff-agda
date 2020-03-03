@@ -720,6 +720,7 @@ mutual
    The next lemma is postulated for time being, with a paper proof given below. 
    Also given below is an Agda proof of the singleton list case of this lemma.
 -}
+
 postulate
   ↓↓ₑ-⊑ₒ-act : {o : O}
                {i : I} → 
