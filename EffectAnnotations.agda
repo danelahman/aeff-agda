@@ -807,7 +807,7 @@ mutual
 {- LEMMA 4.6 -}
 
 {- 
-   For time being, we postulate this lemma, but include a paper proof below.
+   For time being, we postulate this lemma in Agda, but include a paper proof below.
 -}
 
 postulate
