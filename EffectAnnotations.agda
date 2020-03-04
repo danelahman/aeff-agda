@@ -965,7 +965,7 @@ We proceed by case analysis on i op:
 
         We prooceed by case analysis whether opₘ₊₁ equals any of the previous opₖs:
 
-        2.2.1) If opₘ₊₁ ≡ opₖ for some 1 <= k <= m
+        2.2.1) If opₘ₊₁ ≡ opₖ for some 1 <= k <= m (and opₘ₊₁ ≢ opₖ for none of the k + 1 ... m)
 
                Then we can peel off the layers k + 1 ... m because opₖ ↦ nothing in those,
                on both sides of the inequality, and we are left having to show 
@@ -1000,7 +1000,7 @@ We proceed by case analysis on i op:
                           ⊑ 
                           o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op)
 
-                        which holds straightforwardly.
+                        which holds straightforwardly (by left injection).
 
                2.2.2.2) If op ≢ op₁:
 
@@ -1014,7 +1014,7 @@ We proceed by case analysis on i op:
                           =
                           o' ∪ proj₁ (i opₘ₊₁) ∪ proj₁ (i' opₘ₊₁)
 
-                        which also holds straigthforwardly.
+                        which also holds straigthforwardly (by middle injection).
 
                Observe that 2.2.2.1 demonstrates the need to include o' in the inductive argument.
 
