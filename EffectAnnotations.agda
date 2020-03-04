@@ -716,197 +716,7 @@ mutual
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
 
-{- 
-   The next lemma is postulated for time being, with a paper proof given below. 
-   Also given below is an Agda proof of the singleton list case of this lemma.
--}
-
-postulate
-  ↓↓ₑ-⊑ₒ-act : {o : O}
-               {i : I} → 
-               (ops : List Σₛ) →
-               (op : Σₛ) →
-               ----------------------------------------------------------
-               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
-
-
-{-
-
-Paper proof for ↓↓ₑ-⊑ₒ-act:
-
-First, we observe that (without loss of generality, we consider i op = nothing 
-to be the same as i op = (o' , i') where o' and i' are empty maps):
-
-  proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
-  =
-  proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (op₁ ↓ₑ (o , i)))))
-  =
-  proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (o ∪ o₁ , i[ op₁ ↦ nothing ] ∪ i₁))))             (assuming that i op₁ = (o₁ , i₁))
-  =
-  (o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ)    
-
-  where 
-
-    (oᵢ , iᵢ) = ((i[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                  ∪ 
-                  i₁[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                  ∪
-                  i₂[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                  ∪
-                  ...
-                  ∪
-                  ...
-                  ∪
-                  iᵢ₋₁) opᵢ)
-
-Next, we proceed by case analysis on i op:
-
-1) i op = nothing 
-
-   Then op ↓ₑ (o , i) = (o , i), thus inclusion holds trivially by reflexivity.
-
-2) i op = just (o' , i')
-
-   Then op ↓ₑ (o , i) = (o ∪ o' , i[ op ↦ nothing ] ∪ i'), and we need to prove
-
-     proj₁ (ops ↓↓ₑ (o , i)) ⊑ proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')).
-
-   Next, we note that
-
-     proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
-     = 
-     (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
-
-   where 
-
-     (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                     ∪ 
-                     i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                     ∪
-                     i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                     ∪
-                     i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                     ∪
-                     ...
-                     ∪
-                     ...
-                     ∪
-                     iᵢ₋₁') opᵢ)
-
-   Thus we need to show
-
-     o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₙ'
-
-   For which it suffices to show (by using the idempotency of ∪ on RHS with o' repeatedly)
-
-     oᵢ ⊑ o' ∪ oᵢ'
-
-   We proceed by induction on n, i.e., the length of the list ops.
-
-   2.1) If n = length ops = 0:
-
-        Then we are done vacuously (and the overall inclusion is just o ⊑ o ∪ o').
-
-   2.2) If n = length ops = 1:
-
-        Then we proceed by case analysis whether op ≡ op₁.
-
-        2.2.1) If op ≡ op₁:
-
-               Then we have to show
-
-                 o₁ = proj₁ (i op) = o'
-                 ⊑ 
-                 o' ∪ o₁' = o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op) = o' ∪ proj₁ (i[ op ↦ nothing ] op) ∪ proj₁ (i' op)
-
-               which holds straightforwardly.
-
-        2.2.2) If op ≢ op₁:
-
-               Then we have to show
-               
-                 o₁ = proj₁ (i op₁)
-                 ⊑
-                 o' ∪ o₁' = o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op₁) = o' ∪ proj₁ (i op₁) ∪ proj₁ (i' op₁)
-
-               which holds straigthforwardly.
-
-   2.3) If n = length ops = m + 1
-
-        By induction hypothesis, we know that for all 1 <= i <= m, we have
-        
-          oᵢ ⊑ o' ∪ oᵢ'
-
-        and we need to show
-
-          oₘ₊₁ ⊑ o' ∪ oₘ₊₁'
-
-        Which, when we unfold the definitions, amounts to having to show
-
-          oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                          ∪ 
-                          i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                          ∪
-                          ...
-                          ∪
-                          ...
-                          ∪
-                          iₘ) opₘ₊₁)
-          ⊑ 
-          o' ∪ oₘ₊₁' = o' ∪ proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                                    ∪ 
-                                    i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                                    ∪
-                                    i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                                    ∪
-                                    i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                                    ∪
-                                    ...
-                                    ∪
-                                    ...
-                                    ∪
-                                    iₘ') opₘ₊₁)
-
-        that is
-
-          oₘ₊₁  = proj₁ (i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                  ∪ 
-                  proj₁ (i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                  ∪
-                  proj₁ (i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                  ∪
-                  ...
-                  ∪
-                  ...
-                  ∪
-                  proj₁ (iₘ opₘ₊₁)
-          ⊑ 
-          o' ∪ oₘ₊₁' = o' ∪ proj₁ (i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                            ∪ 
-                            proj₁ (i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                            ∪
-                            proj₁ (i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                            ∪
-                            proj₁ (i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                            ∪
-                            ...
-                            ∪
-                            ...
-                            ∪
-                            proj₁ (iₘ' opₘ₊₁)
-
-        which we can prove by repeatedly using the idempotency of ∪, the relations oᵢ ⊑ o' ∪ oᵢ' 
-        that we get from the induction hypothesis for for all 1 <= i <= m, and unfolding the 
-        definitions of oᵢ, oᵢ', iᵢ, and iᵢ'. We also use the monotonicity of (-)[ op' ↦ nothing ].
-    
-qed.
-
--}
-
-
--- A SINGLETON LIST CASE OF THE POSTULATED ↓↓ₑ-⊑ₒ-act LEMMA
+-- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH A SINGLE INTERRUPT ACTION
 
 ↓↓ₑ-⊑ₒ-act₁-≡ : {o o' : O}
                 {i i' : I} →
@@ -982,3 +792,222 @@ qed.
       ↓↓ₑ-⊑ₒ-act₁-≡ op p
     ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p | no ¬q =
       ↓↓ₑ-⊑ₒ-act₁-≢ op op' ¬q p 
+
+
+-- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH MLTIPLE INTERRUPT ACTIONS
+
+{- 
+   For time being, we postulate this lemma, but include a paper proof below.
+-}
+
+postulate
+  ↓↓ₑ-⊑ₒ-act : {o : O}
+               {i : I} → 
+               (ops : List Σₛ) →
+               (op : Σₛ) →
+               ----------------------------------------------------------
+               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
+
+{-
+
+Paper proof for ↓↓ₑ-⊑ₒ-act:
+
+We proceed by case analysis on i op:
+
+1) If i op = nothing 
+
+   Then op ↓ₑ (o , i) = (o , i), thus inclusion holds trivially by reflexivity.
+
+2) If i op = just (o' , i')
+
+   Then op ↓ₑ (o , i) = (o ∪ o' , i[ op ↦ nothing ] ∪ i'), and we need to prove
+
+     proj₁ (ops ↓↓ₑ (o , i)) ⊑ proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')).
+
+  Next, we note that (without loss of generality, we consider i op = nothing 
+  to be the same as i op = (o' , i') where o' and i' are empty maps)
+
+    proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
+    =
+    proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (op₁ ↓ₑ (o , i)))))
+    =
+    proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (o ∪ o₁ , i[ op₁ ↦ nothing ] ∪ i₁))))             (assuming that i op₁ = (o₁ , i₁))
+    =
+    (o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ)    
+
+    where 
+
+      (oᵢ , iᵢ) = ((i[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                    ∪ 
+                    i₁[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                    ∪
+                    i₂[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                    ∪
+                    ...
+                    ∪
+                    ...
+                    ∪
+                    iᵢ₋₁) opᵢ)
+
+  and
+
+    proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
+    = 
+    (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
+
+  where 
+
+    (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                    ∪ 
+                    i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
+                    ∪
+                    i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                    ∪
+                    i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
+                    ∪
+                    ...
+                    ∪
+                    ...
+                    ∪
+                    iᵢ₋₁') opᵢ)
+
+  Thus we need to show
+
+    o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₙ'
+
+  For which it suffices to show (by using the idempotency of ∪ on RHS with o' repeatedly)
+
+    oᵢ ⊑ o' ∪ oᵢ'
+
+  The importance of including o' in the right-hand side will become apparent towards the end.
+
+  We proceed by induction on n, i.e., the length of the list ops.
+
+    2.1) If n = length ops = 0:
+
+         Then we are done vacuously (and the overall inclusion is just o ⊑ o ∪ o').
+
+    2.2) If n = length ops = m + 1
+
+         By induction hypothesis, we know that for all 1 <= i <= m, we have
+        
+           oᵢ ⊑ o' ∪ oᵢ'
+
+         and we need to show
+
+           oₘ₊₁ ⊑ o' ∪ oₘ₊₁'
+
+         Which, when we unfold the definitions, amounts to having to show
+
+           oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                           ∪ 
+                           i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                           ∪
+                           i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                           ∪
+                           ...
+                           ∪
+                           ...
+                           ∪
+                           iₘ) opₘ₊₁)
+           ⊑ 
+           o' ∪ oₘ₊₁' = o' ∪ proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                                     ∪ 
+                                     i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
+                                     ∪
+                                     i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
+                                     ∪
+                                     i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
+                                     ∪
+                                     ...
+                                     ∪
+                                     ...
+                                     ∪
+                                     iₘ') opₘ₊₁)
+
+         that is
+
+           oₘ₊₁  = proj₁ (i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                   ∪ 
+                   proj₁ (i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                   ∪
+                   proj₁ (i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                   ∪
+                   ...
+                   ∪
+                   ...
+                   ∪
+                   proj₁ (iₘ opₘ₊₁)
+           ⊑ 
+           o' ∪ oₘ₊₁' = o' ∪ proj₁ (i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                             ∪
+                             proj₁ (i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                             ∪
+                             proj₁ (i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                             ∪
+                             proj₁ (i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
+                             ∪
+                             ...
+                             ∪
+                             ...
+                             ∪
+                             proj₁ (iₘ' opₘ₊₁)
+
+        We prooceed by case analysis whether opₘ₊₁ equals any of the previous opₖs:
+
+        2.2.1) If opₘ₊₁ ≡ opₖ for some 1 <= k <= m
+
+               Then we can peel off the layers k + 1 ... m because opₖ ↦ nothing in those,
+               on both sides of the inequality, and we are left having to show 
+
+                 proj₁ (iₖ opₖ) ⊑ o' ∪ proj₁ (iₖ' opₖ)
+
+               and when unfolding iₖ and iₖ' once more, we see that we are left having to show
+
+                 oₖ ⊑ o' ∪ oₖ'
+
+               but this follows directly from the induction hypothesis.
+
+        2.2.2) If opₘ₊₁ ≢ opₖ for none of the 1 <= k <= m
+
+               Then the recursive structure on both sides of the inequality collapses because
+
+                 iₖ[ opₖ₊₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁ = iₖ opₘ₊₁
+
+               and similarly for the iₖ's. 
+
+               Thus (after repeatedly using the idempotency of ∪) we are left having to simply show
+
+                 proj₁ (i opₘ₊₁) ⊑ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') opₘ₊₁)
+
+               We proceed by case analysis whether op ≡ opₘ₊₁.
+
+               2.2.2.1) If op ≡ opₘ₊₁:
+
+                        Then we have to show
+
+                          proj₁ (i op) = o'
+                          ⊑ 
+                          o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op)
+
+                        which holds straightforwardly.
+
+               2.2.2.2) If op ≢ op₁:
+
+                        Then we have to show
+               
+                          proj₁ (i opₘ₊₁)
+                          ⊑
+                          o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') opₘ₊₁) 
+                          = 
+                          o' ∪ proj₁ (i[ op ↦ nothing ] opₘ₊₁) ∪ proj₁ (i' opₘ₊₁)
+                          =
+                          o' ∪ proj₁ (i opₘ₊₁) ∪ proj₁ (i' opₘ₊₁)
+
+                        which also holds straigthforwardly.
+
+               Observe that 2.2.2.1 demonstrates the need to include o' in the inductive argument.
+
+qed.
+
+-}
