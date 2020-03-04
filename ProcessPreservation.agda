@@ -53,6 +53,8 @@ hole-ty-hᵢ (promise op ∣ p ↦ M `in H) =
   hole-ty-hᵢ H
 
 
+{- LEMMA 4.7 (1) - the O part -}
+
 hole-ty-h-⊑ₒ : {Γ : Ctx}
                {Δ : BCtx}
                {X : VType}
@@ -67,6 +69,8 @@ hole-ty-h-⊑ₒ [-] =
 hole-ty-h-⊑ₒ (promise op ∣ p ↦ M `in H) =
   hole-ty-h-⊑ₒ H
 
+
+{- LEMMA 4.7 (1) - the I part -}
 
 hole-ty-h-⊑ᵢ : {Γ : Ctx}
                {Δ : BCtx}
@@ -131,6 +135,8 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 -- REDUCTION OF PROCESS TYPES IS REFLEXIVE
 
+{- LEMMA 4.5 (1) -}
+
 ⇝-refl : {o : O} {PP : PType o} → PP ⇝ PP
 ⇝-refl {o} {X ‼ o , i} =
   id
@@ -139,6 +145,8 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 
 -- ACTION OF INTERRUPTS ON GENERAL PROCESS TYPES IS A REDUCTION
+
+{- LEMMA 4.5 (2) -}
 
 ⇝-↓ : {o : O}
       {PP : PType o}
@@ -153,6 +161,8 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 
 -- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE REDUCTION
+
+{- LEMMA 4.5 (3) -}
 
 ⇝-↓ₚ : {o o' : O}
        {PP : PType o}
@@ -171,6 +181,8 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 
 -- PROCESS TYPE REDUCTION INCREASES SIGNAL INDEX
+
+{- LEMMA 4.5 (4) -}
 
 inj-proj₁ : {X Y : Set} {xy xy' : X × Y} → xy ≡ xy' → proj₁ xy ≡ proj₁ xy'
 inj-proj₁ refl = refl
@@ -302,6 +314,8 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 
 -- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO REDUCE
 
+{- LEMMA 4.7 (2) -}
+
 ⇝-f-⇝ : {Γ : Ctx}
         {o o' : O}
         {PP : PType o}
@@ -355,7 +369,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 
     ⇝-f-∈ₒ-aux (o'' , RR , r) q =
       ⇝-↓ₚ-⊑ₒ (⇝-↓ₚ r)
-      
+
 
 ⇝-f : {Γ : Ctx}
       {o o' : O} 
@@ -435,6 +449,8 @@ subst-i Y Z refl refl z = z
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED PROCESSES
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
+
+{- THEOREM 4.8 -}
 
 infix 10 _[_]↝_
 

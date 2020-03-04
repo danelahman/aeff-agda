@@ -106,6 +106,8 @@ hole-ty-e (coerce p q E) =
 
 -- FILLING A WELL-TYPED EVALUATION CONTEXT
 
+{- LEMMA 3.5 -}
+
 infix 30 _[_]
 
 _[_] : {Γ : Ctx} {Δ : BCtx} {C : CType} → (E : Γ ⊢E[ Δ ]⦂ C) → Γ ⋈ Δ ⊢M⦂ (hole-ty-e E) → Γ ⊢M⦂ C
@@ -125,6 +127,8 @@ coerce p q E [ M ] =
 
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
+
+{- THEOREM 3.6 -}
 
 mutual
 

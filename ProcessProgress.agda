@@ -133,6 +133,8 @@ await-h-runresult (promise op ∣ q ↦ N `in H) p =
 
 -- COMPUTATION RESULT CAN BE TURNED INTO A HOISTING CONTEXT
 
+{- LEMMA 4.3 -}
+
 result-to-hoist : {Γ : Ctx}
                   {X : VType}
                   {o : O}
@@ -171,6 +173,8 @@ result-to-hoist (awaiting {_} {Y} {y} {N} p) =
 
 
 -- PROGRESS THEOREM FOR PROCESSES
+
+{- THEOREM 4.4 -}
 
 proc-progress : {o : O} {PP : PType o} →
                 (P : [] ⊢P⦂ PP) →
