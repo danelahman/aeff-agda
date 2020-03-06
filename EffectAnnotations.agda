@@ -820,203 +820,193 @@ postulate
 
 {-
 
-Paper proof for ↓↓ₑ-⊑ₒ-act:
+For a paper proof of ↓↓ₑ-⊑ₒ-act, we first define some auxiliary judgements and prove some lemmas.
 
-We proceed by case analysis on i op:
+Definition 4.6.1:
 
-1) If i op = nothing 
+  Define `op @ [] in (o, i)` if an `op` signal can be found by following the `ops` path in `(o, i)`.
 
-   Then op ↓ₑ (o , i) = (o , i), thus inclusion holds trivially by reflexivity.
+    op ∈ o
+    -----------------
+    op @ [] in (o, i)
 
-2) If i op = just (o' , i')
+    op @ ops in i[op']
+    -------------------------
+    op @ (op'::ops) in (o, i)
 
-   Then op ↓ₑ (o , i) = (o ∪ o' , i[ op ↦ nothing ] ∪ i'), and we need to prove
 
-     proj₁ (ops ↓↓ₑ (o , i)) ⊑ proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')).
+Definition 4.6.2:
 
-  Next, we note that (without loss of generality, we consider i op = nothing 
-  to be the same as i op = (o' , i') where o' and i' are empty maps)
+  Define `{ops ↦ op}` to be the minimal annotation `(o, i)`such that `op @ ops in (o, i)`.
 
-    proj₁ ((opₙ :: ... :: op₁ :: []) ↓↓ₑ (o , i))
-    =
-    proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (op₁ ↓ₑ (o , i)))))
-    =
-    proj₁ (opₙ ↓ₑ (... (op₂ ↓ₑ (o ∪ o₁ , i[ op₁ ↦ nothing ] ∪ i₁))))             (assuming that i op₁ = (o₁ , i₁))
-    =
-    (o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ)    
+    {[] ↦ op} := ({op}, ∅)
+    {op'::ops ↦ op} := (∅, {op' ↦ {ops ↦ op}})
 
-    where 
 
-      (oᵢ , iᵢ) = ((i[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                    ∪ 
-                    i₁[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                    ∪
-                    i₂[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                    ∪
-                    ...
-                    ∪
-                    ...
-                    ∪
-                    iᵢ₋₁) opᵢ)
+Definition 4.6.3:
 
-  and
+  Define `ops ⪽ ops'` if `ops` is a (not necessarily contiguous) subseqence of `ops'`.
 
-    proj₁ (ops ↓↓ₑ (o ∪ o' , i[ op ↦ nothing ] ∪ i')) 
-    = 
-    (o ∪ o' ∪ o₁' ∪ ... ∪ oₙ')
+    ---------
+    [] ⪽ ops'
 
-  where 
+    ops ⪽ ops'
+    ------------------
+    op::ops ⪽ op::ops'
 
-    (oᵢ' , iᵢ') = ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                    ∪ 
-                    i'[ op₁ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ] 
-                    ∪
-                    i₁'[ op₂ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                    ∪
-                    i₂'[ op₃ ↦ nothing , ... , opᵢ₋₁ ↦ nothing ]
-                    ∪
-                    ...
-                    ∪
-                    ...
-                    ∪
-                    iᵢ₋₁') opᵢ)
+    op::ops ⪽ ops'  op ≠ op'
+    ------------------------
+    op::ops ⪽ op'::ops'
 
-  Thus we need to show
 
-    o ∪ o₁ ∪ o₂ ∪ ... ∪ oₙ ⊑ o ∪ o' ∪ o₁' ∪ ... ∪ oₙ'
+Lemma 4.6.3:
 
-  For which it suffices to show (by using the idempotency of ∪ on RHS with o' repeatedly)
+  If `op @ ops in (o, i)` then `{ops ↦ op} ⊑ (o, i)`.
 
-    oᵢ ⊑ o' ∪ oᵢ'
+Proof:
 
-  The importance of including o' in the right-hand side will become apparent towards the end.
+  By induction on `op @ ops in (o, i)`.
 
-  We proceed by induction on n, i.e., the length of the list ops.
+  - If `op @ [] in (o, i)` then `op ∈ o` hence `{[] ↦ op} = ({op}, ∅) ⊑ (o, i)`.
 
-    2.1) If n = length ops = 0:
+  - If `op @ (op'::ops) in (o, i)` then `op @ ops in i[op']`.
 
-         Then we are done vacuously (and the overall inclusion is just o ⊑ o ∪ o').
+    Hence, by induction hypothesis `{ops ↦ op} ⊑ i[op']`.
 
-    2.2) If n = length ops = m + 1
+    And so, `{op'::ops ↦ op} = (∅, {op' ↦ {ops ↦ op}}) ⊑ (o, i)`.
 
-         By induction hypothesis, we know that for all 1 <= i <= m, we have
-        
-           oᵢ ⊑ o' ∪ oᵢ'
+qed.
 
-         and we need to show
+Lemma 4.6.4:
 
-           oₘ₊₁ ⊑ o' ∪ oₘ₊₁'
+  If `ops ⪽ ops'`, then `op ∈ π₁(rev(ops') ↓↓ {ops ↦ op})`.
 
-         Which, when we unfold the definitions, amounts to having to show
+Proof:
 
-           oₘ₊₁  = proj₁ ((i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                           ∪ 
-                           i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                           ∪
-                           i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                           ∪
-                           ...
-                           ∪
-                           ...
-                           ∪
-                           iₘ) opₘ₊₁)
-           ⊑ 
-           o' ∪ oₘ₊₁' = o' ∪ proj₁ ((i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                                     ∪ 
-                                     i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] 
-                                     ∪
-                                     i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ]
-                                     ∪
-                                     i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ]
-                                     ∪
-                                     ...
-                                     ∪
-                                     ...
-                                     ∪
-                                     iₘ') opₘ₊₁)
+  By induction on `ops ⪽ ops'`.
 
-         that is
+  - If `ops = []` then `{ops ↦ op} = ({op}, ∅)` which all the `ops'` actions leave invariant and `op ∈ π₁({op}, ∅)`.
 
-           oₘ₊₁  = proj₁ (i[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                   ∪ 
-                   proj₁ (i₁[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                   ∪
-                   proj₁ (i₂[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                   ∪
-                   ...
-                   ∪
-                   ...
-                   ∪
-                   proj₁ (iₘ opₘ₊₁)
-           ⊑ 
-           o' ∪ oₘ₊₁' = o' ∪ proj₁ (i[ op ↦ nothing , op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                             ∪
-                             proj₁ (i'[ op₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                             ∪
-                             proj₁ (i₁'[ op₂ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                             ∪
-                             proj₁ (i₂'[ op₃ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁)
-                             ∪
-                             ...
-                             ∪
-                             ...
-                             ∪
-                             proj₁ (iₘ' opₘ₊₁)
+  - Take `op'::ops ⪽ op'::ops'` such that `ops ⪽ ops'`. Then
 
-        We prooceed by case analysis whether opₘ₊₁ equals any of the previous opₖs:
+      π₁(rev(op'::ops') ↓↓ {op'::ops ↦ op})
+      =
+      π₁(ops' ↓↓ (op' ↓ (∅, {op' ↦ {ops ↦ op}})))
+      =
+      π₁(ops' ↓↓ {ops ↦ op}) 
 
-        2.2.1) If opₘ₊₁ ≡ opₖ for some 1 <= k <= m (and opₘ₊₁ ≢ opₖ for none of the k + 1 ... m)
+    which contains `op` by induction hypothesis.
 
-               Then we can peel off the layers k + 1 ... m because opₖ ↦ nothing in those,
-               on both sides of the inequality, and we are left having to show 
+  - Take `op'::ops ⪽ op''::ops'` such that `op'::ops ⪽ ops'` and `op' ≠ op''`. Then
 
-                 proj₁ (iₖ opₖ) ⊑ o' ∪ proj₁ (iₖ' opₖ)
+      π₁(rev(op''::ops') ↓↓ {op'::ops ↦ op})
+      =
+      π₁(ops' ↓↓ (op'' ↓ (∅, {op' ↦ {ops ↦ op}})))
+      =
+      π₁(ops' ↓↓ (∅, {op' ↦ {ops ↦ op}}))
+      =
+      π₁(ops' ↓↓ {op'::ops ↦ op})
 
-               and when unfolding iₖ and iₖ' once more, we see that we are left having to show
+    which contains `op` by induction hypothesis.
 
-                 oₖ ⊑ o' ∪ oₖ'
+qed.
 
-               but this follows directly from the induction hypothesis.
+Lemma 4.6.5:
 
-        2.2.2) If opₘ₊₁ ≢ opₖ for none of the 1 <= k <= m
+  If `op @ ops in (o1 ∪ o2, i1 ∪ i2)` then `op @ ops in (o1, i1)` or `op @ ops in (o2, i2)`.
 
-               Then the recursive structure on both sides of the inequality collapses because
+Proof:
 
-                 iₖ[ opₖ₊₁ ↦ nothing , ... , opₘ ↦ nothing ] opₘ₊₁ = iₖ opₘ₊₁
+  By induction on `op @ ops in (o1 ∪ o2, i1 ∪ i2)`.
 
-               and similarly for the iₖ's. 
+  - If `ops = []` then `op ∈ o1 ∪ o2`.
 
-               Thus (after repeatedly using the idempotency of ∪) we are left having to simply show
+      + If `op ∈ o1` then `op @ [] in (o1, i1)`.
 
-                 proj₁ (i opₘ₊₁) ⊑ o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') opₘ₊₁)
+      + If `op ∈ o2` and `op @ [] in (o2, i2)`.
 
-               We proceed by case analysis whether op ≡ opₘ₊₁.
+  - If `ops = op'::ops''` then `op @ ops' in (i1 ∪ i2)[op']`.
 
-               2.2.2.1) If op ≡ opₘ₊₁:
+      + If both `i1[op']` and `i2[op']` are `⊥` then `(i1 ∪ i2)[op'] = ⊥` which is a contradiction.
 
-                        Then we have to show
+      + If `i2[op'] = ⊥` then `(i1 ∪ i2)[op'] = i1[op']` hence `op @ ops in (o1, i1)`.
 
-                          proj₁ (i op) = o'
-                          ⊑ 
-                          o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') op)
+      + If `i1[op'] = ⊥` then `(i1 ∪ i2)[op'] = i2[op']` hence `op @ ops in (o2, i2)`.
 
-                        which holds straightforwardly (by left injection).
+      + If `i1[op'] = (o1', i1')` and `i2[op'] = (o2', i2')` then `(i1 ∪ i2)[op'] = (o1' ∪ o2', i1' ∪ i2')`.
 
-               2.2.2.2) If op ≢ op₁:
+        Hence,`op @ ops' in (o1' ∪ o2', i1' ∪ i2')`. 
 
-                        Then we have to show
-               
-                          proj₁ (i opₘ₊₁)
-                          ⊑
-                          o' ∪ proj₁ ((i[ op ↦ nothing ] ∪ i') opₘ₊₁) 
-                          = 
-                          o' ∪ proj₁ (i[ op ↦ nothing ] opₘ₊₁) ∪ proj₁ (i' opₘ₊₁)
-                          =
-                          o' ∪ proj₁ (i opₘ₊₁) ∪ proj₁ (i' opₘ₊₁)
+        By induction, we get that either `op @ ops' in (o1', i1')` or `op @ ops' in (o2', i2')`. 
 
-                        which also holds straigthforwardly (by middle injection).
+          + In the first case, `op @ ops in (o1, i1)`.
 
-               Observe that 2.2.2.1 demonstrates the need to include o' in the inductive argument.
+          + In the second `op @ ops in (o2, i2)`.
+
+qed.
+
+Lemma 4.6.6:
+
+  If `op ∈ π₁(rev(ops) ↓↓ (o, i))` then there exists `ops' ⪽ ops` such that `op @ ops' in (o, i)`.
+
+Proof:
+
+By induction on `ops`.
+
+- If `ops = []` then `op ∈ π₁(rev([]) ↓↓ (o, i)) = π₁((o, i)) = o`.
+
+  Hence, `op @ [] in (o, i)` and so `ops' = [] ⪽ ops`.
+
+- If `ops = op'::ops`, then `op ∈ π₁(rev(op'::ops) ↓↓ (o, i)) = π₁(rev(ops) ↓↓ (op' ↓ (o, i)))`.
+
+  Consider possible actions of `op'` on `(o, i)`:
+
+  - If `i[op'] = ⊥` then `op' ↓ (o, i) = (o, i)` and so `op ∈ π₁(rev(ops) ↓↓ (o, i))`.
+
+    By induction hypothesis, we get `ops' ⪽ ops ⪽ op'::ops` such that `op @ ops' in (o, i)`.
+
+  - If `i[op'] = (o', i')` then `op' ↓ (o, i) = (o ∪ o', i[op' ↦ ⊥] ∪ i')`. 
+
+    So, `op ∈ π₁(rev(ops) ↓↓ (o ∪ o', i[op' ↦ ⊥] ∪ i'))`. 
+
+    By induction hypothesis we get `ops' ⪽ ops` such that `op @ ops' in (o ∪ o', i[op' ↦ ⊥] ∪ i')`. 
+
+    By Lemma Lemma 4.6.5, we consider two cases:
+
+    + If `op @ ops' in (o, i[op' ↦ ⊥])` then either:
+
+        - `ops' = []` in which case `op ∈ o` and `op @ [] in (o, i)`.
+
+        - `ops' = op''::ops''` for some `op'' ≠ op'` (otherwise `i[op' ↦ ⊥](op') = ⊥`). 
+
+          Hence `i[op' ↦ ⊥](op'') = i(op'')` and so `op @ op''::ops'' in (o, i)`.
+
+    + If `op @ ops' in (o', i')` then `op @ op'::ops' in (o, i)`.
+
+qed.
+
+
+Lemma 4.6 (↓↓ₑ-⊑ₒ-act):
+
+  If `op' ∈ π₁(ops ↓↓ (o, i))` then `op' ∈ π₁(ops ↓↓ (op ↓ (o, i)))`.
+
+Proof:
+
+  By involution of rev, `π₁(rev(rev(ops)) ↓↓ (o, i))`.
+
+  By Lemma 4.6.6, there exists  `ops' ⪽ rev(ops)` such that `op' @ ops' in (o, i)`.
+
+  But since we also have `ops' ⪽ op::rev(ops)`, then `op' ∈ π₁(rev(op::rev(ops)) ↓↓ {ops' ↦ op'})` by Lemma 4.6.4.
+
+  By using Lemma 4.6.3 with `op' @ ops' in (o, i)`, we have `{ops' ↦ op'} ⊑ (o, i)`.
+
+  By using monotonicity of `↓↓`, we have `π₁(rev(op::rev(ops)) ↓↓ {ops' ↦ op'}) ⊑ π₁(rev(op::rev(ops)) ↓↓ (o,i))`.
+
+  Thus `op' ∈ π₁(rev(op::rev(ops)) ↓↓ (o,i))`.
+
+  By definition of `rev`, we have `op' ∈ π₁(rev(rev(ops)) ↓↓ (op ↓ (o,i)))`.
+
+  Finally, by involution of `rev`, we have `op' ∈ π₁(ops ↓↓ (op ↓ (o,i)))`.
 
 qed.
 
