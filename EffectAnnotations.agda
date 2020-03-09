@@ -1,6 +1,7 @@
 open import Data.Bool hiding (if_then_else_)
 open import Data.Empty
 open import Data.List renaming (_∷_ to _∷∷_ ; [_] to ⟦_⟧)
+open import Data.List.Properties
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
@@ -43,6 +44,15 @@ mutual
     imap : (Σₛ → Maybe (O × I)) → I
 
 
+-- EMPTY EFFECT ANNOTATIONS
+
+∅ₒ : O
+∅ₒ = omap (λ _ → nothing)
+
+∅ᵢ : I
+∅ᵢ = imap (λ _ → nothing)
+
+
 -- UNION OF EFFECT ANNOTATIONS
 
 ∪ₒ-aux' : (o o' : Maybe ⊤) → Maybe ⊤
@@ -74,23 +84,6 @@ mutual
 _∪ᵢ_ : I → I → I
 (imap i) ∪ᵢ (imap i') =
   imap (∪ᵢ-aux i i')
-
-
--- IDEMPOTENCE OF EFFECT ANNOTATIONS
-
-∪ₒ-idem : (o : O) → o ∪ₒ o ≡ o
-∪ₒ-idem (omap o) =
-  cong omap (fun-ext (λ op → ∪ₒ-idem-aux (o op) (o op)))
-
-  where
-    ∪ₒ-idem-aux : (o o' : Maybe ⊤) →
-                  ------------------
-                  ∪ₒ-aux' o o ≡ o
-                  
-    ∪ₒ-idem-aux nothing nothing = refl
-    ∪ₒ-idem-aux nothing (just tt) = refl
-    ∪ₒ-idem-aux (just tt) nothing = refl
-    ∪ₒ-idem-aux (just tt) (just tt) = refl
 
 
 -- SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
@@ -221,6 +214,23 @@ data _⊑ᵢ_ (i i' : I) : Set where
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
     ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
+
+
+-- IDEMPOTENCE OF EFFECT ANNOTATIONS
+
+∪ₒ-idem : (o : O) → o ∪ₒ o ≡ o
+∪ₒ-idem (omap o) =
+  cong omap (fun-ext (λ op → ∪ₒ-idem-aux (o op) (o op)))
+
+  where
+    ∪ₒ-idem-aux : (o o' : Maybe ⊤) →
+                  ------------------
+                  ∪ₒ-aux' o o ≡ o
+                  
+    ∪ₒ-idem-aux nothing nothing = refl
+    ∪ₒ-idem-aux nothing (just tt) = refl
+    ∪ₒ-idem-aux (just tt) nothing = refl
+    ∪ₒ-idem-aux (just tt) (just tt) = refl
 
 
 -- LEFT AND RIGHT INCLUSIONS INTO UNIONS OF EFFECT ANNOTATIONS
@@ -800,6 +810,275 @@ mutual
       ↓↓ₑ-⊑ₒ-act₁-≡ op p
     ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p | no ¬q =
       ↓↓ₑ-⊑ₒ-act₁-≢ op op' ¬q p 
+
+
+-- THE PATH THAT A NAME CAN BE FOUND IN AN EFFECT ANNOTATIONS
+
+data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
+
+  stop : {o : O}
+         {i : I} →
+         op ∈ₒ o →
+         -------------------
+         op `at [] `in o , i
+         
+  step : {o o' : O}
+         {i i' : I}
+         {op' : Σₛ}
+         {ops : List Σₛ} →
+         lkpᵢ op' i ≡ just (o' , i') →
+         op `at ops `in o' , i' →
+         -----------------------------
+         op `at (op' ∷∷ ops) `in o , i
+
+
+-- THE MINIMAL EFFECT ANNOTATION SUCH THAT A NAME CAN BE FOUND
+
+mutual 
+  ⦃⦃_↦_⦄⦄ₒ : List Σₛ → Σₛ → O
+  ⦃⦃ [] ↦ op ⦄⦄ₒ =
+    omap (λ op' → if op ≡ op' then just tt else nothing)
+  ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ₒ =
+    ∅ₒ
+
+
+  ⦃⦃_↦_⦄⦄ᵢ : List Σₛ → Σₛ → I
+  ⦃⦃ [] ↦ op ⦄⦄ᵢ =
+    ∅ᵢ
+  ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ᵢ =
+    imap (λ op'' → if op'' ≡ op' then just (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ) else nothing)
+
+
+-- THE MINIMAL EFFECT ANNOTATIONS ARE INCLUDED IN PATHS TO NAMES
+
+mutual 
+  `at-minₒ : {op : Σₛ}
+             {ops : List Σₛ}
+             {o : O}
+             {i : I} →
+             op `at ops `in o , i →
+             ----------------------
+             ⦃⦃ ops ↦ op ⦄⦄ₒ ⊑ₒ o
+
+  `at-minₒ {op} {_} {omap o} (stop p) op' with decₛ op op'
+  `at-minₒ {.op'} {.[]} {omap o} (stop p) op' | yes refl =
+    λ _ → p
+  `at-minₒ {op} {.[]} {omap o} (stop p) op'' | no ¬q =
+    λ ()
+  `at-minₒ (step p q) op'' =
+    λ ()
+
+
+  `at-minᵢ : {op : Σₛ}
+             {ops : List Σₛ}
+             {o : O}
+             {i : I} →
+             op `at ops `in o , i →
+             ----------------------
+             ⦃⦃ ops ↦ op ⦄⦄ᵢ ⊑ᵢ i
+
+  `at-minᵢ (stop p) =
+    rel (λ op'' → λ ())
+  `at-minᵢ {op} (step {o} {o'} {i} {i'} {op'} {ops} p q) =
+    rel (λ op'' {o''} {i''} r → `at-minᵢ-aux r)
+
+    where
+      `at-minᵢ-aux : {op'' : Σₛ}
+                     {o'' : O}
+                     {i'' : I} →
+                     lkpᵢ op'' ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ᵢ ≡ just (o'' , i'') →
+                     ----------------------------------------------------
+                     Σ[ o''' ∈ O ]
+                     Σ[ i''' ∈ I ]
+                     (lkpᵢ op'' i ≡ just (o''' , i''') ×
+                      (o'' ⊑ₒ o''') ×
+                      (i'' ⊑ᵢ i'''))
+
+      `at-minᵢ-aux {op''} p with decₛ op'' op'
+      `at-minᵢ-aux {op'} refl | yes refl =
+        o' , i' , p , `at-minₒ q , `at-minᵢ q
+
+
+-- SUBLISTS OF NAMES
+
+data _⊆_ : List Σₛ → List Σₛ → Set where
+
+  []  : {ops' : List Σₛ} →
+        ------------------
+        [] ⊆ ops'
+        
+  ∷-c : {op : Σₛ}
+        {ops ops' : List Σₛ} →
+        ops ⊆ ops' →
+        --------------------------
+        (op ∷∷ ops) ⊆ (op ∷∷ ops')
+
+  ∷-l : {op op' : Σₛ}
+        {ops ops' : List Σₛ} →
+        op ≢ op' →
+        (op ∷∷ ops) ⊆ ops' →
+        ---------------------------
+        (op ∷∷ ops) ⊆ (op' ∷∷ ops')
+
+
+-- NAME INCLUDED IN ACTION VIA MINIMAL ANNOTATION OF SUBLIST
+
+-- TODO
+postulate
+  ↓ₑ-∅-↦-≡ : {op : Σₛ}
+             {o : O}
+             {i : I} →
+             -----------------------------
+             op ↓ₑ (∅ₒ , imap (λ op' → if op' ≡ op then just (o , i) else nothing))
+             ≡
+             (o , i)
+
+  ↓ₑ-∅-↦-≢ : {op op' : Σₛ}
+             {o : O}
+             {i : I} →
+             op ≢ op' → 
+             -----------------------------
+             op' ↓ₑ (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
+             ≡
+             (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
+
+           
+
+⊆-↓↓ : {op : Σₛ}
+       {ops ops' : List Σₛ} →
+       ops ⊆ ops' →
+       ---------------------------------------------------------------
+       op ∈ₒ proj₁ (reverse ops' ↓↓ₑ (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ))
+
+⊆-↓↓ {op} {ops} {ops'} [] =
+  (↓↓ₑ-⊑ₒ (reverse ops')) op ⊆-↓↓-aux
+
+  where
+    ⊆-↓↓-aux : (if op ≡ op then just tt else nothing) ≡ just tt
+    ⊆-↓↓-aux with decₛ op op 
+    ⊆-↓↓-aux | yes refl =
+      refl
+    ⊆-↓↓-aux | no ¬p =
+      ⊥-elim (¬p refl)
+
+⊆-↓↓ {op} (∷-c {op'} {ops} {ops'} p) =
+  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ᵢ)))
+        (sym (unfold-reverse op' ops'))
+        (subst (λ oi → op ∈ₒ proj₁ oi)
+               (sym (↓↓ₑ-act (reverse ops') ⟦ op' ⟧))
+               (subst (λ oi → op ∈ₒ proj₁ (reverse ops' ↓↓ₑ oi))
+                      (sym ↓ₑ-∅-↦-≡)
+                      (⊆-↓↓ p)))
+
+⊆-↓↓ {op} (∷-l {op'} {op''} {ops} {ops'} p q) =
+  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ᵢ)))
+        (sym (unfold-reverse op'' ops'))
+        (subst (λ oi → op ∈ₒ proj₁ oi)
+               (sym (↓↓ₑ-act (reverse ops') ⟦ op'' ⟧))
+               (subst (λ oi → op ∈ₒ proj₁ (reverse ops' ↓↓ₑ oi))
+                      (sym (↓ₑ-∅-↦-≢ p))
+                      (⊆-↓↓ q)))
+
+
+-- THE PATH THAT A NAME CAN BE FOUND IN AN EFFECT ANNOTATIONS PRESERVES UNIONS OF EFFECT ANNOTATIONS
+
+-- TODO
+postulate
+  ∪ᵢ-∪ₒ : {op : Σₛ}
+          {o'' o''' o'''' : O}
+          {i i' i'' i''' i'''' : I} → 
+          lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
+          lkpᵢ op i ≡ just (o''' , i''') →
+          lkpᵢ op i' ≡ just (o'''' , i'''') →
+          ---------------------------------------
+          o'' ≡ o''' ∪ₒ o''''
+
+  ∪ᵢ-∪ᵢ : {op : Σₛ}
+          {o'' o''' o'''' : O}
+          {i i' i'' i''' i'''' : I} → 
+          lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
+          lkpᵢ op i ≡ just (o''' , i''') →
+          lkpᵢ op i' ≡ just (o'''' , i'''') →
+          ---------------------------------------
+          i'' ≡ i''' ∪ᵢ i''''
+
+
+`at-⊎ : {op : Σₛ}
+        {ops : List Σₛ}
+        {o o' : O}
+        {i i' : I} →
+        op `at ops `in (o ∪ₒ o') , (i ∪ᵢ i') →
+        -------------------------------------------------
+        (op `at ops `in o , i) ⊎ (op `at ops `in o' , i')
+
+`at-⊎ {op} {ops} {omap o} {omap o'} {i} {i'} (stop p) =
+  `at-⊎-aux p (o op) (o' op) refl refl
+
+  where
+    `at-⊎-aux : (∪ₒ-aux o o' op ≡ just tt) →
+                (t t' : Maybe ⊤) →
+                o op ≡ t →
+                o' op ≡ t' →
+                -----------------------------------------------------------
+                (op `at ops `in omap o , i) ⊎ (op `at ops `in omap o' , i')
+
+    `at-⊎-aux p nothing nothing q r with o op | o' op
+    `at-⊎-aux () nothing nothing q r | nothing | nothing
+    `at-⊎-aux p nothing nothing q () | nothing | just tt
+    `at-⊎-aux p nothing (just tt) q r =
+      inj₂ (stop r)
+    `at-⊎-aux p (just tt) t' q r =
+      inj₁ (stop q)
+
+`at-⊎ {op} {_} {o} {o'} {imap i} {imap i'} (step {o''} {o'''} {i''} {i'''} {op'} {ops} p q) =
+  `at-⊎-aux p q (i op') (i' op') refl refl
+
+  where
+    `at-⊎-aux : ∪ᵢ-aux i i' op' ≡ just (o''' , i''') →
+                op `at ops `in o''' , i''' →
+                (oi oi' : Maybe (O × I)) →
+                i op' ≡ oi →
+                i' op' ≡ oi' →
+                -----------------------------------------------------------
+                (op `at (op' ∷∷ ops) `in o , imap i) ⊎ (op `at (op' ∷∷ ops) `in o' , imap i')
+
+    `at-⊎-aux p q nothing nothing r s with i op' | i' op'
+    `at-⊎-aux () q nothing nothing r s | nothing | nothing
+    `at-⊎-aux p q nothing nothing r () | nothing | just _
+    `at-⊎-aux p q nothing (just (o'''' , i'''')) r s =
+      inj₂ (step (trans (sym (`at-⊎-aux-aux r s)) p) q)
+
+      where
+        `at-⊎-aux-aux : i op' ≡ nothing → 
+                        i' op' ≡ just (o'''' , i'''') →
+                        -------------------------------
+                        ∪ᵢ-aux i i' op' ≡ i' op'
+
+        `at-⊎-aux-aux r s with i op' | i' op' 
+        `at-⊎-aux-aux r s | nothing | just _ =
+          refl
+
+    `at-⊎-aux p q (just (o'''' , i'''')) nothing r s =
+      inj₁ (step (trans (sym (`at-⊎-aux-aux r s)) p) q)
+
+      where
+        `at-⊎-aux-aux : i op' ≡ just (o'''' , i'''') → 
+                        i' op' ≡ nothing →
+                        -------------------------------
+                        ∪ᵢ-aux i i' op' ≡ i op'
+
+        `at-⊎-aux-aux r s with i op' | i' op' 
+        `at-⊎-aux-aux r s | just _ | nothing =
+          refl
+
+    `at-⊎-aux p q (just (o'''' , i'''')) (just (o''''' , i''''')) r s
+      with ∪ᵢ-∪ₒ {i = imap i} {i' = imap i'} p r s | ∪ᵢ-∪ᵢ {i = imap i} {i' = imap i'} p r s
+    ... | refl | refl with `at-⊎ q
+    ... | inj₁ t =
+      inj₁ (step r t)
+    ... | inj₂ t =
+      inj₂ (step s t)
+
 
 
 -- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH MLTIPLE INTERRUPT ACTIONS
