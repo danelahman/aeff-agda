@@ -734,85 +734,7 @@ mutual
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
 
--- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH A SINGLE INTERRUPT ACTION
-
-↓↓ₑ-⊑ₒ-act₁-≡ : {o o' : O}
-                {i i' : I} →
-                (op : Σₛ) →
-                lkpᵢ op i ≡ just (o' , i') → 
-                ----------------------------------------------------------------------------------
-                proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ ((o ∪ₒ o') , ((i [ op ↦ nothing ]ᵢ) ∪ᵢ i')))
-
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op p with i op
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) with decₛ op op
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl with i' op
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl | nothing =
-  ⊑ₒ-refl
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | yes refl | just _ =
-  ∪ₒ-inl
-↓↓ₑ-⊑ₒ-act₁-≡ {omap o} {omap o'} {imap i} {imap i'} op refl | just (.(omap o') , .(imap i')) | no ¬p =
-  ⊥-elim (¬p refl)
-
-
-↓↓ₑ-⊑ₒ-act₁-≢ : {o o' : O}
-                {i i' : I} →
-                (op op' : Σₛ) →
-                op ≢ op' → 
-                lkpᵢ op' i ≡ just (o' , i') → 
-                -----------------------------------------------------------------------------------
-                proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ ((o ∪ₒ o') , ((i [ op' ↦ nothing ]ᵢ) ∪ᵢ i')))
-
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q with i op
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing with decₛ op' op
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | yes r =
-  ⊥-elim (p (sym r))
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r with i' op
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r | nothing =
-  ∪ₒ-inl
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | nothing | no ¬r | just _ =
-  ⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl 
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') with decₛ op' op
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | yes r =
-  ⊥-elim (p (sym r))
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | no ¬r with i' op
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} {imap i} {imap i'} op op' p q | just (o'' , i'') | no ¬r | nothing =
-  ∪ₒ-copair (⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl) ∪ₒ-inr
-↓↓ₑ-⊑ₒ-act₁-≢ {omap o} {omap o'} op op' p q | just (omap o'' , imap i'') | no ¬r | just (omap o''' , imap i''') =
-  ∪ₒ-copair {omap o} {omap o''} {((omap o) ∪ₒ (omap o')) ∪ₒ ((omap o'') ∪ₒ (omap o'''))}
-            (⊑ₒ-trans ∪ₒ-inl ∪ₒ-inl)
-            (⊑ₒ-trans (∪ₒ-inl {omap o''} {omap o'''} ) (∪ₒ-inr {(omap o) ∪ₒ (omap o')} {(omap o'') ∪ₒ (omap o''')}))
-
-
-↓↓ₑ-⊑ₒ-act₁ : {o : O}
-              {i : I}
-              (op op' : Σₛ) →
-              -------------------------------------------------------
-              proj₁ (op ↓ₑ (o , i)) ⊑ₒ proj₁ (op ↓ₑ (op' ↓ₑ (o , i)))
-
-↓↓ₑ-⊑ₒ-act₁ {omap o} {imap i} op op' =
-  ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (i op') refl
-
-  where
-    ↓↓ₑ-⊑ₒ-act₁-aux : {o : Σₛ → Maybe ⊤}
-                      {i : Σₛ → Maybe (O × I)}
-                      (op op' : Σₛ) → 
-                      (oi : Maybe (O × I)) → 
-                      i op' ≡ oi →
-                      -----------------------------------------------------------------
-                      proj₁ (op ↓ₑ (omap o , imap i))
-                      ⊑ₒ
-                      proj₁ (op ↓ₑ (↓ₑ-auxₒ op' oi (omap o) , ↓ₑ-auxᵢ op' oi (imap i)))
-
-    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' nothing p =
-      ⊑ₒ-refl
-    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p with decₛ op op'
-    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op .op (just (o' , i')) p | yes refl =
-      ↓↓ₑ-⊑ₒ-act₁-≡ op p
-    ↓↓ₑ-⊑ₒ-act₁-aux {o} {i} op op' (just (o' , i')) p | no ¬q =
-      ↓↓ₑ-⊑ₒ-act₁-≢ op op' ¬q p 
-
-
--- THE PATH THAT A NAME CAN BE FOUND IN AN EFFECT ANNOTATIONS
+-- A PATH OF INTERRUPT NAMES THAT REVEALS THE GIVEN SIGNAL IN AN EFFECT ANNOTATION
 
 data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
 
@@ -832,7 +754,7 @@ data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
          op `at (op' ∷∷ ops) `in o , i
 
 
--- THE MINIMAL EFFECT ANNOTATION SUCH THAT A NAME CAN BE FOUND
+-- A MINIMAL EFFECT ANNOTATION SUCH THAT A GIVEN PATH OF INTERRUPTS REVEALS THE GIVEN SIGNAL NAME
 
 mutual 
   ⦃⦃_↦_⦄⦄ₒ : List Σₛ → Σₛ → O
@@ -849,7 +771,7 @@ mutual
     imap (λ op'' → if op'' ≡ op' then just (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ) else nothing)
 
 
--- THE MINIMAL EFFECT ANNOTATIONS ARE INCLUDED IN PATHS TO NAMES
+-- IF THERE IS A PATH TO A SIGNAL IN AN EFFECT ANNOTATION, THE MINIMAL EFFECT ANNOTATION IS INCLUDED IN IT
 
 mutual 
   `at-minₒ : {op : Σₛ}
@@ -899,29 +821,62 @@ mutual
         o' , i' , p , `at-minₒ q , `at-minᵢ q
 
 
--- SUBLISTS OF NAMES
+-- SUBPATHS OF (INTERRUPT) NAMES
 
 data _⊆_ : List Σₛ → List Σₛ → Set where
 
-  []  : {ops' : List Σₛ} →
-        ------------------
-        [] ⊆ ops'
+  []-l : {ops' : List Σₛ} →
+         ------------------
+         [] ⊆ ops'
         
-  ∷-c : {op : Σₛ}
-        {ops ops' : List Σₛ} →
+  ∷-c  : {op : Σₛ}
+         {ops ops' : List Σₛ} →
+         ops ⊆ ops' →
+         --------------------------
+         (op ∷∷ ops) ⊆ (op ∷∷ ops')
+
+  ∷-l  : {op op' : Σₛ}
+         {ops ops' : List Σₛ} →
+         op ≢ op' →
+         (op ∷∷ ops) ⊆ ops' →
+         ---------------------------
+         (op ∷∷ ops) ⊆ (op' ∷∷ ops')
+
+mutual 
+  ∷-l-swap : {op op' : Σₛ}
+             {ops ops' : List Σₛ} →
+             op ≢ op' →
+             (op ∷∷ ops) ⊆ (op' ∷∷ op ∷∷ ops') →
+             ------------------------------------
+             (op ∷∷ ops) ⊆ (op ∷∷ op' ∷∷ ops')
+
+  ∷-l-swap {op} {.op} {ops} {ops'} p (∷-c q) =
+    ∷-c q
+  ∷-l-swap {op} {op'} {ops} {ops'} p (∷-l q (∷-c r)) =
+    ∷-c (∷-r r)
+  ∷-l-swap {op} {op'} {ops} {ops'} p (∷-l q (∷-l r s)) =
+    ⊥-elim (r refl)
+
+
+  ∷-r : {op' : Σₛ}
+        {ops : List Σₛ} →
+        {ops' : List Σₛ} → 
         ops ⊆ ops' →
-        --------------------------
-        (op ∷∷ ops) ⊆ (op ∷∷ ops')
+        -------------------
+        ops ⊆ (op' ∷∷ ops')
 
-  ∷-l : {op op' : Σₛ}
-        {ops ops' : List Σₛ} →
-        op ≢ op' →
-        (op ∷∷ ops) ⊆ ops' →
-        ---------------------------
-        (op ∷∷ ops) ⊆ (op' ∷∷ ops')
+  ∷-r []-l = []-l
+  ∷-r {op'} (∷-c {op} p) with decₛ op op'
+  ∷-r {.op} (∷-c {op} p) | yes refl =
+    ∷-c (∷-r p)
+  ∷-r {op'} (∷-c {op} p) | no ¬q =
+    ∷-l ¬q (∷-c p)
+  ∷-r {op'} (∷-l {op} {op''} p q) with decₛ op op'
+  ∷-r {.op} (∷-l {op} {op''} p q) | yes refl = ∷-l-swap p (∷-l p (∷-r q))
+  ∷-r {op'} (∷-l {op} {op''} p q) | no ¬r = ∷-l ¬r (∷-l p q)
 
 
--- NAME INCLUDED IN ACTION VIA MINIMAL ANNOTATION OF SUBLIST
+-- IF A SUBPATH OF INTERRUPTS REVEALS A SIGNAL, THEN ACTING WITH THE WHOLE PATH ALSO REVEALS IT
 
 -- TODO
 postulate
@@ -943,14 +898,13 @@ postulate
              (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
 
            
-
 ⊆-↓↓ : {op : Σₛ}
        {ops ops' : List Σₛ} →
        ops ⊆ ops' →
        ---------------------------------------------------------------
        op ∈ₒ proj₁ (reverse ops' ↓↓ₑ (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ))
 
-⊆-↓↓ {op} {ops} {ops'} [] =
+⊆-↓↓ {op} {ops} {ops'} []-l =
   (↓↓ₑ-⊑ₒ (reverse ops')) op ⊆-↓↓-aux
 
   where
@@ -980,7 +934,7 @@ postulate
                       (⊆-↓↓ q)))
 
 
--- THE PATH THAT A NAME CAN BE FOUND IN AN EFFECT ANNOTATIONS PRESERVES UNIONS OF EFFECT ANNOTATIONS
+-- IF A PATH REVEALS A SIGNAL IN A UNION OF EFFECT ANNOTATIONS, THE PATH REVEALS THE SIGNAL IN ONE OF THE SUMMANDS
 
 -- TODO
 postulate
@@ -1080,213 +1034,75 @@ postulate
       inj₂ (step s t)
 
 
+-- IF ACTING WITH A PATH REVEALS A SIGNAL, THEN THERE IS A SUBPATH TO THAT SIGNAL
+
+↓↓-⊆-rw : (o : O)
+          (i : I)
+          (op : Σₛ)
+          (ops : List Σₛ) →
+          -----------------------------------------------------------------
+          reverse (op ∷∷ ops) ↓↓ₑ (o , i) ≡ reverse ops ↓↓ₑ (op ↓ₑ (o , i))
+
+↓↓-⊆-rw o i op ops =
+  trans (cong (λ ops' → ops' ↓↓ₑ (o , i)) (unfold-reverse op ops))
+        (↓↓ₑ-act (reverse ops) ⟦ op ⟧)
+
+↓↓-⊆ : {op : Σₛ} → 
+       (ops : List Σₛ) → 
+       {o : O}
+       {i : I} →
+       op ∈ₒ proj₁ (reverse ops ↓↓ₑ (o , i)) → 
+       ----------------------------------------------------------
+       Σ[ ops' ∈ List Σₛ ] (ops' ⊆ ops × (op `at ops' `in o , i))
+
+↓↓-⊆ [] p =
+  [] , []-l , stop p
+↓↓-⊆ {op} (op' ∷∷ ops) {omap o} {imap i} p rewrite ↓↓-⊆-rw (omap o) (imap i) op' ops =
+  ↓↓-⊆-aux (i op') refl
+
+  where
+    ↓↓-⊆-aux : (oi : Maybe (O × I)) →
+               i op' ≡ oi →
+               -----------------------------------------------------------------------------
+               Σ[ ops' ∈ List Σₛ ] (ops' ⊆ (op' ∷∷ ops) × (op `at ops' `in omap o , imap i))
+
+    ↓↓-⊆-aux nothing q with ↓↓-⊆ ops p
+    ... | ops' , r , s rewrite q =
+      ops' , ∷-r r , s
+    ↓↓-⊆-aux (just (omap o' , imap i')) q with ↓↓-⊆ ops p
+    ... | ops' , r , s rewrite q with `at-⊎ {o = omap o} {o' = omap o'} {i' = imap i'} s 
+    ... | inj₁ t =
+      ↓↓-⊆-aux-aux ops' r t
+
+      where
+        ↓↓-⊆-aux-aux : (ops' : List Σₛ) →
+                       ops' ⊆ ops →
+                       (op `at ops' `in omap o , ((imap i) [ op' ↦ nothing ]ᵢ)) → 
+                       --------------------------------------------------------------------------------
+                       Σ[ ops'' ∈ List Σₛ ] (ops'' ⊆ (op' ∷∷ ops) × (op `at ops'' `in omap o , imap i))
+
+        ↓↓-⊆-aux-aux [] r (stop t) =
+          [] , []-l , stop t
+        ↓↓-⊆-aux-aux (op'' ∷∷ ops'') r (step t u) with decₛ op' op''
+        ↓↓-⊆-aux-aux (op'' ∷∷ ops'') r (step t u) | no ¬v =
+          op'' ∷∷ ops'' , ∷-l (λ w → ¬v (sym w)) r , step t u
+
+    ... | inj₂ t =
+      op' ∷∷ ops' , ∷-c r , step q t
+
 
 -- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH MLTIPLE INTERRUPT ACTIONS
 
 {- LEMMA 4.6 -}
 
-{- 
-   For time being, we postulate this lemma in Agda, but include a paper proof below.
--}
-
-postulate
-  ↓↓ₑ-⊑ₒ-act : {o : O}
-               {i : I} → 
-               (ops : List Σₛ) →
-               (op : Σₛ) →
-               ----------------------------------------------------------
-               proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
-
-{-
-
-For a paper proof of ↓↓ₑ-⊑ₒ-act, we first define some auxiliary judgements and prove some lemmas.
-
-Definition 4.6.1:
-
-  Define `op @ [] in (o, i)` if an `op` signal can be found by following the `ops` path in `(o, i)`.
-
-    op ∈ o
-    -----------------
-    op @ [] in (o, i)
-
-    op @ ops in i[op']
-    -------------------------
-    op @ (op'::ops) in (o, i)
-
-
-Definition 4.6.2:
-
-  Define `{ops ↦ op}` to be the minimal annotation `(o, i)`such that `op @ ops in (o, i)`.
-
-    {[] ↦ op} := ({op}, ∅)
-    {op'::ops ↦ op} := (∅, {op' ↦ {ops ↦ op}})
-
-
-Definition 4.6.3:
-
-  Define `ops ⪽ ops'` if `ops` is a (not necessarily contiguous) subseqence of `ops'`.
-
-    ---------
-    [] ⪽ ops'
-
-    ops ⪽ ops'
-    ------------------
-    op::ops ⪽ op::ops'
-
-    op::ops ⪽ ops'  op ≠ op'
-    ------------------------
-    op::ops ⪽ op'::ops'
-
-
-Lemma 4.6.3:
-
-  If `op @ ops in (o, i)` then `{ops ↦ op} ⊑ (o, i)`.
-
-Proof:
-
-  By induction on `op @ ops in (o, i)`.
-
-  - If `op @ [] in (o, i)` then `op ∈ o` hence `{[] ↦ op} = ({op}, ∅) ⊑ (o, i)`.
-
-  - If `op @ (op'::ops) in (o, i)` then `op @ ops in i[op']`.
-
-    Hence, by induction hypothesis `{ops ↦ op} ⊑ i[op']`.
-
-    And so, `{op'::ops ↦ op} = (∅, {op' ↦ {ops ↦ op}}) ⊑ (o, i)`.
-
-qed.
-
-Lemma 4.6.4:
-
-  If `ops ⪽ ops'`, then `op ∈ π₁(rev(ops') ↓↓ {ops ↦ op})`.
-
-Proof:
-
-  By induction on `ops ⪽ ops'`.
-
-  - If `ops = []` then `{ops ↦ op} = ({op}, ∅)` which all the `ops'` actions leave invariant and `op ∈ π₁({op}, ∅)`.
-
-  - Take `op'::ops ⪽ op'::ops'` such that `ops ⪽ ops'`. Then
-
-      π₁(rev(op'::ops') ↓↓ {op'::ops ↦ op})
-      =
-      π₁(ops' ↓↓ (op' ↓ (∅, {op' ↦ {ops ↦ op}})))
-      =
-      π₁(ops' ↓↓ {ops ↦ op}) 
-
-    which contains `op` by induction hypothesis.
-
-  - Take `op'::ops ⪽ op''::ops'` such that `op'::ops ⪽ ops'` and `op' ≠ op''`. Then
-
-      π₁(rev(op''::ops') ↓↓ {op'::ops ↦ op})
-      =
-      π₁(ops' ↓↓ (op'' ↓ (∅, {op' ↦ {ops ↦ op}})))
-      =
-      π₁(ops' ↓↓ (∅, {op' ↦ {ops ↦ op}}))
-      =
-      π₁(ops' ↓↓ {op'::ops ↦ op})
-
-    which contains `op` by induction hypothesis.
-
-qed.
-
-Lemma 4.6.5:
-
-  If `op @ ops in (o1 ∪ o2, i1 ∪ i2)` then `op @ ops in (o1, i1)` or `op @ ops in (o2, i2)`.
-
-Proof:
-
-  By induction on `op @ ops in (o1 ∪ o2, i1 ∪ i2)`.
-
-  - If `ops = []` then `op ∈ o1 ∪ o2`.
-
-      + If `op ∈ o1` then `op @ [] in (o1, i1)`.
-
-      + If `op ∈ o2` and `op @ [] in (o2, i2)`.
-
-  - If `ops = op'::ops''` then `op @ ops' in (i1 ∪ i2)[op']`.
-
-      + If both `i1[op']` and `i2[op']` are `⊥` then `(i1 ∪ i2)[op'] = ⊥` which is a contradiction.
-
-      + If `i2[op'] = ⊥` then `(i1 ∪ i2)[op'] = i1[op']` hence `op @ ops in (o1, i1)`.
-
-      + If `i1[op'] = ⊥` then `(i1 ∪ i2)[op'] = i2[op']` hence `op @ ops in (o2, i2)`.
-
-      + If `i1[op'] = (o1', i1')` and `i2[op'] = (o2', i2')` then `(i1 ∪ i2)[op'] = (o1' ∪ o2', i1' ∪ i2')`.
-
-        Hence,`op @ ops' in (o1' ∪ o2', i1' ∪ i2')`. 
-
-        By induction, we get that either `op @ ops' in (o1', i1')` or `op @ ops' in (o2', i2')`. 
-
-          + In the first case, `op @ ops in (o1, i1)`.
-
-          + In the second `op @ ops in (o2, i2)`.
-
-qed.
-
-Lemma 4.6.6:
-
-  If `op ∈ π₁(rev(ops) ↓↓ (o, i))` then there exists `ops' ⪽ ops` such that `op @ ops' in (o, i)`.
-
-Proof:
-
-By induction on `ops`.
-
-- If `ops = []` then `op ∈ π₁(rev([]) ↓↓ (o, i)) = π₁((o, i)) = o`.
-
-  Hence, `op @ [] in (o, i)` and so `ops' = [] ⪽ ops`.
-
-- If `ops = op'::ops`, then `op ∈ π₁(rev(op'::ops) ↓↓ (o, i)) = π₁(rev(ops) ↓↓ (op' ↓ (o, i)))`.
-
-  Consider possible actions of `op'` on `(o, i)`:
-
-  - If `i[op'] = ⊥` then `op' ↓ (o, i) = (o, i)` and so `op ∈ π₁(rev(ops) ↓↓ (o, i))`.
-
-    By induction hypothesis, we get `ops' ⪽ ops ⪽ op'::ops` such that `op @ ops' in (o, i)`.
-
-  - If `i[op'] = (o', i')` then `op' ↓ (o, i) = (o ∪ o', i[op' ↦ ⊥] ∪ i')`. 
-
-    So, `op ∈ π₁(rev(ops) ↓↓ (o ∪ o', i[op' ↦ ⊥] ∪ i'))`. 
-
-    By induction hypothesis we get `ops' ⪽ ops` such that `op @ ops' in (o ∪ o', i[op' ↦ ⊥] ∪ i')`. 
-
-    By Lemma Lemma 4.6.5, we consider two cases:
-
-    + If `op @ ops' in (o, i[op' ↦ ⊥])` then either:
-
-        - `ops' = []` in which case `op ∈ o` and `op @ [] in (o, i)`.
-
-        - `ops' = op''::ops''` for some `op'' ≠ op'` (otherwise `i[op' ↦ ⊥](op') = ⊥`). 
-
-          Hence `i[op' ↦ ⊥](op'') = i(op'')` and so `op @ op''::ops'' in (o, i)`.
-
-    + If `op @ ops' in (o', i')` then `op @ op'::ops' in (o, i)`.
-
-qed.
-
-
-Lemma 4.6 (↓↓ₑ-⊑ₒ-act):
-
-  If `op' ∈ π₁(ops ↓↓ (o, i))` then `op' ∈ π₁(ops ↓↓ (op ↓ (o, i)))`.
-
-Proof:
-
-  By involution of rev, `π₁(rev(rev(ops)) ↓↓ (o, i))`.
-
-  By Lemma 4.6.6, there exists  `ops' ⪽ rev(ops)` such that `op' @ ops' in (o, i)`.
-
-  But since we also have `ops' ⪽ op::rev(ops)`, then `op' ∈ π₁(rev(op::rev(ops)) ↓↓ {ops' ↦ op'})` by Lemma 4.6.4.
-
-  By using Lemma 4.6.3 with `op' @ ops' in (o, i)`, we have `{ops' ↦ op'} ⊑ (o, i)`.
-
-  By using monotonicity of `↓↓`, we have `π₁(rev(op::rev(ops)) ↓↓ {ops' ↦ op'}) ⊑ π₁(rev(op::rev(ops)) ↓↓ (o,i))`.
-
-  Thus `op' ∈ π₁(rev(op::rev(ops)) ↓↓ (o,i))`.
-
-  By definition of `rev`, we have `op' ∈ π₁(rev(rev(ops)) ↓↓ (op ↓ (o,i)))`.
-
-  Finally, by involution of `rev`, we have `op' ∈ π₁(ops ↓↓ (op ↓ (o,i)))`.
-
-qed.
-
--}
+↓↓ₑ-⊑ₒ-act : {o : O}
+             {i : I} → 
+             (ops : List Σₛ) →
+             (op : Σₛ) →
+             ----------------------------------------------------------
+             proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
+
+↓↓ₑ-⊑ₒ-act {o} {i} ops op op' p rewrite sym (reverse-involutive ops) with ↓↓-⊆ (reverse ops) p
+... | ops' , q , r with ⊆-↓↓ {op'} (∷-r {op} q)
+... | s with ↓↓ₑ-monotonicₒ (reverse (op ∷∷ reverse ops)) (`at-minₒ r) (`at-minᵢ r) op' s
+... | t rewrite ↓↓-⊆-rw o i op (reverse ops) | reverse-involutive ops = t
