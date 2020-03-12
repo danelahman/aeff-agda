@@ -34,6 +34,20 @@ if op ≡ op' then x else y =
     if' yes p then x else y = x
     if' no ¬p then x else y = y
 
+ite-≢ : {A : Set}
+        {op op' : Σₛ}
+        {x y : A} →
+        op ≢ op' →
+        -----------------------------
+        if op ≡ op' then x else y ≡ y
+
+ite-≢ {A} {op} {op'} p with decₛ op op'
+ite-≢ {A} {op} {op'} p | yes q =
+  ⊥-elim (p q)
+ite-≢ {A} {op} {op'} p | no ¬q =
+  refl
+
+
 -- EFFECT ANNOTATIONS
 
 mutual
@@ -90,7 +104,7 @@ _∪ᵢ_ : I → I → I
 
 _[_↦_]ᵢ : I → Σₛ → Maybe (O × I) → I
 (imap i) [ op ↦ v ]ᵢ =
-  imap λ op' → if op ≡ op' then v else i op'
+  imap (λ op' → if op ≡ op' then v else i op')
 
 
 -- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS
@@ -216,9 +230,12 @@ data _⊑ᵢ_ (i i' : I) : Set where
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
 
 
--- IDEMPOTENCE OF EFFECT ANNOTATIONS
+-- IDEMPOTENCE OF UNIONS OF EFFECT ANNOTATIONS
 
-∪ₒ-idem : (o : O) → o ∪ₒ o ≡ o
+∪ₒ-idem : (o : O) →
+          ----------
+          o ∪ₒ o ≡ o
+          
 ∪ₒ-idem (omap o) =
   cong omap (fun-ext (λ op → ∪ₒ-idem-aux (o op) (o op)))
 
@@ -231,6 +248,45 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ∪ₒ-idem-aux nothing (just tt) = refl
     ∪ₒ-idem-aux (just tt) nothing = refl
     ∪ₒ-idem-aux (just tt) (just tt) = refl
+
+
+-- LEFT UNIT FOR UNIONS OF EFFECT ANNOTATIONS
+
+∪ₒ-lunit : (o : O) →
+           -----------
+           ∅ₒ ∪ₒ o ≡ o
+
+∪ₒ-lunit (omap o) =
+  cong omap (fun-ext ∪ₒ-lunit-aux)
+
+  where
+    ∪ₒ-lunit-aux : (op : Σₛ) →
+                   ----------------------------------
+                   ∪ₒ-aux (λ _ → nothing) o op ≡ o op
+                   
+    ∪ₒ-lunit-aux op with o op 
+    ... | nothing =
+      refl
+    ... | just _ =
+      refl
+
+
+∪ᵢ-lunit : (i : I) →
+           -----------
+           ∅ᵢ ∪ᵢ i ≡ i
+
+∪ᵢ-lunit (imap i) = cong imap (fun-ext ∪ᵢ-lunit-aux)
+
+  where
+    ∪ᵢ-lunit-aux : (op : Σₛ) →
+                   ----------------------------------
+                   ∪ᵢ-aux (λ _ → nothing) i op ≡ i op
+
+    ∪ᵢ-lunit-aux op with i op
+    ... | nothing =
+      refl
+    ... | just _ =
+      refl
 
 
 -- LEFT AND RIGHT INCLUSIONS INTO UNIONS OF EFFECT ANNOTATIONS
@@ -784,6 +840,60 @@ data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
          -----------------------------
          op `at (op' ∷∷ ops) `in o , i
 
+-- ACTING ON AN ANNOTATION WITH EMPTY SIGNALS PART JUST REVEALS THE INNER LAYER IF THE INTERRUPTS MATCH
+
+↓ₑ-∅-↦-≡ : {op : Σₛ}
+           {o : O}
+           {i : I} →
+           -----------------------------
+           op ↓ₑ (∅ₒ , imap (λ op' → if op' ≡ op then just (o , i) else nothing))
+           ≡
+           (o , i)
+
+↓ₑ-∅-↦-≡ {op} {o} {i} with decₛ op op
+↓ₑ-∅-↦-≡ {op} {omap o} {i} | yes refl =
+  cong₂ (λ x y → x , y)
+        (∪ₒ-lunit (omap o))
+        (trans (cong (λ i' → i' ∪ᵢ i) ↓ₑ-∅-↦-≡-aux) (∪ᵢ-lunit i))
+
+  where
+    ↓ₑ-∅-↦-≡-aux : imap (λ op' → if op ≡ op' then nothing else (if op' ≡ op then just (omap o , i) else nothing))
+                   ≡
+                   ∅ᵢ
+
+    ↓ₑ-∅-↦-≡-aux = cong imap (fun-ext ↓ₑ-∅-↦-≡-aux-aux)
+
+      where
+        ↓ₑ-∅-↦-≡-aux-aux : (op' : Σₛ) →
+                           ---------------------------------------------------------------------------------
+                           (if op ≡ op' then nothing else (if op' ≡ op then just (omap o , i) else nothing))
+                           ≡
+                           nothing
+
+        ↓ₑ-∅-↦-≡-aux-aux op' with decₛ op op'
+        ... | yes refl =
+          refl
+        ... | no ¬p =
+          ite-≢ (λ q → ¬p (sym q))
+
+
+↓ₑ-∅-↦-≡ {op} {o} {i} | no ¬p =
+  ⊥-elim (¬p refl)
+
+
+-- ACTING ON AN ANNOTATION WITH EMPTY SIGNALS IS IDEMPOTENT IF THE INTERRUPTS DO NOT MATCH
+
+↓ₑ-∅-↦-≢ : {op op' : Σₛ}
+           {o : O}
+           {i : I} →
+           op ≢ op' → 
+           -----------------------------
+           op' ↓ₑ (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
+           ≡
+           (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
+
+↓ₑ-∅-↦-≢ = {!!}
+
 
 -- A MINIMAL EFFECT ANNOTATION SUCH THAT A GIVEN PATH OF INTERRUPTS REVEALS THE GIVEN SIGNAL NAME
 
@@ -908,26 +1018,6 @@ mutual
 
 
 -- IF A SUBPATH OF INTERRUPTS REVEALS A SIGNAL, THEN ACTING WITH THE WHOLE PATH ALSO REVEALS IT
-
--- TODO
-postulate
-  ↓ₑ-∅-↦-≡ : {op : Σₛ}
-             {o : O}
-             {i : I} →
-             -----------------------------
-             op ↓ₑ (∅ₒ , imap (λ op' → if op' ≡ op then just (o , i) else nothing))
-             ≡
-             (o , i)
-
-  ↓ₑ-∅-↦-≢ : {op op' : Σₛ}
-             {o : O}
-             {i : I} →
-             op ≢ op' → 
-             -----------------------------
-             op' ↓ₑ (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
-             ≡
-             (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
-
            
 ⊆-↓↓ : {op : Σₛ}
        {ops ops' : List Σₛ} →
