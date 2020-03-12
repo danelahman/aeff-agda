@@ -1,5 +1,5 @@
 open import Data.Empty
-open import Data.List renaming (_∷_ to _∷∷_ ; [_] to ⟦_⟧)
+open import Data.List renaming (_∷_ to _∷ₗ_ ; [_] to [_]ₗ)
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
@@ -160,13 +160,13 @@ result-to-hoist (signal {_} {o} {i} {op} {p} {V} {N} R) =
   [] , [-] , inj₂ (inj₁ (op , p , V , N , refl))
 result-to-hoist (promise {Y} {_} {_} {o'} {_} {i'} {op} {p} {N} R) with result-to-hoist R
 ... | Δ , H , inj₁ (V , q) =
-  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+  Y ∷ₗ Δ , (promise op ∣ p ↦ N `in H) ,
     inj₁ (V , cong (λ N' → promise op ∣ p ↦ N `in N') q)
 ... | Δ , H , inj₂ (inj₁ (op' , q , V , N'' , r)) =
-  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+  Y ∷ₗ Δ , (promise op ∣ p ↦ N `in H) ,
     inj₂ (inj₁ (op' , q , V , N'' , cong (λ N' → promise op ∣ p ↦ N `in N') r))
 ... | Δ , H , inj₂ (inj₂ (Z , y , N'' , q , r)) =
-  Y ∷∷ Δ , (promise op ∣ p ↦ N `in H) ,
+  Y ∷ₗ Δ , (promise op ∣ p ↦ N `in H) ,
     inj₂ (inj₂ (Z , y , N'' , q , cong (λ N' → promise op ∣ p ↦ N `in N') r))
 result-to-hoist (awaiting {_} {Y} {y} {N} p) =
   [] , [-] , inj₂ (inj₂ (Y , y , N , p , refl))

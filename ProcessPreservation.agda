@@ -1,4 +1,4 @@
-open import Data.List renaming (_∷_ to _∷∷_ ; [_] to ⟦_⟧)
+open import Data.List renaming (_∷_ to _∷ₗ_ ; [_] to [_]ₗ)
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
@@ -32,7 +32,7 @@ data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      Γ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢H[ Δ ]⦂ Y ! (o , i) →
                      ------------------------------------------
-                     Γ ⊢H[ X ∷∷ Δ ]⦂ Y ! (o , i)
+                     Γ ⊢H[ X ∷ₗ Δ ]⦂ Y ! (o , i)
 
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED SIGNAL HOISTING CONTEXT
@@ -118,7 +118,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
         (ops : List Σₛ) →
         (op : Σₛ) →   
         (o' , i') ≡ ops ↓↓ₑ (o , i) →
-        (o'' , i'') ≡ ((ops ++ ⟦ op ⟧) ↓↓ₑ (o , i)) → 
+        (o'' , i'') ≡ ((ops ++ [ op ]ₗ) ↓↓ₑ (o , i)) → 
         ---------------------------------------------
         (X ‼ o' , i') ⇝ (X ‼ o'' , i'')
 
@@ -175,7 +175,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 ⇝-↓ₚ id =
   id
 ⇝-↓ₚ {_} {_} {_} {_} {op} (act {_} {o} {o'} {o''} {i} {i'} {i''} ops op' p q) =
-  act {o = o} {i = i} (op ∷∷ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q) 
+  act {o = o} {i = i} (op ∷ₗ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q) 
 ⇝-↓ₚ (par p q) =
   par (⇝-↓ₚ p) (⇝-↓ₚ q)
 
@@ -203,7 +203,7 @@ inj-proj₁ refl = refl
         (subst (λ o'' → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ o'')
                (sym s)
                (subst (λ v → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ v)
-                      (sym (↓↓ₑ-act ops ⟦ op ⟧))
+                      (sym (↓↓ₑ-act ops [ op ]ₗ))
                       (↓↓ₑ-⊑ₒ-act ops op)))
 ⇝-↓ₚ-⊑ₒ (par p q) =
   ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
@@ -213,7 +213,7 @@ inj-proj₁ refl = refl
 
 strengthen-var : {Γ : Ctx} → (Δ : BCtx) → {A : BType} → `` A ∈ Γ ⋈ Δ → `` A ∈ Γ
 strengthen-var [] x = x
-strengthen-var (y ∷∷ Δ) x with strengthen-var Δ x
+strengthen-var (y ∷ₗ Δ) x with strengthen-var Δ x
 ... | Tl p = p
 
 

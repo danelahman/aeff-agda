@@ -1,4 +1,4 @@
-open import Data.List hiding ([_]) renaming (_∷_ to _∷∷_)
+open import Data.List hiding ([_]) renaming (_∷_ to _∷ₗ_)
 open import Data.Maybe
 open import Data.Product
 
@@ -65,7 +65,7 @@ data _⊢E[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
                      Γ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o' , i') →
                      Γ ∷ ⟨ X ⟩ ⊢E[ Δ ]⦂ Y ! (o , i) →
                      ------------------------------------------
-                     Γ ⊢E[ X ∷∷ Δ ]⦂ Y ! (o , i)
+                     Γ ⊢E[ X ∷ₗ Δ ]⦂ Y ! (o , i)
 
   coerce           : {Δ : BCtx}
                      {X : VType}
@@ -84,7 +84,7 @@ infix 30 _⋈_
 
 _⋈_ : Ctx → BCtx → Ctx
 Γ ⋈ [] = Γ
-Γ ⋈ (X ∷∷ Δ) = (Γ ∷ ⟨ X ⟩) ⋈ Δ
+Γ ⋈ (X ∷ₗ Δ) = (Γ ∷ ⟨ X ⟩) ⋈ Δ
 
 
 -- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED EVALUATION CONTEXT

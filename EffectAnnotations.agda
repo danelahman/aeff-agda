@@ -1,13 +1,13 @@
 open import Data.Bool hiding (if_then_else_)
 open import Data.Empty
-open import Data.List renaming (_∷_ to _∷∷_ ; [_] to ⟦_⟧)
+open import Data.List
 open import Data.List.Properties
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
 open import Data.Unit
 
-open import Relation.Binary.PropositionalEquality hiding (Extensionality)
+open import Relation.Binary.PropositionalEquality hiding (Extensionality ; [_])
 open import Relation.Nullary
 open import Relation.Nullary.Negation
 
@@ -15,30 +15,46 @@ module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
 
+
+-- ASSUMING FUNCTION EXTENSIONALITY
+
 postulate
-  fun-ext : ∀ {a b} → Extensionality a b                      -- assuming function extensionality
+  fun-ext : ∀ {a b} → Extensionality a b
 
 
 -- SIGNAL AND INTERRUPT NAMES
 
-postulate Σₛ : Set                                            -- set of signal and interrupt names
+postulate Σₛ : Set
 
-postulate decₛ : (op op' : Σₛ) → Dec (op ≡ op')               -- signal and interrupt names have decidable equality
+
+-- SIGNAL AND INTERRUPT NAMES HAVE DECIDABLE EQUALITY
+
+postulate decₛ : (op op' : Σₛ) → Dec (op ≡ op')
 
 if_≡_then_else_ : {A : Set} → Σₛ → Σₛ → A → A → A
-if op ≡ op' then x else y =
-  if' (decₛ op op') then x else y
+if op ≡ op' then x else y with decₛ op op'
+... | yes p = x
+... | no ¬p = y
 
-  where
-    if'_then_else_ : {A : Set} {op op' : Σₛ} → Dec (op ≡ op') → A → A → A
-    if' yes p then x else y = x
-    if' no ¬p then x else y = y
+
+ite-≡ : {A : Set}
+        {op : Σₛ}
+        {x y : A} →
+        -----------------------------
+        if op ≡ op then x else y ≡ x
+
+ite-≡ {A} {op} with decₛ op op
+ite-≡ {A} {op} | yes p =
+  refl
+ite-≡ {A} {op} | no ¬p =
+  ⊥-elim (¬p refl)
+
 
 ite-≢ : {A : Set}
         {op op' : Σₛ}
         {x y : A} →
         op ≢ op' →
-        -----------------------------
+        ------------------------------
         if op ≡ op' then x else y ≡ y
 
 ite-≢ {A} {op} {op'} p with decₛ op op'
@@ -48,13 +64,13 @@ ite-≢ {A} {op} {op'} p | no ¬q =
   refl
 
 
--- EFFECT ANNOTATIONS
+-- EFFECT ANNOTATIONS FOR OUTGOING SIGNALS (O) AND INTERRUPT HANDLERS (I)
 
 mutual
-  data O : Set where                                         -- set of effect annotations of outgoing signals
+  data O : Set where
     omap : (Σₛ → Maybe ⊤) → O
 
-  data I : Set where                                         -- set of effect annotations of incoming interrupts
+  data I : Set where
     imap : (Σₛ → Maybe (O × I)) → I
 
 
@@ -100,7 +116,7 @@ _∪ᵢ_ : I → I → I
   imap (∪ᵢ-aux i i')
 
 
--- SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
+-- SETTING THE VALUE OF EFFECT ANNOTATION AT A SPECIFIC INTERRUPT NAME
 
 _[_↦_]ᵢ : I → Σₛ → Maybe (O × I) → I
 (imap i) [ op ↦ v ]ᵢ =
@@ -133,7 +149,7 @@ op ↓ₑ (omap o , imap i) =
 _↓↓ₑ_ : List Σₛ → O × I → O × I
 [] ↓↓ₑ (o , i) =
   (o , i)
-(op ∷∷ ops) ↓↓ₑ (o , i) =
+(op ∷ ops) ↓↓ₑ (o , i) =
   op ↓ₑ (ops ↓↓ₑ (o , i))
 
 
@@ -145,7 +161,7 @@ _↓↓ₑ_ : List Σₛ → O × I → O × I
 
 ↓↓ₑ-act [] ops' =
   refl
-↓↓ₑ-act (op ∷∷ ops) ops' =
+↓↓ₑ-act (op ∷ ops) ops' =
   cong (λ oi → op ↓ₑ oi) (↓↓ₑ-act ops ops')
 
 
@@ -177,7 +193,8 @@ data _⊑ᵢ_ (i i' : I) : Set where
           ---------
           o ⊑ₒ o
           
-⊑ₒ-refl = λ op p → p
+⊑ₒ-refl =
+  λ op p → p
 
 
 ⊑ₒ-trans : {o o' o'' : O} →
@@ -186,31 +203,33 @@ data _⊑ᵢ_ (i i' : I) : Set where
            ----------------
            o ⊑ₒ o''
            
-⊑ₒ-trans p q = λ op r → q op (p op r)
+⊑ₒ-trans p q =
+  λ op r → q op (p op r)
 
 
 ⊑ᵢ-refl : {i : I} →
-         ----------
-         i ⊑ᵢ i
+          ---------
+          i ⊑ᵢ i
          
 ⊑ᵢ-refl {imap i} =
   rel λ op {o'} → λ { {imap i'} → λ p → ⊑ᵢ-refl-aux (i op) p }
 
   where
     ⊑ᵢ-refl-aux : (oi : Maybe (O × I)) →
-                  -----------------------------------------------------------------------------------
+                  ----------------------------------------------------------------------------------
                   {o' : O} {i' : Σₛ → Maybe (O × I)} →
                   oi ≡ just (o' , imap i') →
                   Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (oi ≡ just (o'' , i'') × (o' ⊑ₒ o'') × (imap i' ⊑ᵢ i''))
+                  
     ⊑ᵢ-refl-aux (just .(o' , imap i')) {o'} {i'} refl =
       o' , (imap i' , (refl , (⊑ₒ-refl , ⊑ᵢ-refl {imap i'})))
 
 
 ⊑ᵢ-trans : {i i' i'' : I} →
-          i ⊑ᵢ i' →
-          i' ⊑ᵢ i'' →
-          ----------------
-          i ⊑ᵢ i''
+           i ⊑ᵢ i' →
+           i' ⊑ᵢ i'' →
+           -----------------
+           i ⊑ᵢ i''
 
 ⊑ᵢ-trans {i} {i'} {i''} (rel p) (rel q) =
   rel λ op {o} {j} r → ⊑ᵢ-trans-aux o j op (p op r)
@@ -220,34 +239,16 @@ data _⊑ᵢ_ (i i' : I) : Set where
                     (o' : O) → (j' : I) → lkpᵢ op i' ≡ just (o' , j') → (o ⊑ₒ o') → (j ⊑ᵢ j') →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o' ⊑ₒ o'') × (j' ⊑ᵢ j'')) →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
+                    
     ⊑ᵢ-trans-aux' o j op o' j' r' s t (o'' , j'' , r'' , s' , t') =
       o'' , j'' , r'' , ⊑ₒ-trans s s' , ⊑ᵢ-trans t t'
 
     ⊑ᵢ-trans-aux : (o : O) → (j : I) → (op : Σₛ) →
                     Σ[ o' ∈ O ] Σ[ j' ∈ I ] (lkpᵢ op i' ≡ just (o' , j') × (o ⊑ₒ o') × (j ⊑ᵢ j')) →
                     Σ[ o'' ∈ O ] Σ[ j'' ∈ I ] (lkpᵢ op i'' ≡ just (o'' , j'') × (o ⊑ₒ o'') × (j ⊑ᵢ j''))
+                    
     ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
-
-
--- IDEMPOTENCE OF UNIONS OF EFFECT ANNOTATIONS
-
-∪ₒ-idem : (o : O) →
-          ----------
-          o ∪ₒ o ≡ o
-          
-∪ₒ-idem (omap o) =
-  cong omap (fun-ext (λ op → ∪ₒ-idem-aux (o op) (o op)))
-
-  where
-    ∪ₒ-idem-aux : (o o' : Maybe ⊤) →
-                  ------------------
-                  ∪ₒ-aux' o o ≡ o
-                  
-    ∪ₒ-idem-aux nothing nothing = refl
-    ∪ₒ-idem-aux nothing (just tt) = refl
-    ∪ₒ-idem-aux (just tt) nothing = refl
-    ∪ₒ-idem-aux (just tt) (just tt) = refl
 
 
 -- LEFT UNIT FOR UNIONS OF EFFECT ANNOTATIONS
@@ -325,6 +326,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
                  {o : O} {i'' : I} →
                  oi ≡ just (o , i'') →
                  Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
+                 
     ∪ᵢ-inl-aux (just .(o , i'')) nothing {o} {i''} refl =
       o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
     ∪ᵢ-inl-aux (just .(o , imap i'')) (just (o' , imap i''')) {o} {imap i''} refl =
@@ -343,6 +345,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
                  {o : O} {i'' : I} →
                  oi' ≡ just (o , i'') →
                  Σ[ o' ∈ O ] Σ[ i''' ∈ I ] (∪ᵢ-aux' oi oi' ≡ just (o' , i''') × (o ⊑ₒ o') × (i'' ⊑ᵢ i'''))
+                 
     ∪ᵢ-inr-aux nothing (just .(o , i'')) {o} {i''} refl =
       o , i'' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
     ∪ᵢ-inr-aux (just (o' , imap i''')) (just .(o , imap i'')) {o} {imap i''} refl =
@@ -572,8 +575,13 @@ inj-pair₂ refl = refl
 
 {- LEMMA 3.1 (3) -}
 
-lkpᵢ-↓ₑ-neq : {o o' : O} {i i' : I} {op op' : Σₛ} → ¬ op ≡ op' → lkpᵢ op' i ≡ just (o' , i') →
-             Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i'') × o' ⊑ₒ o'' × i' ⊑ᵢ i'')
+lkpᵢ-↓ₑ-neq : {o o' : O}
+              {i i' : I} {op op' : Σₛ} →
+              ¬ op ≡ op' →
+              lkpᵢ op' i ≡ just (o' , i') →
+              -------------------------------------------------------------------------------------------------------
+              Σ[ o'' ∈ O ] Σ[ i'' ∈ I ] (lkpᵢ op' (proj₂ (op ↓ₑ (o , i))) ≡ just (o'' , i'') × o' ⊑ₒ o'' × i' ⊑ᵢ i'')
+             
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q with i (op)
 ... | nothing =
   o' , imap i' , q , ⊑ₒ-refl , ⊑ᵢ-refl
@@ -581,17 +589,13 @@ lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , 
 ... | yes r with p r
 ... | ()
 lkpᵢ-↓ₑ-neq {omap o} {o'} {imap i} {imap i'} {op} {op'} p q | just (o'' , imap i'') | no ¬r with i (op') | i'' (op')
-lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap i'} {op} {op'} p refl | just (o'' , imap i'')
-                                                                 | no ¬r
-                                                                 | just (o''' , .(imap i'))
-                                                                 | nothing =
-  o''' , imap i' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
+lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap i'} {op} {op'} p refl |
+  just (o'' , imap i'') | no ¬r | just (o''' , .(imap i')) | nothing =
+    o''' , imap i' , refl , ⊑ₒ-refl , ⊑ᵢ-refl
 ... | just (o''' , imap i''') | just (o'''' , imap i'''') with q
-lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q | just (o'' , imap i'')
-                                                                 | no ¬r
-                                                                 | just (o''' , imap i''')
-                                                                 | just (o'''' , imap i'''') | refl =
-  (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ∪ₒ-inl , ∪ᵢ-inl
+lkpᵢ-↓ₑ-neq {omap o} {.o'''} {imap i} {imap .i'''} {op} {op'} p q |
+  just (o'' , imap i'') | no ¬r | just (o''' , imap i''') | just (o'''' , imap i'''') | refl =
+    (o''' ∪ₒ o'''') , (imap i''') ∪ᵢ (imap i'''') , refl , ∪ₒ-inl , ∪ᵢ-inl
 
 
 -- NEXT DEFINED EFFECT ANNOTATION UNDER SUBTYPING EFFECT ANNOTATIONS
@@ -638,28 +642,6 @@ lkpᵢ-next-⊑ᵢ : {o'' : O} {i i' i'' : I} {op : Σₛ} →
 
 lkpᵢ-next-⊑ᵢ {o''} {i} {i'} {i''} {op} (rel p) q =
   proj₂ (proj₂ (proj₂ (proj₂ (p op q))))
-
-
--- ETA LAW FOR SETTING THE VALUE OF EFFECT ANNOTATION AT AN INTERRUPT
-
-↓ₑ-↦-eta : (i : I) → 
-           (op : Σₛ) →
-           (oi : Maybe (O × I)) → 
-           lkpᵢ op i ≡ oi →
-           ------------------------
-           i ≡ (i [ op ↦ oi ]ᵢ)
-
-↓ₑ-↦-eta (imap i) op oi p =
-  cong (λ i → imap i) (fun-ext (λ op' → ↓ₑ-↦-eta-aux op'))
-
-  where
-    ↓ₑ-↦-eta-aux : (op' : Σₛ) →
-                   ----------------------------------------
-                   i op' ≡ (if op ≡ op' then oi else i op')
-
-    ↓ₑ-↦-eta-aux op' with decₛ op op'
-    ... | yes refl = p
-    ... | no ¬q = refl
 
 
 -- ACTION OF INTERRUPTS ON EFFECT ANNOTATIONS IS MONOTONIC
@@ -790,7 +772,7 @@ mutual
 
   ↓↓ₑ-monotonicₒ {omap o} {omap o'} {imap i} {imap i'} [] p q =
     p
-  ↓↓ₑ-monotonicₒ (op ∷∷ ops) p q =
+  ↓↓ₑ-monotonicₒ (op ∷ ops) p q =
     ↓ₑ-monotonicₒ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
 
 
@@ -803,7 +785,7 @@ mutual
                    proj₂ (ops ↓↓ₑ (o , i)) ⊑ᵢ proj₂ (ops ↓↓ₑ (o' , i'))
 
   ↓↓ₑ-monotonicᵢ [] p q = q
-  ↓↓ₑ-monotonicᵢ (op ∷∷ ops) p q =
+  ↓↓ₑ-monotonicᵢ (op ∷ ops) p q =
     ↓ₑ-monotonicᵢ (↓↓ₑ-monotonicₒ ops p q) (↓↓ₑ-monotonicᵢ ops p q)
 
 
@@ -817,7 +799,7 @@ mutual
 
 ↓↓ₑ-⊑ₒ [] =
   ⊑ₒ-refl
-↓↓ₑ-⊑ₒ (op ∷∷ ops) =
+↓↓ₑ-⊑ₒ (op ∷ ops) =
   ⊑ₒ-trans (↓↓ₑ-⊑ₒ ops) (↓ₑ-⊑ₒ {op = op})
 
 
@@ -831,14 +813,15 @@ data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
          -------------------
          op `at [] `in o , i
          
-  step : {o o' : O}
+  next : {o o' : O}
          {i i' : I}
          {op' : Σₛ}
          {ops : List Σₛ} →
          lkpᵢ op' i ≡ just (o' , i') →
          op `at ops `in o' , i' →
          -----------------------------
-         op `at (op' ∷∷ ops) `in o , i
+         op `at (op' ∷ ops) `in o , i
+
 
 -- ACTING ON AN ANNOTATION WITH EMPTY SIGNALS PART JUST REVEALS THE INNER LAYER IF THE INTERRUPTS MATCH
 
@@ -905,14 +888,14 @@ mutual
   ⦃⦃_↦_⦄⦄ₒ : List Σₛ → Σₛ → O
   ⦃⦃ [] ↦ op ⦄⦄ₒ =
     omap (λ op' → if op ≡ op' then just tt else nothing)
-  ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ₒ =
+  ⦃⦃ op' ∷ ops ↦ op ⦄⦄ₒ =
     ∅ₒ
 
 
   ⦃⦃_↦_⦄⦄ᵢ : List Σₛ → Σₛ → I
   ⦃⦃ [] ↦ op ⦄⦄ᵢ =
     ∅ᵢ
-  ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ᵢ =
+  ⦃⦃ op' ∷ ops ↦ op ⦄⦄ᵢ =
     imap (λ op'' → if op'' ≡ op' then just (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ) else nothing)
 
 
@@ -932,7 +915,7 @@ mutual
     λ _ → p
   `at-minₒ {op} {.[]} {omap o} (stop p) op'' | no ¬q =
     λ ()
-  `at-minₒ (step p q) op'' =
+  `at-minₒ (next p q) op'' =
     λ ()
 
 
@@ -946,15 +929,15 @@ mutual
 
   `at-minᵢ (stop p) =
     rel (λ op'' → λ ())
-  `at-minᵢ {op} (step {o} {o'} {i} {i'} {op'} {ops} p q) =
+  `at-minᵢ {op} (next {o} {o'} {i} {i'} {op'} {ops} p q) =
     rel (λ op'' {o''} {i''} r → `at-minᵢ-aux r)
 
     where
       `at-minᵢ-aux : {op'' : Σₛ}
                      {o'' : O}
                      {i'' : I} →
-                     lkpᵢ op'' ⦃⦃ op' ∷∷ ops ↦ op ⦄⦄ᵢ ≡ just (o'' , i'') →
-                     ----------------------------------------------------
+                     lkpᵢ op'' ⦃⦃ op' ∷ ops ↦ op ⦄⦄ᵢ ≡ just (o'' , i'') →
+                     ---------------------------------------------------
                      Σ[ o''' ∈ O ]
                      Σ[ i''' ∈ I ]
                      (lkpᵢ op'' i ≡ just (o''' , i''') ×
@@ -970,55 +953,55 @@ mutual
 
 data _⊆_ : List Σₛ → List Σₛ → Set where
 
-  []-l : {ops' : List Σₛ} →
-         ------------------
+  [] : {ops' : List Σₛ} →
+         ----------------
          [] ⊆ ops'
         
-  ∷-c  : {op : Σₛ}
+  ∷-≡  : {op : Σₛ}
          {ops ops' : List Σₛ} →
          ops ⊆ ops' →
-         --------------------------
-         (op ∷∷ ops) ⊆ (op ∷∷ ops')
+         ------------------------
+         (op ∷ ops) ⊆ (op ∷ ops')
 
-  ∷-l  : {op op' : Σₛ}
+  ∷-≢  : {op op' : Σₛ}
          {ops ops' : List Σₛ} →
          op ≢ op' →
-         (op ∷∷ ops) ⊆ ops' →
-         ---------------------------
-         (op ∷∷ ops) ⊆ (op' ∷∷ ops')
+         (op ∷ ops) ⊆ ops' →
+         -------------------------
+         (op ∷ ops) ⊆ (op' ∷ ops')
 
 mutual 
-  ∷-l-swap : {op op' : Σₛ}
+  ∷-≢-swap : {op op' : Σₛ}
              {ops ops' : List Σₛ} →
              op ≢ op' →
-             (op ∷∷ ops) ⊆ (op' ∷∷ op ∷∷ ops') →
-             ------------------------------------
-             (op ∷∷ ops) ⊆ (op ∷∷ op' ∷∷ ops')
+             (op ∷ ops) ⊆ (op' ∷ op ∷ ops') →
+             --------------------------------
+             (op ∷ ops) ⊆ (op ∷ op' ∷ ops')
 
-  ∷-l-swap {op} {.op} {ops} {ops'} p (∷-c q) =
-    ∷-c q
-  ∷-l-swap {op} {op'} {ops} {ops'} p (∷-l q (∷-c r)) =
-    ∷-c (∷-r r)
-  ∷-l-swap {op} {op'} {ops} {ops'} p (∷-l q (∷-l r s)) =
+  ∷-≢-swap {op} {.op} {ops} {ops'} p (∷-≡ q) =
+    ∷-≡ q
+  ∷-≢-swap {op} {op'} {ops} {ops'} p (∷-≢ q (∷-≡ r)) =
+    ∷-≡ (∷-∷ r)
+  ∷-≢-swap {op} {op'} {ops} {ops'} p (∷-≢ q (∷-≢ r s)) =
     ⊥-elim (r refl)
 
 
-  ∷-r : {op' : Σₛ}
+  ∷-∷ : {op' : Σₛ}
         {ops : List Σₛ} →
         {ops' : List Σₛ} → 
         ops ⊆ ops' →
         -------------------
-        ops ⊆ (op' ∷∷ ops')
+        ops ⊆ (op' ∷ ops')
 
-  ∷-r []-l = []-l
-  ∷-r {op'} (∷-c {op} p) with decₛ op op'
-  ∷-r {.op} (∷-c {op} p) | yes refl =
-    ∷-c (∷-r p)
-  ∷-r {op'} (∷-c {op} p) | no ¬q =
-    ∷-l ¬q (∷-c p)
-  ∷-r {op'} (∷-l {op} {op''} p q) with decₛ op op'
-  ∷-r {.op} (∷-l {op} {op''} p q) | yes refl = ∷-l-swap p (∷-l p (∷-r q))
-  ∷-r {op'} (∷-l {op} {op''} p q) | no ¬r = ∷-l ¬r (∷-l p q)
+  ∷-∷ [] = []
+  ∷-∷ {op'} (∷-≡ {op} p) with decₛ op op'
+  ∷-∷ {.op} (∷-≡ {op} p) | yes refl =
+    ∷-≡ (∷-∷ p)
+  ∷-∷ {op'} (∷-≡ {op} p) | no ¬q =
+    ∷-≢ ¬q (∷-≡ p)
+  ∷-∷ {op'} (∷-≢ {op} {op''} p q) with decₛ op op'
+  ∷-∷ {.op} (∷-≢ {op} {op''} p q) | yes refl = ∷-≢-swap p (∷-≢ p (∷-∷ q))
+  ∷-∷ {op'} (∷-≢ {op} {op''} p q) | no ¬r = ∷-≢ ¬r (∷-≢ p q)
 
 
 -- IF A SUBPATH OF INTERRUPTS REVEALS A SIGNAL, THEN ACTING WITH THE WHOLE PATH ALSO REVEALS IT
@@ -1029,7 +1012,7 @@ mutual
        ---------------------------------------------------------------
        op ∈ₒ proj₁ (reverse ops' ↓↓ₑ (⦃⦃ ops ↦ op ⦄⦄ₒ , ⦃⦃ ops ↦ op ⦄⦄ᵢ))
 
-⊆-↓↓ {op} {ops} {ops'} []-l =
+⊆-↓↓ {op} {ops} {ops'} [] =
   (↓↓ₑ-⊑ₒ (reverse ops')) op ⊆-↓↓-aux
 
   where
@@ -1040,20 +1023,20 @@ mutual
     ⊆-↓↓-aux | no ¬p =
       ⊥-elim (¬p refl)
 
-⊆-↓↓ {op} (∷-c {op'} {ops} {ops'} p) =
-  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ᵢ)))
+⊆-↓↓ {op} (∷-≡ {op'} {ops} {ops'} p) =
+  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷ ops) ↦ op ⦄⦄ᵢ)))
         (sym (unfold-reverse op' ops'))
         (subst (λ oi → op ∈ₒ proj₁ oi)
-               (sym (↓↓ₑ-act (reverse ops') ⟦ op' ⟧))
+               (sym (↓↓ₑ-act (reverse ops') [ op' ]))
                (subst (λ oi → op ∈ₒ proj₁ (reverse ops' ↓↓ₑ oi))
                       (sym ↓ₑ-∅-↦-≡)
                       (⊆-↓↓ p)))
 
-⊆-↓↓ {op} (∷-l {op'} {op''} {ops} {ops'} p q) =
-  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷∷ ops) ↦ op ⦄⦄ᵢ)))
+⊆-↓↓ {op} (∷-≢ {op'} {op''} {ops} {ops'} p q) =
+  subst (λ ops'' → op ∈ₒ proj₁ (ops'' ↓↓ₑ (⦃⦃ (op' ∷ ops) ↦ op ⦄⦄ₒ , ⦃⦃ (op' ∷ ops) ↦ op ⦄⦄ᵢ)))
         (sym (unfold-reverse op'' ops'))
         (subst (λ oi → op ∈ₒ proj₁ oi)
-               (sym (↓↓ₑ-act (reverse ops') ⟦ op'' ⟧))
+               (sym (↓↓ₑ-act (reverse ops') [ op'' ]))
                (subst (λ oi → op ∈ₒ proj₁ (reverse ops' ↓↓ₑ oi))
                       (sym (↓ₑ-∅-↦-≢ p))
                       (⊆-↓↓ q)))
@@ -1088,7 +1071,7 @@ mutual
     `at-⊎-aux p (just tt) t' q r =
       inj₁ (stop q)
 
-`at-⊎ {op} {_} {o} {o'} {imap i} {imap i'} (step {o''} {o'''} {i''} {i'''} {op'} {ops} p q) =
+`at-⊎ {op} {_} {o} {o'} {imap i} {imap i'} (next {o''} {o'''} {i''} {i'''} {op'} {ops} p q) =
   `at-⊎-aux p q (i op') (i' op') refl refl
 
   where
@@ -1097,14 +1080,14 @@ mutual
                 (oi oi' : Maybe (O × I)) →
                 i op' ≡ oi →
                 i' op' ≡ oi' →
-                -----------------------------------------------------------
-                (op `at (op' ∷∷ ops) `in o , imap i) ⊎ (op `at (op' ∷∷ ops) `in o' , imap i')
+                ---------------------------------------------------------------------------
+                (op `at (op' ∷ ops) `in o , imap i) ⊎ (op `at (op' ∷ ops) `in o' , imap i')
 
     `at-⊎-aux p q nothing nothing r s with i op' | i' op'
     `at-⊎-aux () q nothing nothing r s | nothing | nothing
     `at-⊎-aux p q nothing nothing r () | nothing | just _
     `at-⊎-aux p q nothing (just (o'''' , i'''')) r s =
-      inj₂ (step (trans (sym (`at-⊎-aux-aux r s)) p) q)
+      inj₂ (next (trans (sym (`at-⊎-aux-aux r s)) p) q)
 
       where
         `at-⊎-aux-aux : i op' ≡ nothing → 
@@ -1117,7 +1100,7 @@ mutual
           refl
 
     `at-⊎-aux p q (just (o'''' , i'''')) nothing r s =
-      inj₁ (step (trans (sym (`at-⊎-aux-aux r s)) p) q)
+      inj₁ (next (trans (sym (`at-⊎-aux-aux r s)) p) q)
 
       where
         `at-⊎-aux-aux : i op' ≡ just (o'''' , i'''') → 
@@ -1133,9 +1116,9 @@ mutual
       with ∪ᵢ-∪ₒ {i = imap i} {i' = imap i'} p r s | ∪ᵢ-∪ᵢ {i = imap i} {i' = imap i'} p r s
     ... | refl | refl with `at-⊎ q
     ... | inj₁ t =
-      inj₁ (step r t)
+      inj₁ (next r t)
     ... | inj₂ t =
-      inj₂ (step s t)
+      inj₂ (next s t)
 
 
 -- IF ACTING WITH A PATH REVEALS A SIGNAL, THEN THERE IS A SUBPATH TO THAT SIGNAL
@@ -1144,12 +1127,12 @@ mutual
           (i : I)
           (op : Σₛ)
           (ops : List Σₛ) →
-          -----------------------------------------------------------------
-          reverse (op ∷∷ ops) ↓↓ₑ (o , i) ≡ reverse ops ↓↓ₑ (op ↓ₑ (o , i))
+          ----------------------------------------------------------------
+          reverse (op ∷ ops) ↓↓ₑ (o , i) ≡ reverse ops ↓↓ₑ (op ↓ₑ (o , i))
 
 ↓↓-⊆-rw o i op ops =
   trans (cong (λ ops' → ops' ↓↓ₑ (o , i)) (unfold-reverse op ops))
-        (↓↓ₑ-act (reverse ops) ⟦ op ⟧)
+        (↓↓ₑ-act (reverse ops) [ op ])
 
 ↓↓-⊆ : {op : Σₛ} → 
        (ops : List Σₛ) → 
@@ -1160,19 +1143,19 @@ mutual
        Σ[ ops' ∈ List Σₛ ] (ops' ⊆ ops × (op `at ops' `in o , i))
 
 ↓↓-⊆ [] p =
-  [] , []-l , stop p
-↓↓-⊆ {op} (op' ∷∷ ops) {omap o} {imap i} p rewrite ↓↓-⊆-rw (omap o) (imap i) op' ops =
+  [] , [] , stop p
+↓↓-⊆ {op} (op' ∷ ops) {omap o} {imap i} p rewrite ↓↓-⊆-rw (omap o) (imap i) op' ops =
   ↓↓-⊆-aux (i op') refl
 
   where
     ↓↓-⊆-aux : (oi : Maybe (O × I)) →
                i op' ≡ oi →
-               -----------------------------------------------------------------------------
-               Σ[ ops' ∈ List Σₛ ] (ops' ⊆ (op' ∷∷ ops) × (op `at ops' `in omap o , imap i))
+               ----------------------------------------------------------------------------
+               Σ[ ops' ∈ List Σₛ ] (ops' ⊆ (op' ∷ ops) × (op `at ops' `in omap o , imap i))
 
     ↓↓-⊆-aux nothing q with ↓↓-⊆ ops p
     ... | ops' , r , s rewrite q =
-      ops' , ∷-r r , s
+      ops' , ∷-∷ r , s
     ↓↓-⊆-aux (just (omap o' , imap i')) q with ↓↓-⊆ ops p
     ... | ops' , r , s rewrite q with `at-⊎ {o = omap o} {o' = omap o'} {i' = imap i'} s 
     ... | inj₁ t =
@@ -1182,17 +1165,17 @@ mutual
         ↓↓-⊆-aux-aux : (ops' : List Σₛ) →
                        ops' ⊆ ops →
                        (op `at ops' `in omap o , ((imap i) [ op' ↦ nothing ]ᵢ)) → 
-                       --------------------------------------------------------------------------------
-                       Σ[ ops'' ∈ List Σₛ ] (ops'' ⊆ (op' ∷∷ ops) × (op `at ops'' `in omap o , imap i))
+                       -------------------------------------------------------------------------------
+                       Σ[ ops'' ∈ List Σₛ ] (ops'' ⊆ (op' ∷ ops) × (op `at ops'' `in omap o , imap i))
 
         ↓↓-⊆-aux-aux [] r (stop t) =
-          [] , []-l , stop t
-        ↓↓-⊆-aux-aux (op'' ∷∷ ops'') r (step t u) with decₛ op' op''
-        ↓↓-⊆-aux-aux (op'' ∷∷ ops'') r (step t u) | no ¬v =
-          op'' ∷∷ ops'' , ∷-l (λ w → ¬v (sym w)) r , step t u
+          [] , [] , stop t
+        ↓↓-⊆-aux-aux (op'' ∷ ops'') r (next t u) with decₛ op' op''
+        ... | no ¬v =
+          op'' ∷ ops'' , ∷-≢ (λ w → ¬v (sym w)) r , next t u
 
     ... | inj₂ t =
-      op' ∷∷ ops' , ∷-c r , step q t
+      op' ∷ ops' , ∷-≡ r , next q t
 
 
 -- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH MLTIPLE INTERRUPT ACTIONS
@@ -1207,6 +1190,6 @@ mutual
              proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ (ops ↓↓ₑ (op ↓ₑ (o , i)))
 
 ↓↓ₑ-⊑ₒ-act {o} {i} ops op op' p rewrite sym (reverse-involutive ops) with ↓↓-⊆ (reverse ops) p
-... | ops' , q , r with ⊆-↓↓ {op'} (∷-r {op} q)
-... | s with ↓↓ₑ-monotonicₒ (reverse (op ∷∷ reverse ops)) (`at-minₒ r) (`at-minᵢ r) op' s
+... | ops' , q , r with ⊆-↓↓ {op'} (∷-∷ {op} q)
+... | s with ↓↓ₑ-monotonicₒ (reverse (op ∷ reverse ops)) (`at-minₒ r) (`at-minᵢ r) op' s
 ... | t rewrite ↓↓-⊆-rw o i op (reverse ops) | reverse-involutive ops = t

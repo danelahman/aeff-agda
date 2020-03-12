@@ -1,5 +1,4 @@
 open import Data.Empty
-open import Data.List hiding ([_]) renaming (_∷_ to _::_)
 open import Data.Maybe
 open import Data.Product
 open import Data.Sum
