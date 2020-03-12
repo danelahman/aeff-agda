@@ -892,7 +892,11 @@ data _`at_`in_,_ (op : Σₛ) : List Σₛ → O → I → Set where
            ≡
            (∅ₒ , imap (λ op'' → if op'' ≡ op then just (o , i) else nothing))
 
-↓ₑ-∅-↦-≢ = {!!}
+↓ₑ-∅-↦-≢ {op} {op'} p with decₛ op' op
+↓ₑ-∅-↦-≢ {op} {.op} p | yes refl =
+  ⊥-elim (p refl)
+↓ₑ-∅-↦-≢ {op} {op'} p | no ¬q =
+  refl
 
 
 -- A MINIMAL EFFECT ANNOTATION SUCH THAT A GIVEN PATH OF INTERRUPTS REVEALS THE GIVEN SIGNAL NAME
