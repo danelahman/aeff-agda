@@ -417,6 +417,37 @@ inj-pair₂ refl = refl
   ∪ᵢ-copair (⊑ᵢ-trans p ∪ᵢ-inl) (⊑ᵢ-trans q ∪ᵢ-inr)
 
 
+-- UNIONS OF INTERRUPT ANNOTATIONS ARE GIVEN BY POINTWISE UNIONS
+
+∪ᵢ-∪ₒ : {op : Σₛ}
+        {o'' o''' o'''' : O}
+        {i i' i'' i''' i'''' : I} → 
+        lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
+        lkpᵢ op i ≡ just (o''' , i''') →
+        lkpᵢ op i' ≡ just (o'''' , i'''') →
+        ---------------------------------------
+        o'' ≡ o''' ∪ₒ o''''
+
+∪ᵢ-∪ₒ {op} {o''} {o'''} {o''''} {imap i} {imap i'} p q r with i op | i' op
+∪ᵢ-∪ₒ {op} {.(o''' ∪ₒ o'''')} {o'''} {o''''} {imap i} {imap i'} {_} {imap i'''} {imap i''''}
+  refl refl refl | just .(o''' , imap i''') | just .(o'''' , imap i'''') =
+    refl
+
+∪ᵢ-∪ᵢ : {op : Σₛ}
+        {o'' o''' o'''' : O}
+        {i i' i'' i''' i'''' : I} → 
+        lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
+        lkpᵢ op i ≡ just (o''' , i''') →
+        lkpᵢ op i' ≡ just (o'''' , i'''') →
+        ---------------------------------------
+        i'' ≡ i''' ∪ᵢ i''''
+
+∪ᵢ-∪ᵢ {op} {o''} {o'''} {o''''} {imap i} {imap i'} p q r with i op | i' op
+∪ᵢ-∪ᵢ {op} {.(o''' ∪ₒ o'''')} {o'''} {o''''} {imap i} {imap i'} {_} {imap i'''} {imap i''''}
+  refl refl refl | just .(o''' , imap i''') | just .(o'''' , imap i'''') =
+    refl
+
+
 -- INCLUSION INTO ACTED UPON EFFECT ANNOTATION
 
 {- LEMMA 3.1 (1) -}
@@ -935,27 +966,6 @@ postulate
 
 
 -- IF A PATH REVEALS A SIGNAL IN A UNION OF EFFECT ANNOTATIONS, THE PATH REVEALS THE SIGNAL IN ONE OF THE SUMMANDS
-
--- TODO
-postulate
-  ∪ᵢ-∪ₒ : {op : Σₛ}
-          {o'' o''' o'''' : O}
-          {i i' i'' i''' i'''' : I} → 
-          lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
-          lkpᵢ op i ≡ just (o''' , i''') →
-          lkpᵢ op i' ≡ just (o'''' , i'''') →
-          ---------------------------------------
-          o'' ≡ o''' ∪ₒ o''''
-
-  ∪ᵢ-∪ᵢ : {op : Σₛ}
-          {o'' o''' o'''' : O}
-          {i i' i'' i''' i'''' : I} → 
-          lkpᵢ op (i ∪ᵢ i') ≡ just (o'' , i'') →
-          lkpᵢ op i ≡ just (o''' , i''') →
-          lkpᵢ op i' ≡ just (o'''' , i'''') →
-          ---------------------------------------
-          i'' ≡ i''' ∪ᵢ i''''
-
 
 `at-⊎ : {op : Σₛ}
         {ops : List Σₛ}
