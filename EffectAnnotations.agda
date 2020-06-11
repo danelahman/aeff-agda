@@ -212,7 +212,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
           i ⊑ᵢ i
          
 ⊑ᵢ-refl {imap i} =
-  rel λ op {o'} → λ { {imap i'} → λ p → ⊑ᵢ-refl-aux (i op) p }
+  rel (λ op {o'} → λ { {imap i'} → λ p → ⊑ᵢ-refl-aux (i op) p })
 
   where
     ⊑ᵢ-refl-aux : (oi : Maybe (O × I)) →
@@ -232,7 +232,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
            i ⊑ᵢ i''
 
 ⊑ᵢ-trans {i} {i'} {i''} (rel p) (rel q) =
-  rel λ op {o} {j} r → ⊑ᵢ-trans-aux o j op (p op r)
+  rel (λ op {o} {j} r → ⊑ᵢ-trans-aux o j op (p op r))
 
   where
     ⊑ᵢ-trans-aux' : (o : O) → (j : I) → (op : Σₛ) →
@@ -430,14 +430,12 @@ inj-pair₂ refl = refl
                   (just (omap o'''' , imap i''''))
                   (just (omap o''''' , imap i'''''))
                   (just (omap o'''''' , imap i''''''))
-                  r s t u
-                  with inj-pair₁ (inj-just u) | inj-pair₂ (inj-just u)
-    ... | v | w =
+                  r s t u =
       omap o'''''' ,
       imap i'''''' ,
       refl ,
       subst (λ o → o ⊑ₒ omap o'''''')
-            v
+            (inj-pair₁ (inj-just u))
             (∪ₒ-copair (subst (λ o → omap o'''' ⊑ₒ o)
                               (inj-pair₁ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (p op (sym r)))))))))
                               (proj₁ (proj₂ (proj₂ (proj₂ (p op (sym r)))))))
@@ -445,13 +443,13 @@ inj-pair₂ refl = refl
                               (inj-pair₁ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (q op (sym s)))))))))
                               (proj₁ (proj₂ (proj₂ (proj₂ (q op (sym s)))))))) ,
       subst (λ i → i ⊑ᵢ imap i'''''')
-             w
-             (∪ᵢ-copair (subst (λ i → imap i'''' ⊑ᵢ i)
+            (inj-pair₂ (inj-just u))
+            (∪ᵢ-copair (subst (λ i → imap i'''' ⊑ᵢ i)
                                (inj-pair₂ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (p op (sym r)))))))))
                                (proj₂ (proj₂ (proj₂ (proj₂ (p op (sym r)))))))
-                        ((subst (λ i → imap i''''' ⊑ᵢ i)
+                       (subst (λ i → imap i''''' ⊑ᵢ i)
                                (inj-pair₂ (inj-just (sym (trans t (proj₁ (proj₂ (proj₂ (q op (sym s)))))))))
-                               (proj₂ (proj₂ (proj₂ (proj₂ (q op (sym s)))))))))
+                               (proj₂ (proj₂ (proj₂ (proj₂ (q op (sym s))))))))
 
 
 -- FUNCTORIALITY OF UNIONS OF EFFECT ANNOTATIONS

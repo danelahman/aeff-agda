@@ -1,6 +1,6 @@
 # Agda formalisation of the AEff language
 
-- The formalisation has been tested with Agda version 2.6.0.1 and standard library version 1.2.
+- The formalisation has been tested with Agda version 2.6.1 and standard library version 1.3.
 
 - The unicode symbols used in the source code have tested to display correctly with the DejaVu Sans Mono font.
 
