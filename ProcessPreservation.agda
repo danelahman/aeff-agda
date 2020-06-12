@@ -15,91 +15,6 @@ open import Relation.Nullary
 
 module ProcessPreservation where
 
--- WELL-TYPED SIGNAL HOISTING CONTEXTS
-
-data _⊢H[_]⦂_ (Γ : Ctx) : (Δ : BCtx) → CType → Set where
-
-  [-]              : {C : CType} →
-                     -------------
-                     Γ ⊢H[ [] ]⦂ C
-
-  promise_∣_↦_`in_ : {Δ : BCtx}
-                     {X Y : VType}
-                     {o o' : O}
-                     {i i' : I} → 
-                     (op : Σₛ) →
-                     lkpᵢ op i ≡ just (o' , i') →
-                     Γ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o' , i') →
-                     Γ ∷ ⟨ X ⟩ ⊢H[ Δ ]⦂ Y ! (o , i) →
-                     ------------------------------------------
-                     Γ ⊢H[ X ∷ₗ Δ ]⦂ Y ! (o , i)
-
-
--- FINDING THE TYPE OF THE HOLE OF A WELL-TYPED SIGNAL HOISTING CONTEXT
-
-hole-ty-hₒ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
-             Γ ⊢H[ Δ ]⦂ X ! (o , i) → O
-hole-ty-hₒ {_} {_} {_} {o} [-] =
-  o
-hole-ty-hₒ (promise op ∣ p ↦ M `in H) =
-  hole-ty-hₒ H
-
-
-hole-ty-hᵢ : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
-             Γ ⊢H[ Δ ]⦂ X ! (o , i) → I
-hole-ty-hᵢ {_} {_} {_} {_} {o} [-] =
-  o
-hole-ty-hᵢ (promise op ∣ p ↦ M `in H) =
-  hole-ty-hᵢ H
-
-
-{- LEMMA 4.7 (1) - the O part -}
-
-hole-ty-h-⊑ₒ : {Γ : Ctx}
-               {Δ : BCtx}
-               {X : VType}
-               {o : O}
-               {i : I} →
-               (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
-               ------------------------------
-               hole-ty-hₒ H ⊑ₒ o
-               
-hole-ty-h-⊑ₒ [-] =
-  ⊑ₒ-refl
-hole-ty-h-⊑ₒ (promise op ∣ p ↦ M `in H) =
-  hole-ty-h-⊑ₒ H
-
-
-{- LEMMA 4.7 (1) - the I part -}
-
-hole-ty-h-⊑ᵢ : {Γ : Ctx}
-               {Δ : BCtx}
-               {X : VType}
-               {o : O}
-               {i : I} →
-               (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) →
-               ------------------------------
-               hole-ty-hᵢ H ⊑ᵢ i
-               
-hole-ty-h-⊑ᵢ [-] =
-  ⊑ᵢ-refl
-hole-ty-h-⊑ᵢ (promise op ∣ p ↦ M `in H) =
-  hole-ty-h-⊑ᵢ H
-
-
--- FILLING A WELL-TYPED SIGNAL HOISTING CONTEXT WITH A COMPUTATION
-
-infix 30 _[_]h
-
-_[_]h : {Γ : Ctx} {Δ : BCtx} {X : VType} {o : O} {i : I} →
-        (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → Γ ⋈ Δ ⊢M⦂ (X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
-        Γ ⊢M⦂ X ! (o , i)
-[-] [ M ]h =
-  M
-(promise op ∣ p ↦ N `in E) [ M ]h =
-  promise op ∣ p ↦ N `in (E [ M ]h)
-  
-
 -- REDUCTION OF PROCESS TYPES
 
 infix 10 _⇝_
@@ -119,7 +34,7 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
         (op : Σₛ) →   
         (o' , i') ≡ ops ↓↓ₑ (o , i) →
         (o'' , i'') ≡ ((ops ++ [ op ]ₗ) ↓↓ₑ (o , i)) → 
-        ---------------------------------------------
+        ----------------------------------------------
         (X ‼ o' , i') ⇝ (X ‼ o'' , i'')
 
   par : {o o' o'' o''' : O}
@@ -207,32 +122,6 @@ inj-proj₁ refl = refl
                       (↓↓ₑ-⊑ₒ-act ops op)))
 ⇝-↓ₚ-⊑ₒ (par p q) =
   ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
-
-
--- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
-
-strengthen-var : {Γ : Ctx} → (Δ : BCtx) → {A : BType} → `` A ∈ Γ ⋈ Δ → `` A ∈ Γ
-strengthen-var [] x = x
-strengthen-var (y ∷ₗ Δ) x with strengthen-var Δ x
-... | Tl p = p
-
-
-strengthen-val : {Γ : Ctx} {Δ : BCtx} {A : BType} → Γ ⋈ Δ ⊢V⦂ `` A → Γ ⊢V⦂ `` A
-strengthen-val {_} {Δ} (` x) =
-  ` strengthen-var Δ x
-strengthen-val (``_ c) =
-  ``_ c
-
-strengthen-val-[] : {Γ : Ctx}
-                    {A : BType} → 
-                    (V : Γ ⋈ [] ⊢V⦂ `` A) →
-                    --------------------
-                    strengthen-val {Δ = []} V ≡ V
-
-strengthen-val-[] (` x) =
-  refl
-strengthen-val-[] (``_ c) =
-  refl
 
 
 -- EVALUATION CONTEXTS FOR PROCESSES
@@ -534,19 +423,17 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
 
   -- HOISTING RULE
 
-  ↑     : {Δ : BCtx}
-          {X : VType}
-          {o o' : O}
-          {i i' : I} → 
-          (H : Γ ⊢H[ Δ ]⦂ X ! (o , i)) → 
+  ↑     : {X : VType}
+          {o : O}
+          {i : I} → 
           {op : Σₛ} → 
-          (p : op ∈ₒ hole-ty-hₒ H) →
-          (V : Γ ⋈ Δ ⊢V⦂ `` (payload op)) →
-          (M : Γ ⋈ Δ ⊢M⦂ X ! (hole-ty-hₒ H , hole-ty-hᵢ H)) →
-          ----------------------------------------------------------------------
-          run (H [ ↑ op p V M ]h)
+          (p : op ∈ₒ o) →
+          (V : Γ ⊢V⦂ `` (payload op)) →
+          (M : Γ ⊢M⦂ X ! (o , i)) →
+          -----------------------------
+          run (↑ op p V M)
           [ id ]↝
-          ↑ op (hole-ty-h-⊑ₒ H op p) (strengthen-val {Δ = Δ} V) (run (H [ M ]h))
+          ↑ op p V (run M)
 
   -- CONTEXT RULE
 
@@ -558,7 +445,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
             {Q : Γ ⊢P⦂ QQ}
             {p : proj₂ (hole-ty-f F) ⇝ QQ} → 
             P [ p ]↝ Q →
-            --------------------------------
+            -----------------------------------------------------------------------------
             F [ P ]f
             [ proj₂ (proj₂ (⇝-f-⇝ F p)) ]↝
             (⇝-f F p) [ subst-i PType (λ o QQ → Γ ⊢P⦂ QQ) (⇝-f-tyₒ F p) (⇝-f-ty F p) Q ]f

@@ -13,7 +13,8 @@ open import Relation.Nullary
 
 module Preservation where
 
--- Binding contexts
+
+-- BINDING CONTEXTS
 
 BCtx = List VType
 
@@ -125,6 +126,32 @@ coerce p q E [ M ] =
   coerce p q (E [ M ])
 
 
+-- STRENGTHENING OF GROUND VALUES WRT BOUND PROMISES
+
+strengthen-var : {Γ : Ctx} → (Δ : BCtx) → {A : BType} → `` A ∈ Γ ⋈ Δ → `` A ∈ Γ
+strengthen-var [] x = x
+strengthen-var (y ∷ₗ Δ) x with strengthen-var Δ x
+... | Tl p = p
+
+
+strengthen-val : {Γ : Ctx} {Δ : BCtx} {A : BType} → Γ ⋈ Δ ⊢V⦂ `` A → Γ ⊢V⦂ `` A
+strengthen-val {_} {Δ} (` x) =
+  ` strengthen-var Δ x
+strengthen-val (``_ c) =
+  ``_ c
+
+strengthen-val-[] : {Γ : Ctx}
+                    {A : BType} → 
+                    (V : Γ ⋈ [] ⊢V⦂ `` A) →
+                    --------------------
+                    strengthen-val {Δ = []} V ≡ V
+
+strengthen-val-[] (` x) =
+  refl
+strengthen-val-[] (``_ c) =
+  refl
+
+
 -- SMALL-STEP OPERATIONAL SEMANTICS FOR WELL-TYPED COMPUTATIONS
 -- (ADDITIONALLY SERVES AS THE PRESERVATION THEOREM)
 
@@ -191,6 +218,20 @@ mutual
                       (letrec M `in N)
                       ↝
                       N [ id-subst [ ƛ (letrec M-rename wk₃ M `in M-rename exchange M) ]s ]m
+
+    promise-↑       : {X Y : VType}
+                      {o o' : O}
+                      {i i' : I}
+                      {op op' : Σₛ} →
+                      (p : lkpᵢ op i ≡ just (o' , i')) →
+                      (q : op' ∈ₒ o) →
+                      (V : Γ ∷ ⟨ X ⟩ ⊢V⦂ ``(payload op')) → 
+                      (M : Γ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o' , i')) →
+                      (N : Γ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)) →
+                      --------------------------------------------
+                      (promise op ∣ p ↦ M `in (↑ op' q V N))
+                      ↝
+                      ↑ op' q (strengthen-val {Δ = X ∷ₗ []} V) (promise op ∣ p ↦ M `in N)
 
     ↓-return        : {X : VType}
                       {o : O}
