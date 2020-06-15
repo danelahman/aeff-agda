@@ -1178,7 +1178,7 @@ mutual
 
 -- ENVELOPING THE EFFECT ANNOTATION REDUCTION WITH MLTIPLE INTERRUPT ACTIONS
 
-{- LEMMA 4.6 -}
+{- LEMMA 4.5 -}
 
 ↓↓ₑ-⊑ₒ-act : {o : O}
              {i : I} → 
