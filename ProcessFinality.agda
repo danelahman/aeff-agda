@@ -217,19 +217,20 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
   context (↓ _ _ _) ([]↝↝-to-[]↝ r)
 
 
-≡-app₂ : {X Y Z : Set}
-         {f g : X → Y → Z} →
+≡-app₂ : {X : Set}
+         {Y Z : X → Set}
+         {f g : (x : X) → Y x → Z x} →
          f ≡ g →
          (x : X) →
-         (y : Y) → 
+         (y : Y x) → 
          ---------------
          f x y ≡ g x y
         
 ≡-app₂ refl x y =
   refl
 
-postulate
-  []↝-context-to-[]↝↝-aux : {Γ : Ctx}
+
+[]↝-context-to-[]↝↝-aux : {Γ : Ctx}
                           {o o' : O}
                           {op : Σₛ}
                           {p : op ∈ₒ o}
@@ -240,33 +241,9 @@ postulate
                           ----------------------------------------------------------
                           ⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r))) op p ≡ ⇝-f-∈ₒ F r op p
 
---[]↝-context-to-[]↝↝-aux {Γ} {o} {o'} {op} {p} F r =
---  ≡-app₂ (⊑ₒ-irrelevant (⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r)) op p
+[]↝-context-to-[]↝↝-aux {Γ} {o} {o'} {op} {p} F r =
+  ≡-app₂ (⊑ₒ-irrelevant (⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r)) op p
 
-{-
-
-  Agda bug?
-
-  We have
-
-  ⊑ₒ-irrelevant (⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r) 
-
-    : ⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r))) ≡ ⇝-f-∈ₒ F r
-
-  But typechecking
-
-    ≡-app₂ (⊑ₒ-irrelevant (⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r)) op p
-
-  gives the following error:
-
-  Cannot instantiate the metavariable _1131 to solution op₁ ∈ₒ o
-  since it contains the variable op₁
-  which is not in scope of the metavariable
-  when checking that the expression
-  ⊑ₒ-irrelevant {p = ⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))} {q = ⇝-f-∈ₒ F r} 
-  has type _f_1133 ≡ _g_1134
-
--}
 
 mutual
 
