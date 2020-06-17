@@ -23,3 +23,7 @@
 - `ProcessPreservation.agda` - small-step operational semantics for processes (also serves as a preservation proof)
 
 - `ProcessProgress.agda` - proof of progress for the small-step operational semantics of processes
+
+- `Finality.agda` - proof that the result forms of computations are final, i.e., they do not reduce further
+
+- `ProcessFinality.agda` - proof that the result forms of processes are final, i.e., they do not reduce further
