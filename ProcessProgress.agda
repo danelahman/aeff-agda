@@ -84,10 +84,10 @@ proc-progress (run {X} {o} {i} M) with progress M
   inj₁ (_ , _ , _ , _ , ↑ p V Q)
 proc-progress (P ∥ Q) with proc-progress P
 ... | inj₁ (o' , PP' , r , P' , r') =
-  inj₁ (_ , _ , _ , _ , context {F = [-] ∥ₗ Q} r')
+  inj₁ (_ , _ , _ , _ , context ([-] ∥ₗ Q) r')
 ... | inj₂ R with proc-progress Q
 ... | inj₁ (o' , QQ' , r , Q' , r') =
-  inj₁ (_ , _ , _ , _ , context {F = P ∥ᵣ [-]} r')
+  inj₁ (_ , _ , _ , _ , context (P ∥ᵣ [-]) r')
 proc-progress (P ∥ Q) | inj₂ (proc R) | inj₂ (proc R') =
   inj₂ (proc (par R R'))
 proc-progress (P ∥ .(↑ _ _ _ _)) | inj₂ R | inj₂ (signal {_} {_} {_} {p} {V} {Q} R') =
@@ -96,12 +96,12 @@ proc-progress (.(↑ _ _ _ _) ∥ Q) | inj₂ (signal {_} {_} {_} {p} {V} {P} R)
   inj₁ (_ , _ , _ , _ , ↑-∥ₗ p V P Q)
 proc-progress (↑ op p V P) with proc-progress P
 ... | inj₁ (o' , PP' , r , P' , r') =
-  inj₁ (_ , _ , _ , _ , context {F = ↑ op p V [-]} r')
+  inj₁ (_ , _ , _ , _ , context (↑ op p V [-]) r')
 ... | inj₂ R =
   inj₂ (signal R)
 proc-progress (↓ op V P) with proc-progress P
 ... | inj₁ (o' , OO' , r , P' , r') =
-  inj₁ (_ , _ , _ , _ , context {F = ↓ op V [-]} r')
+  inj₁ (_ , _ , _ , _ , context (↓ op V [-]) r')
 ... | inj₂ (proc (run {_} {_} {_} {M} R)) =
   inj₁ (_ , _ , _ , _ , ↓-run V M)
 ... | inj₂ (proc (par {_} {_} {_} {_} {Q} {Q'} R R')) =

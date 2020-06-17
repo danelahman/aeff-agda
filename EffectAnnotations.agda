@@ -14,6 +14,7 @@ open import Relation.Nullary.Negation
 module EffectAnnotations where
 
 open import Axiom.Extensionality.Propositional
+open import Axiom.UniquenessOfIdentityProofs
 
 
 -- ASSUMING FUNCTION EXTENSIONALITY
@@ -250,6 +251,36 @@ data _⊑ᵢ_ (i i' : I) : Set where
     ⊑ᵢ-trans-aux o j op (o' , j' , r' , s , t) =
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
 
+
+-- SUBTYPING RELATION IS PROOF-IRRELEVANT
+
+≡-uip : {X : Set}
+        {x x' : X} →
+        (p q : x ≡ x') →
+        ----------------
+        p ≡ q
+
+≡-uip refl refl = refl
+
+
+⊑ₒ-irrelevant : {o o' : O}
+                (p q : o ⊑ₒ o') →
+                -----------------
+                p ≡ q
+
+⊑ₒ-irrelevant {omap o} {omap o'} p q =
+  fun-ext (λ op → fun-ext (λ r → ⊑ₒ-irrelevant-aux r))
+  
+  where
+
+    ⊑ₒ-irrelevant-aux : {op : Σₛ} →
+                        (r : op ∈ₒ (omap o)) →
+                        ----------------------
+                        p op r ≡ q op r
+
+    ⊑ₒ-irrelevant-aux {op} r with p op r | q op r
+    ... | s | t = ≡-uip s t
+    
 
 -- LEFT UNIT FOR UNIONS OF EFFECT ANNOTATIONS
 

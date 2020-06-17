@@ -383,7 +383,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
            [ par (⇝-↓ {op = op}) ⇝-refl ]↝
            ↑ op (∪ₒ-inr op p) V (↓ op V P ∥ Q)
 
-  -- INTERRUPT RULES
+  -- INTERRUPT PROPAGATION RULES
 
   ↓-run : {X : VType}
           {o : O}
@@ -421,7 +421,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           [ ⇝-refl ]↝
           ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
 
-  -- HOISTING RULE
+  -- SIGNAL HOISTING RULE
 
   ↑     : {X : VType}
           {o : O}
@@ -435,17 +435,17 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
           [ id ]↝
           ↑ op p V (run M)
 
-  -- CONTEXT RULE
+  -- EVALUATION CONTEXT RULE
 
   context : {o o' : O}
             {PP : PType o}
             {QQ : PType o'}
-            {F : Γ ⊢F⦂ PP}
+            (F : Γ ⊢F⦂ PP) →
             {P : Γ ⊢P⦂ proj₂ (hole-ty-f F)}
             {Q : Γ ⊢P⦂ QQ}
-            {p : proj₂ (hole-ty-f F) ⇝ QQ} → 
-            P [ p ]↝ Q →
+            {r : proj₂ (hole-ty-f F) ⇝ QQ} → 
+            P [ r ]↝ Q →
             -----------------------------------------------------------------------------
             F [ P ]f
-            [ proj₂ (proj₂ (⇝-f-⇝ F p)) ]↝
-            (⇝-f F p) [ subst-i PType (λ o QQ → Γ ⊢P⦂ QQ) (⇝-f-tyₒ F p) (⇝-f-ty F p) Q ]f
+            [ proj₂ (proj₂ (⇝-f-⇝ F r)) ]↝
+            (⇝-f F r) [ subst-i PType (λ o QQ → Γ ⊢P⦂ QQ) (⇝-f-tyₒ F r) (⇝-f-ty F r) Q ]f
