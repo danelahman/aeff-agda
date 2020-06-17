@@ -29,7 +29,7 @@ data ParResult⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            {o : O}
            {i : I} → 
            {M : [] ⊢M⦂ X ! (o , i)} →
-           CompResult⟨ [] ∣ M ⟩ →
+           RunResult⟨ [] ∣ M ⟩ →
            --------------------------
            ParResult⟨ run M ⟩
 
@@ -43,14 +43,14 @@ data ParResult⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            ------------------
            ParResult⟨ P ∥ Q ⟩
 
-data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
+data ProcResult⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
 
   proc   : {o : O}
            {PP : PType o}
            {P : [] ⊢P⦂ PP} →
            ParResult⟨ P ⟩ →
            -----------------
-           Result⟨ P ⟩
+           ProcResult⟨ P ⟩
 
   signal : {o : O}
            {PP : PType o}
@@ -58,9 +58,9 @@ data Result⟨_⟩ : {o : O} {PP : PType o} → [] ⊢P⦂ PP → Set where
            {p : op ∈ₒ o}
            {V : [] ⊢V⦂ ``(payload op)}
            {P : [] ⊢P⦂ PP} →
-           Result⟨ P ⟩ →
+           ProcResult⟨ P ⟩ →
            ---------------------------
-           Result⟨ ↑ op p V P ⟩
+           ProcResult⟨ ↑ op p V P ⟩
 
 
 -- PROGRESS THEOREM FOR PROCESSES
@@ -73,7 +73,7 @@ proc-progress : {o : O}
                 -------------------------------------------------------------------------------
                 (Σ[ o' ∈ O ] Σ[ QQ ∈ PType o' ] Σ[ r ∈ PP ⇝ QQ ] Σ[ Q ∈ [] ⊢P⦂ QQ ] (P [ r ]↝ Q)
                  ⊎
-                 Result⟨ P ⟩)
+                 ProcResult⟨ P ⟩)
 
 proc-progress (run {X} {o} {i} M) with progress M
 ... | inj₁ (M' , r) =

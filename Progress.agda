@@ -27,14 +27,14 @@ module Progress where
 
 -- RESULTS
 
-data CompResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where
+data RunResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where
 
   return   : {X : VType}
              {o : O}
              {i : I}
              (V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ X) →
              ------------------------------------------
-             CompResult⟨ Γ ∣ return {o = o} {i = i} V ⟩
+             RunResult⟨ Γ ∣ return {o = o} {i = i} V ⟩
 
   promise  : {X Y : VType}
              {o o' : O}
@@ -43,9 +43,9 @@ data CompResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂
              {p : lkpᵢ op i ≡ just (o' , i')}
              {M : ⟨⟨ Γ ⟩⟩ ∷ ``(payload op) ⊢M⦂ ⟨ X ⟩ ! (o' , i')}
              {N : ⟨⟨ Γ ⟩⟩ ∷ ⟨ X ⟩ ⊢M⦂ Y ! (o , i)} →
-             CompResult⟨ Γ ∷ X ∣ N ⟩ →
+             RunResult⟨ Γ ∷ X ∣ N ⟩ →
              ----------------------------------------------------
-             CompResult⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
+             RunResult⟨ Γ ∣ promise op ∣ p ↦ M `in N ⟩
 
   awaiting : {C : CType}
              {Y : VType}
@@ -53,15 +53,15 @@ data CompResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂
              {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
              y ⧗ M →
              ---------------------
-             CompResult⟨ Γ ∣ M ⟩
+             RunResult⟨ Γ ∣ M ⟩
 
-data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where
+data CompResult⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C → Set where
 
   comp   : {C : CType}
            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} →
-           CompResult⟨ Γ ∣ M ⟩ →
+           RunResult⟨ Γ ∣ M ⟩ →
            ---------------------
-           Result⟨ Γ ∣ M ⟩
+           CompResult⟨ Γ ∣ M ⟩
 
   signal : {X : VType}
            {o : O}
@@ -70,9 +70,9 @@ data Result⟨_∣_⟩ (Γ : Ctx) : {C : CType} → ⟨⟨ Γ ⟩⟩ ⊢M⦂ C �
            {p : op ∈ₒ o}
            {V : ⟨⟨ Γ ⟩⟩ ⊢V⦂ ``(payload op)}
            {M : ⟨⟨ Γ ⟩⟩ ⊢M⦂ X ! (o , i)} →
-           Result⟨ Γ ∣ M ⟩ →
+           CompResult⟨ Γ ∣ M ⟩ →
            --------------------------------
-           Result⟨ Γ ∣ ↑ op p V M ⟩
+           CompResult⟨ Γ ∣ ↑ op p V M ⟩
 
 
 -- PROGRESS THEOREM FOR PROMISE-OPEN COMPUTATIONS
@@ -90,7 +90,7 @@ progress : {Γ : Ctx}
            -------------------------------
            (Σ[ N ∈ ⟨⟨ Γ ⟩⟩ ⊢M⦂ C ] (M ↝ N)
             ⊎
-            Result⟨ Γ ∣ M ⟩)
+            CompResult⟨ Γ ∣ M ⟩)
 
 progress (return V) =
   inj₂ (comp (return V))
@@ -163,7 +163,7 @@ closed-progress : {C : CType} →
                   --------------------------
                   (Σ[ N ∈ [] ⊢M⦂ C ] (M ↝ N)
                    ⊎
-                   Result⟨ [] ∣ M ⟩)
+                   CompResult⟨ [] ∣ M ⟩)
 
 closed-progress M =
   progress M
