@@ -513,55 +513,55 @@ run-let-promise-⊥ : {Γ : Ctx}
 
 run-let-promise-⊥ (awaiting (let-in ()))
 
-run-finality↝↝ : {Γ : Ctx}
-                 {C : CType}
-                 {M N : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
-                 RunResult⟨ Γ ∣ M ⟩ →
-                 M ↝↝ N →
-                 -----------------------
-                 ⊥
-
-run-finality↝↝ (awaiting ()) (apply M V)
-run-finality↝↝ R (let-return V N) =
-  run-let-return-⊥ R
-run-finality↝↝ R (let-↑ p V M N) =
-  run-↑-⊥ (run-invert-let R)
-run-finality↝↝ R (let-promise p M₁ M₂ N) =
-  run-let-promise-⊥ R
-run-finality↝↝ (awaiting ()) (letrec-unfold M N)
-run-finality↝↝ (promise (awaiting ())) (promise-↑ p q V M N)
-run-finality↝↝ (awaiting (interrupt ())) (↓-return V W)
-run-finality↝↝ (awaiting (interrupt ())) (↓-↑ p V W M)
-run-finality↝↝ (awaiting (interrupt ())) (↓-promise-op p V M N)
-run-finality↝↝ (awaiting (interrupt ())) (↓-promise-op' p q V M N)
-run-finality↝↝ (awaiting ()) (await-promise V M)
-run-finality↝↝ R (context-let r) =
-  run-finality↝↝ (run-invert-let R) r
-run-finality↝↝ R (context-↑ r) =
-  run-↑-⊥ R
-run-finality↝↝ R (context-↓ r) =
-  run-finality↝↝ (run-invert-↓ R) r
-run-finality↝↝ R (context-promise r) =
-  run-finality↝↝ (run-invert-promise R) r
-run-finality↝↝ R (context-coerce r) =
-  run-finality↝↝ (run-invert-coerce R) r
-run-finality↝↝ (awaiting (coerce ())) (coerce-return V)
-run-finality↝↝ (awaiting (coerce ())) (coerce-↑ p V M)
-run-finality↝↝ (awaiting (coerce ())) (coerce-promise p M N)
-
-
-comp-finality↝↝ : {Γ : Ctx}
+run-finality-↝↝ : {Γ : Ctx}
                   {C : CType}
                   {M N : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
-                  CompResult⟨ Γ ∣ M ⟩ →
+                  RunResult⟨ Γ ∣ M ⟩ →
                   M ↝↝ N →
                   -----------------------
                   ⊥
 
-comp-finality↝↝ (comp R) r =
-  run-finality↝↝ R r
-comp-finality↝↝ (signal R) (context-↑ r) =
-  comp-finality↝↝ R r
+run-finality-↝↝ (awaiting ()) (apply M V)
+run-finality-↝↝ R (let-return V N) =
+  run-let-return-⊥ R
+run-finality-↝↝ R (let-↑ p V M N) =
+  run-↑-⊥ (run-invert-let R)
+run-finality-↝↝ R (let-promise p M₁ M₂ N) =
+  run-let-promise-⊥ R
+run-finality-↝↝ (awaiting ()) (letrec-unfold M N)
+run-finality-↝↝ (promise (awaiting ())) (promise-↑ p q V M N)
+run-finality-↝↝ (awaiting (interrupt ())) (↓-return V W)
+run-finality-↝↝ (awaiting (interrupt ())) (↓-↑ p V W M)
+run-finality-↝↝ (awaiting (interrupt ())) (↓-promise-op p V M N)
+run-finality-↝↝ (awaiting (interrupt ())) (↓-promise-op' p q V M N)
+run-finality-↝↝ (awaiting ()) (await-promise V M)
+run-finality-↝↝ R (context-let r) =
+  run-finality-↝↝ (run-invert-let R) r
+run-finality-↝↝ R (context-↑ r) =
+  run-↑-⊥ R
+run-finality-↝↝ R (context-↓ r) =
+  run-finality-↝↝ (run-invert-↓ R) r
+run-finality-↝↝ R (context-promise r) =
+  run-finality-↝↝ (run-invert-promise R) r
+run-finality-↝↝ R (context-coerce r) =
+  run-finality-↝↝ (run-invert-coerce R) r
+run-finality-↝↝ (awaiting (coerce ())) (coerce-return V)
+run-finality-↝↝ (awaiting (coerce ())) (coerce-↑ p V M)
+run-finality-↝↝ (awaiting (coerce ())) (coerce-promise p M N)
+
+
+comp-finality-↝↝ : {Γ : Ctx}
+                   {C : CType}
+                   {M N : ⟨⟨ Γ ⟩⟩ ⊢M⦂ C} → 
+                   CompResult⟨ Γ ∣ M ⟩ →
+                   M ↝↝ N →
+                   -----------------------
+                   ⊥
+
+comp-finality-↝↝ (comp R) r =
+  run-finality-↝↝ R r
+comp-finality-↝↝ (signal R) (context-↑ r) =
+  comp-finality-↝↝ R r
 
 
 {- LEMMA 3.2 -}
@@ -575,4 +575,4 @@ comp-finality : {Γ : Ctx}
                 ⊥
 
 comp-finality R r =
-  comp-finality↝↝ R (↝-to-↝↝ r)
+  comp-finality-↝↝ R (↝-to-↝↝ r)

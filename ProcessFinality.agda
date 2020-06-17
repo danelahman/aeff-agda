@@ -328,28 +328,28 @@ mutual
 
 -- FINALITY OF RESULT FORMS
 
-par-finality↝↝ : {o o' : O}
-                 {PP : PType o}
-                 {QQ : PType o'}
-                 {P : [] ⊢P⦂ PP} → 
-                 {Q : [] ⊢P⦂ QQ} → 
-                 ParResult⟨ P ⟩ →
-                 (r : PP ⇝ QQ) →
-                 P [ r ]↝↝ Q →
-                 -----------------
-                 ⊥
+par-finality-↝↝ : {o o' : O}
+                  {PP : PType o}
+                  {QQ : PType o'}
+                  {P : [] ⊢P⦂ PP} → 
+                  {Q : [] ⊢P⦂ QQ} → 
+                  ParResult⟨ P ⟩ →
+                  (r : PP ⇝ QQ) →
+                  P [ r ]↝↝ Q →
+                  -----------------
+                  ⊥
 
-par-finality↝↝ (run R) .id (run r) =
-  run-finality↝↝ R r 
-par-finality↝↝ (run R) .id (↑ p V M) =
+par-finality-↝↝ (run R) .id (run r) =
+  run-finality-↝↝ R r 
+par-finality-↝↝ (run R) .id (↑ p V M) =
   run-↑-⊥ R
-par-finality↝↝ (par R S) .(par _ ⇝-refl) (context-∥ₗ r') =
-  par-finality↝↝ R _ r'
-par-finality↝↝ (par R S) .(par ⇝-refl _) (context-∥ᵣ r') =
-  par-finality↝↝ S _ r'
+par-finality-↝↝ (par R S) .(par _ ⇝-refl) (context-∥ₗ r') =
+  par-finality-↝↝ R _ r'
+par-finality-↝↝ (par R S) .(par ⇝-refl _) (context-∥ᵣ r') =
+  par-finality-↝↝ S _ r'
 
 
-proc-finality↝↝ : {o o' : O}
+proc-finality-↝↝ : {o o' : O}
                   {PP : PType o}
                   {QQ : PType o'}
                   {P : [] ⊢P⦂ PP} → 
@@ -360,7 +360,24 @@ proc-finality↝↝ : {o o' : O}
                   -----------------
                   ⊥
 
-proc-finality↝↝ (proc R) r r' =
-  par-finality↝↝ R r r'
-proc-finality↝↝ (signal R) r (context-↑ r') =
-  proc-finality↝↝ R r r'
+proc-finality-↝↝ (proc R) r r' =
+  par-finality-↝↝ R r r'
+proc-finality-↝↝ (signal R) r (context-↑ r') =
+  proc-finality-↝↝ R r r'
+
+
+{- LEMMA 4.2 -}
+
+proc-finality : {o o' : O}
+                {PP : PType o}
+                {QQ : PType o'}
+                {P : [] ⊢P⦂ PP} → 
+                {Q : [] ⊢P⦂ QQ} → 
+                ProcResult⟨ P ⟩ →
+                (r : PP ⇝ QQ) →
+                P [ r ]↝ Q →
+                -----------------
+                ⊥
+
+proc-finality R r r' =
+  proc-finality-↝↝ R r ([]↝-to-[]↝↝ r')
