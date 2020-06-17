@@ -324,18 +324,6 @@ mutual
                       --------------------------------
                       coerce p q (return V) ↝ return V
 
-    coerce-let      : {X Y : VType}
-                      {o o' : O}
-                      {i i' : I}
-                      {p : o ⊑ₒ o'}
-                      {q : i ⊑ᵢ i'} →
-                      (M : Γ ⊢M⦂ X ! (o , i)) →
-                      (N : Γ ∷ X ⊢M⦂ Y ! (o , i)) →
-                      ----------------------------------------
-                      coerce p q (let= M `in N)
-                      ↝
-                      let= (coerce p q M) `in (coerce p q N)
-
     coerce-↑        : {X : VType}
                       {o o' : O}
                       {i i' : I}
@@ -368,16 +356,3 @@ mutual
                                        (lkpᵢ-next-eq q r)
                                        (coerce (lkpᵢ-next-⊑ₒ q r) (lkpᵢ-next-⊑ᵢ q r) M)
                                        (coerce p q N)
-
-    coerce-coerce   : {X : VType}
-                      {o o' o'' : O}
-                      {i i' i'' : I}
-                      {p : o ⊑ₒ o'}
-                      {p' : o' ⊑ₒ o''}
-                      {q : i ⊑ᵢ i'}
-                      {q' : i' ⊑ᵢ i''} →
-                      (M : Γ ⊢M⦂ X ! (o , i)) →
-                      ----------------------------------------
-                      coerce p' q' (coerce p q M)
-                      ↝
-                      coerce (⊑ₒ-trans p p') (⊑ᵢ-trans q q') M
