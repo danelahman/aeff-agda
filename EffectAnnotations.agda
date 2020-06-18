@@ -21,6 +21,7 @@ open import Axiom.UniquenessOfIdentityProofs
 
 postulate
   fun-ext : ∀ {a b} → Extensionality a b
+  ifun-ext : ∀ {a b} → ExtensionalityImplicit a b
 
 
 -- SIGNAL AND INTERRUPT NAMES
@@ -252,7 +253,7 @@ data _⊑ᵢ_ (i i' : I) : Set where
       ⊑ᵢ-trans-aux' o j op o' j' r' s t (q op r')
 
 
--- SUBTYPING RELATION IS PROOF-IRRELEVANT
+-- SUBTYPING RELATIONS ARE PROOF-IRRELEVANT
 
 ≡-uip : {X : Set}
         {x x' : X} →
@@ -280,7 +281,32 @@ data _⊑ᵢ_ (i i' : I) : Set where
 
     ⊑ₒ-irrelevant-aux {op} r with p op r | q op r
     ... | s | t = ≡-uip s t
-    
+
+
+⊑ᵢ-irrelevant : {i i' : I}
+                (p q : i ⊑ᵢ i') →
+                -----------------
+                p ≡ q
+
+⊑ᵢ-irrelevant {imap i} {imap i'} (rel p) (rel q) =
+  cong (λ r → rel r) (fun-ext (λ op → ifun-ext (λ {o''} → ifun-ext (λ {i''} → fun-ext (λ r → ⊑ᵢ-irrelevant-aux r)))))
+
+  where
+
+    ⊑ᵢ-irrelevant-aux : {op : Σₛ}
+                        {o'' : O}
+                        {i'' : I} →
+                        (r : i op ≡ just (o'' , i'')) →
+                        -------------------------------
+                        p op r ≡ q op r
+
+    ⊑ᵢ-irrelevant-aux {op} r with p op r | q op r
+    ... | o''' , i''' , s , s' , s'' | o'''' , i'''' , t , t' , t'' with trans (sym s) t
+    ... | refl with ⊑ₒ-irrelevant s' t'
+    ... | refl with ⊑ᵢ-irrelevant s'' t''
+    ... | refl with ≡-uip s t
+    ... | refl = refl
+
 
 -- LEFT UNIT FOR UNIONS OF EFFECT ANNOTATIONS
 
