@@ -63,36 +63,36 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 
 {- LEMMA 4.4 (2) -}
 
-⇝-↓ : {o : O}
-      {PP : PType o}
-      {op : Σₛ} →
-      --------------
-      PP ⇝ op ↓ₚ PP
+⇝-↓ₚ : {o : O}
+       {PP : PType o}
+       {op : Σₛ} →
+       --------------
+       PP ⇝ op ↓ₚ PP
 
-⇝-↓ {.o} {X ‼ o , i} {op} =
+⇝-↓ₚ {.o} {X ‼ o , i} {op} =
   act [] op refl refl
-⇝-↓ {.(_ ∪ₒ _)} {PP ∥ QQ} {op} =
-  par ⇝-↓ ⇝-↓
+⇝-↓ₚ {.(_ ∪ₒ _)} {PP ∥ QQ} {op} =
+  par ⇝-↓ₚ ⇝-↓ₚ
 
 
 -- ACTION OF INTERRUPTS PRESERVES PROCESS TYPE REDUCTION
 
 {- LEMMA 4.4 (3) -}
 
-⇝-↓ₚ : {o o' : O}
-       {PP : PType o}
-       {QQ : PType o'}
-       {op : Σₛ} →
-       PP ⇝ QQ → 
-       --------------------
-       op ↓ₚ PP ⇝ op ↓ₚ QQ
+⇝-↓ₚ-cong : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'}
+            {op : Σₛ} →
+            PP ⇝ QQ → 
+            --------------------
+            op ↓ₚ PP ⇝ op ↓ₚ QQ
 
-⇝-↓ₚ id =
+⇝-↓ₚ-cong id =
   id
-⇝-↓ₚ {_} {_} {_} {_} {op} (act {_} {o} {o'} {o''} {i} {i'} {i''} ops op' p q) =
+⇝-↓ₚ-cong {_} {_} {_} {_} {op} (act {_} {o} {o'} {o''} {i} {i'} {i''} ops op' p q) =
   act {o = o} {i = i} (op ∷ₗ ops) op' (cong (λ oi → op ↓ₑ oi) p) (cong (λ oi → op ↓ₑ oi) q) 
-⇝-↓ₚ (par p q) =
-  par (⇝-↓ₚ p) (⇝-↓ₚ q)
+⇝-↓ₚ-cong (par p q) =
+  par (⇝-↓ₚ-cong p) (⇝-↓ₚ-cong q)
 
 
 -- PROCESS TYPE REDUCTION INCREASES SIGNAL INDEX
@@ -102,16 +102,16 @@ data _⇝_ : {o o' : O} → PType o → PType o' → Set where
 inj-proj₁ : {X Y : Set} {xy xy' : X × Y} → xy ≡ xy' → proj₁ xy ≡ proj₁ xy'
 inj-proj₁ refl = refl
 
-⇝-↓ₚ-⊑ₒ : {o o' : O}
-          {PP : PType o}
-          {QQ : PType o'} →
-          PP ⇝ QQ →
-          ------------------
-          o ⊑ₒ o'
+⇝-⊑ₒ : {o o' : O}
+       {PP : PType o}
+       {QQ : PType o'} →
+       PP ⇝ QQ →
+       ------------------
+       o ⊑ₒ o'
 
-⇝-↓ₚ-⊑ₒ id =
+⇝-⊑ₒ id =
   ⊑ₒ-refl
-⇝-↓ₚ-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
+⇝-⊑ₒ (act {_} {o} {o'} {o''} {i} ops op p q) with inj-proj₁ p | inj-proj₁ q
 ... | r | s = 
   subst (λ o → o ⊑ₒ o'')
         (sym r)
@@ -120,8 +120,8 @@ inj-proj₁ refl = refl
                (subst (λ v → proj₁ (ops ↓↓ₑ (o , i)) ⊑ₒ proj₁ v)
                       (sym (↓↓ₑ-act ops [ op ]ₗ))
                       (↓↓ₑ-⊑ₒ-act ops op)))
-⇝-↓ₚ-⊑ₒ (par p q) =
-  ∪ₒ-fun (⇝-↓ₚ-⊑ₒ p) (⇝-↓ₚ-⊑ₒ q)
+⇝-⊑ₒ (par p q) =
+  ∪ₒ-fun (⇝-⊑ₒ p) (⇝-⊑ₒ q)
 
 
 -- EVALUATION CONTEXTS FOR PROCESSES
@@ -203,8 +203,6 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
 
 -- TYPES OF WELL-TYPED PROCESS EVALUATION CONTEXTS ALSO REDUCE
 
-{- LEMMA 4.6 -}
-
 ⇝-f-⇝ : {Γ : Ctx}
         {o o' : O}
         {PP : PType o}
@@ -227,7 +225,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
   o'' , RR , r
 ⇝-f-⇝ (↓ op V F) p with ⇝-f-⇝ F p
 ... | o'' , RR , q =
-  proj₁ (op ↓ₚₚ RR) , (op ↓ₚ RR) , ⇝-↓ₚ q
+  proj₁ (op ↓ₚₚ RR) , (op ↓ₚ RR) , ⇝-↓ₚ-cong q
 
 
 ⇝-f-∈ₒ : {Γ : Ctx}
@@ -240,7 +238,7 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
          o ⊑ₒ proj₁ (⇝-f-⇝ F p)
 
 ⇝-f-∈ₒ [-] p =
-  ⇝-↓ₚ-⊑ₒ p
+  ⇝-⊑ₒ p
 ⇝-f-∈ₒ (F ∥ₗ Q) p =
   ∪ₒ-fun (⇝-f-∈ₒ F p) ⊑ₒ-refl
 ⇝-f-∈ₒ (P ∥ᵣ F) p =
@@ -257,8 +255,9 @@ _[_]f : {Γ : Ctx} {o : O} {PP : PType o} → (F : Γ ⊢F⦂ PP) → (P : Γ �
                  proj₁ (op ↓ₚₚ PP) ⊑ₒ proj₁ (op ↓ₚₚ proj₁ (proj₂ orp))
 
     ⇝-f-∈ₒ-aux (o'' , RR , r) q =
-      ⇝-↓ₚ-⊑ₒ (⇝-↓ₚ r)
+      ⇝-⊑ₒ (⇝-↓ₚ-cong r)
 
+{- LEMMA 4.6 -}
 
 ⇝-f : {Γ : Ctx}
       {o o' : O} 
@@ -347,93 +346,93 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
 
   -- RUNNING INDIVIDUAL COMPUTATIONS
 
-  run   : {X : VType}
-          {o : O}
-          {i : I}
-          {M N : Γ ⊢M⦂ X ! (o , i)} → 
-          M ↝ N →
-          ---------------------------
-          (run M) [ id ]↝ (run N)
+  run     : {X : VType}
+            {o : O}
+            {i : I}
+            {M N : Γ ⊢M⦂ X ! (o , i)} → 
+            M ↝ N →
+            ---------------------------
+            (run M) [ id ]↝ (run N)
 
   -- BROADCAST RULES
 
-  ↑-∥ₗ   : {o o' : O}
-           {PP : PType o}
-           {QQ : PType o'}
-           {op : Σₛ} → 
-           (p : op ∈ₒ o) →
-           (V : Γ ⊢V⦂ `` (payload op)) →
-           (P : Γ ⊢P⦂ PP) →
-           (Q : Γ ⊢P⦂ QQ) →
-           ------------------------------------------
-           ((↑ op p V P) ∥ Q)
-           [ par ⇝-refl (⇝-↓ {op = op}) ]↝
-           ↑ op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
+  ↑-∥ₗ    : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'}
+            {op : Σₛ} → 
+            (p : op ∈ₒ o) →
+            (V : Γ ⊢V⦂ `` (payload op)) →
+            (P : Γ ⊢P⦂ PP) →
+            (Q : Γ ⊢P⦂ QQ) →
+            ------------------------------------------
+            ((↑ op p V P) ∥ Q)
+            [ par ⇝-refl (⇝-↓ₚ {op = op}) ]↝
+            ↑ op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
 
-  ↑-∥ᵣ   : {o o' : O}
-           {PP : PType o}
-           {QQ : PType o'}
-           {op : Σₛ} → 
-           (p : op ∈ₒ o') →
-           (V : Γ ⊢V⦂ `` (payload op)) →
-           (P : Γ ⊢P⦂ PP) →
-           (Q : Γ ⊢P⦂ QQ) →
-           ------------------------------------------
-           (P ∥ (↑ op p V Q))
-           [ par (⇝-↓ {op = op}) ⇝-refl ]↝
-           ↑ op (∪ₒ-inr op p) V (↓ op V P ∥ Q)
+  ↑-∥ᵣ    : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'}
+            {op : Σₛ} → 
+            (p : op ∈ₒ o') →
+            (V : Γ ⊢V⦂ `` (payload op)) →
+            (P : Γ ⊢P⦂ PP) →
+            (Q : Γ ⊢P⦂ QQ) →
+            ------------------------------------------
+            (P ∥ (↑ op p V Q))
+            [ par (⇝-↓ₚ {op = op}) ⇝-refl ]↝
+            ↑ op (∪ₒ-inr op p) V (↓ op V P ∥ Q)
 
   -- INTERRUPT PROPAGATION RULES
 
-  ↓-run : {X : VType}
-          {o : O}
-          {i : I}
-          {op : Σₛ} → 
-          (V : Γ ⊢V⦂ `` (payload op)) → 
-          (M : Γ ⊢M⦂ X ! (o , i)) →
-          -----------------------------
-          ↓ op V (run M)
-          [ id ]↝
-          run (↓ op V M)
+  ↓-run   : {X : VType}
+            {o : O}
+            {i : I}
+            {op : Σₛ} → 
+            (V : Γ ⊢V⦂ `` (payload op)) → 
+            (M : Γ ⊢M⦂ X ! (o , i)) →
+            -----------------------------
+            ↓ op V (run M)
+            [ id ]↝
+            run (↓ op V M)
 
-  ↓-∥   : {o o' : O}
-          {PP : PType o}
-          {QQ : PType o'}
-          {op : Σₛ}
-          (V : Γ ⊢V⦂ `` (payload op)) →
-          (P : Γ ⊢P⦂ PP) →
-          (Q : Γ ⊢P⦂ QQ) →
-          -----------------------------
-          ↓ op V (P ∥ Q)
-          [ ⇝-refl ]↝
-          ((↓ op V P) ∥ (↓ op V Q))
+  ↓-∥     : {o o' : O}
+            {PP : PType o}
+            {QQ : PType o'}
+            {op : Σₛ}
+            (V : Γ ⊢V⦂ `` (payload op)) →
+            (P : Γ ⊢P⦂ PP) →
+            (Q : Γ ⊢P⦂ QQ) →
+            -----------------------------
+            ↓ op V (P ∥ Q)
+            [ ⇝-refl ]↝
+            ((↓ op V P) ∥ (↓ op V Q))
 
-  ↓-↑   : {o : O}
-          {PP : PType o}
-          {op : Σₛ}
-          {op' : Σₛ} →
-          (p : op' ∈ₒ o) →
-          (V : Γ ⊢V⦂ ``(payload op)) →
-          (W : Γ ⊢V⦂ ``(payload op')) →
-          (P : Γ ⊢P⦂ PP) →
-          -----------------------------------
-          ↓ op V (↑ op' p W P)
-          [ ⇝-refl ]↝
-          ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
+  ↓-↑     : {o : O}
+            {PP : PType o}
+            {op : Σₛ}
+            {op' : Σₛ} →
+            (p : op' ∈ₒ o) →
+            (V : Γ ⊢V⦂ ``(payload op)) →
+            (W : Γ ⊢V⦂ ``(payload op')) →
+            (P : Γ ⊢P⦂ PP) →
+            -----------------------------------
+            ↓ op V (↑ op' p W P)
+            [ ⇝-refl ]↝
+            ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
 
   -- SIGNAL HOISTING RULE
 
-  ↑     : {X : VType}
-          {o : O}
-          {i : I} → 
-          {op : Σₛ} → 
-          (p : op ∈ₒ o) →
-          (V : Γ ⊢V⦂ `` (payload op)) →
-          (M : Γ ⊢M⦂ X ! (o , i)) →
-          -----------------------------
-          run (↑ op p V M)
-          [ id ]↝
-          ↑ op p V (run M)
+  ↑       : {X : VType}
+            {o : O}
+            {i : I} → 
+            {op : Σₛ} → 
+            (p : op ∈ₒ o) →
+            (V : Γ ⊢V⦂ `` (payload op)) →
+            (M : Γ ⊢M⦂ X ! (o , i)) →
+            -----------------------------
+            run (↑ op p V M)
+            [ id ]↝
+            ↑ op p V (run M)
 
   -- EVALUATION CONTEXT RULE
 

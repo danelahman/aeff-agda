@@ -52,7 +52,7 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
            ((↑ op p V P) ∥ Q)
-           [ par ⇝-refl (⇝-↓ {op = op}) ]↝↝
+           [ par ⇝-refl (⇝-↓ₚ {op = op}) ]↝↝
            ↑ op (∪ₒ-inl op p) V (P ∥ ↓ op V Q)
 
   ↑-∥ᵣ   : {o o' : O}
@@ -65,7 +65,7 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
            (Q : Γ ⊢P⦂ QQ) →
            ------------------------------------------
            (P ∥ (↑ op p V Q))
-           [ par (⇝-↓ {op = op}) ⇝-refl ]↝↝
+           [ par (⇝-↓ₚ {op = op}) ⇝-refl ]↝↝
            ↑ op (∪ₒ-inr op p) V (↓ op V P ∥ Q)
 
   -- INTERRUPT PROPAGATION RULES
@@ -163,7 +163,7 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
               --------------------------
               ↑ op p V P
               [ r ]↝↝
-              ↑ op (⇝-↓ₚ-⊑ₒ r op p) V P'
+              ↑ op (⇝-⊑ₒ r op p) V P'
 
   context-↓ : {o o' : O}
               {PP : PType o}
@@ -176,7 +176,7 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
               P [ r ]↝↝ P' →
               ----------------------
               ↓ op V P
-              [ ⇝-↓ₚ r ]↝↝
+              [ ⇝-↓ₚ-cong r ]↝↝
               ↓ op V P'
 
 
@@ -239,10 +239,10 @@ data _[_]↝↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ �
                           (F : Γ ⊢F⦂ PP) →
                           (r : proj₂ (hole-ty-f F) ⇝ QQ) →
                           ----------------------------------------------------------
-                          ⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r))) op p ≡ ⇝-f-∈ₒ F r op p
+                          ⇝-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r))) op p ≡ ⇝-f-∈ₒ F r op p
 
 []↝-context-to-[]↝↝-aux {Γ} {o} {o'} {op} {p} F r =
-  ≡-app₂ (⊑ₒ-irrelevant (⇝-↓ₚ-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r)) op p
+  ≡-app₂ (⊑ₒ-irrelevant (⇝-⊑ₒ (proj₂ (proj₂ (⇝-f-⇝ F r)))) (⇝-f-∈ₒ F r)) op p
 
 
 mutual
