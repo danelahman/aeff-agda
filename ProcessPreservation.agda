@@ -418,7 +418,7 @@ data _[_]↝_ {Γ : Ctx} : {o o' : O} {PP : PType o} {QQ : PType o'} → Γ ⊢P
             -----------------------------------
             ↓ op V (↑ op' p W P)
             [ ⇝-refl ]↝
-            ↑ op' (↓ₚ-⊑ₒ PP op' p) W (↓ op V P)
+            ↑ op' (↓ₚₚ-⊑ₒ PP op' p) W (↓ op V P)
 
   -- SIGNAL HOISTING RULE
 
