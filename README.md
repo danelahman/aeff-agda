@@ -1,5 +1,8 @@
 # Agda formalisation of the AEff language
 
+**Note:** For the Agda formalisation of a newer version of AEff (extended with reinstallable interrupt handlers, 
+higher-order payloads for signals and interrupts, and dynamic process creation), see [here](https://github.com/danelahman/higher-order-aeff-agda).
+
 - The formalisation has been tested with Agda version 2.6.1 and standard library version 1.3.
 
 - The unicode symbols used in the source code have tested to display correctly with the DejaVu Sans Mono font.
