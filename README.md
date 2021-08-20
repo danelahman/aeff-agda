@@ -30,3 +30,10 @@ higher-order payloads for signals and interrupts, and dynamic process creation),
 - `Finality.agda` - proof that the result forms of computations are final, i.e., they do not reduce further
 
 - `ProcessFinality.agda` - proof that the result forms of processes are final, i.e., they do not reduce further
+
+## Acknowledgements
+
+<table>
+      <tr><td>This project has received funding from the European Union’s Horizon 2020 research and innovation programme under the Marie Skłodowska-Curie grant agreement No 834146.</td><td><img src="https://danel.ahman.ee/images/eu_flag.jpg"></td></tr>
+      <tr><td>This material is based upon work supported by the Air Force Office of Scientific Research under awards number FA9550-17-1-0326 and FA9550-21-1-0024.</td><td></td></tr>
+</table>
